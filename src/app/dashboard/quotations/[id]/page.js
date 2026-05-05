@@ -10,52 +10,56 @@ const fmtINR = n => n ? '₹ ' + new Intl.NumberFormat('en-IN', { minimumFractio
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Barlow+Condensed:wght@600;700&display=swap');
 
-  .qv-root { height: 100vh; background: #a0a8b8; display: flex; flex-direction: column; overflow: hidden; }
+  .qv-root { height: 100vh; background: #f4f5f7; display: flex; flex-direction: column; overflow: hidden; }
 
+  /* ── Clean white top bar ── */
   .qv-bar {
-    position: sticky; top: 0; z-index: 100; height: 54px;
-    background: #0d1828; border-bottom: 1px solid rgba(255,255,255,.07);
-    display: flex; align-items: center; gap: 12px; padding: 0 20px;
+    position: sticky; top: 0; z-index: 100; height: 56px;
+    background: #fff; border-bottom: 1px solid #e5e8ef;
+    box-shadow: 0 1px 4px rgba(0,0,0,.04);
+    display: flex; align-items: center; gap: 10px; padding: 0 20px;
     flex-shrink: 0;
   }
   .qv-bar-back {
-    display: flex; align-items: center; gap: 6px;
-    color: rgba(255,255,255,.38); font-size: 12px; font-weight: 500;
-    font-family: 'DM Sans', sans-serif; text-decoration: none; letter-spacing: .2px;
-    transition: color .15s; cursor: pointer; background: none; border: none; padding: 0;
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 34px; padding: 0 12px; border-radius: 7px;
+    border: 1.5px solid #e2e8f2; background: #fff;
+    color: #64748b; font-size: 12.5px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    transition: all .15s; cursor: pointer;
   }
-  .qv-bar-back:hover { color: rgba(255,255,255,.8); }
-  .qv-bar-dot { width: 1px; height: 22px; background: rgba(255,255,255,.1); }
+  .qv-bar-back:hover { border-color: #94a3c4; color: #1e293b; background: #f8faff; }
+  .qv-bar-dot { width: 1px; height: 20px; background: #e5e8ef; }
   .qv-bar-title {
-    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700;
-    color: rgba(255,255,255,.4); letter-spacing: .2px;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 600;
+    color: #94a3b8; letter-spacing: .1px;
   }
   .qv-bar-name {
-    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700;
-    color: #fff; letter-spacing: .1px;
+    font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 700;
+    color: #1a2230; letter-spacing: .05px;
   }
-  .qv-bar-sep { color: rgba(255,255,255,.2); font-size: 12px; }
+  .qv-bar-sep { color: #c8d0de; font-size: 12px; }
   .qv-bar-space { flex: 1; }
   .qv-bar-chip {
-    background: rgba(26,55,170,.35); border: 1px solid rgba(26,55,170,.5);
-    border-radius: 5px; padding: 2px 8px; font-size: 10.5px; font-weight: 600;
-    color: #7ea8ff; letter-spacing: .3px; font-family: 'Barlow Condensed', sans-serif;
+    background: #eef1fc; border: 1px solid #c7d2f5;
+    border-radius: 5px; padding: 2px 8px; font-size: 10.5px; font-weight: 700;
+    color: #1A37AA; letter-spacing: .3px; font-family: 'Barlow Condensed', sans-serif;
   }
 
   /* share dropdown */
   .qv-share-wrap { position: relative; }
   .qv-share-btn {
-    height: 30px; padding: 0 14px; border-radius: 6px;
-    border: 1px solid rgba(255,255,255,.18); background: rgba(255,255,255,.07);
-    color: rgba(255,255,255,.75); font-size: 12px; font-family: 'DM Sans', sans-serif;
+    height: 34px; padding: 0 14px; border-radius: 7px;
+    border: 1.5px solid #e2e8f2; background: #fff;
+    color: #64748b; font-size: 12.5px; font-family: 'DM Sans', sans-serif;
     font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;
     transition: all .15s;
   }
-  .qv-share-btn:hover { border-color: rgba(255,255,255,.35); background: rgba(255,255,255,.12); color: #fff; }
+  .qv-share-btn:hover { border-color: #94a3c4; color: #1e293b; background: #f8faff; }
   .qv-share-dropdown {
     position: fixed;
     background: #fff; border: 1px solid #e0e8f2; border-radius: 12px; padding: 6px;
-    box-shadow: 0 12px 40px rgba(13,24,40,.22), 0 2px 8px rgba(13,24,40,.08);
+    box-shadow: 0 12px 40px rgba(13,24,40,.14), 0 2px 8px rgba(13,24,40,.06);
     min-width: 200px; z-index: 9999;
     animation: qv-drop-in .18s cubic-bezier(.34,1.3,.64,1) both;
   }
@@ -78,172 +82,125 @@ const CSS = `
   .qv-share-sep { height: 1px; background: #f0f3f8; margin: 4px 6px; }
 
   .qv-close-btn {
-    height: 30px; padding: 0 14px; border-radius: 6px;
-    border: 1px solid rgba(255,255,255,.12); background: transparent;
-    color: rgba(255,255,255,.5); font-size: 12px; font-family: 'DM Sans', sans-serif;
-    font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px;
+    height: 34px; padding: 0 14px; border-radius: 7px;
+    border: 1.5px solid #e2e8f2; background: #fff;
+    color: #64748b; font-size: 12.5px; font-family: 'DM Sans', sans-serif;
+    font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;
     transition: all .15s;
   }
-  .qv-close-btn:hover { border-color: rgba(255,255,255,.3); color: #fff; }
+  .qv-close-btn:hover { border-color: #94a3c4; color: #1e293b; background: #f8faff; }
 
   .qv-iframe-wrap {
-    flex: 1; overflow: auto; background: #a0a8b8;
-    display: flex; justify-content: center; padding: 24px 16px 48px;
+    flex: 1; overflow: auto; background: #f4f5f7;
+    display: flex; justify-content: center; padding: 28px 16px 48px;
   }
   .qv-iframe-wrap iframe {
     border: none; width: 860px; height: 1200px;
     flex-shrink: 0; background: #fff;
-    box-shadow: 0 8px 48px rgba(0,0,0,.35);
+    box-shadow: 0 2px 12px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
   }
+
+  /* ── Body ── */
+  .qv-body { flex: 1; display: flex; overflow: hidden; }
 
   /* ── Audit panel ── */
-  @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=Syne:wght@600;700;800&display=swap');
-
   .qv-audit-panel {
-    flex-shrink: 0; background: #07111e;
-    border-left: 1px solid rgba(99,140,255,.12);
-    display: flex; flex-direction: column; overflow: hidden;
-    transition: width .3s cubic-bezier(.4,0,.2,1);
-    position: relative;
+    flex-shrink: 0;
+    background: #fff;
+    border-left: 1px solid #e4e8f0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    transition: width .22s ease;
+    align-self: stretch;
   }
-  .qv-audit-panel.open   { width: 320px; }
-  .qv-audit-panel.closed { width: 40px; }
+  .qv-audit-panel.open   { width: 288px; }
+  .qv-audit-panel.closed { width: 44px; }
 
-  /* ── Collapsed tab ── */
-  .qv-audit-tab {
-    position: absolute; inset: 0;
-    display: flex; flex-direction: column; align-items: center;
-    justify-content: center; gap: 14px;
-    cursor: pointer; transition: background .15s;
-    z-index: 2;
-  }
-  .qv-audit-tab:hover { background: rgba(99,140,255,.06); }
-  .qv-audit-panel.open .qv-audit-tab { pointer-events: none; opacity: 0; transition: opacity .15s; }
-  .qv-audit-tab-label {
-    writing-mode: vertical-rl; text-orientation: mixed;
-    transform: rotate(180deg);
-    font-family: 'Syne', sans-serif; font-size: 10px; font-weight: 700;
-    letter-spacing: 2px; text-transform: uppercase;
-    color: rgba(255,255,255,.7); white-space: nowrap;
-  }
-  .qv-audit-tab-count {
-    width: 20px; height: 20px; border-radius: 50%;
-    background: rgba(99,140,255,.2); border: 1px solid rgba(99,140,255,.45);
-    font-family: 'IBM Plex Mono', monospace; font-size: 9px; font-weight: 600;
-    color: #fff; display: flex; align-items: center; justify-content: center;
-  }
-
-  /* ── Open panel header ── */
+  /* ── Panel header — always visible ── */
   .qv-audit-head {
-    padding: 0 18px; height: 52px; flex-shrink: 0;
-    border-bottom: 1px solid rgba(99,140,255,.1);
-    display: flex; align-items: center; justify-content: space-between;
-    opacity: 0; pointer-events: none;
-    transition: opacity .2s .05s;
+    height: 48px; flex-shrink: 0;
+    border-bottom: 1px solid #e4e8f0;
+    display: flex; align-items: center;
+    padding: 0 12px; gap: 8px;
+    background: #fff;
   }
-  .qv-audit-panel.open .qv-audit-head { opacity: 1; pointer-events: auto; }
-  .qv-audit-head-left { display: flex; align-items: center; gap: 10px; }
+  .qv-audit-panel.closed .qv-audit-head {
+    justify-content: center;
+    padding: 0;
+    border-bottom: 1px solid #e4e8f0;
+  }
+  .qv-audit-panel.closed .qv-audit-head-left { display: none; }
+  .qv-audit-head-left { display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0; }
   .qv-audit-title {
-    font-family: 'Syne', sans-serif; font-size: 11px; font-weight: 700;
-    color: rgba(255,255,255,.9); letter-spacing: 1.5px; text-transform: uppercase;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+    color: #1a2540; white-space: nowrap;
   }
   .qv-audit-count-pill {
-    font-family: 'IBM Plex Mono', monospace; font-size: 10px; font-weight: 600;
-    color: #fff; background: rgba(99,140,255,.2);
-    border: 1px solid rgba(99,140,255,.4); border-radius: 20px; padding: 1px 8px;
+    font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
+    color: #6b7a99; background: #eef1f8;
+    border-radius: 20px; padding: 2px 8px; white-space: nowrap;
   }
-  .qv-audit-collapse-btn {
-    background: none; border: none; cursor: pointer; padding: 4px;
-    color: rgba(255,255,255,.2); transition: color .15s;
-    display: flex; align-items: center;
+  .qv-audit-toggle-btn {
+    width: 28px; height: 28px; border-radius: 6px;
+    border: 1px solid #e4e8f0; background: #f7f9fc;
+    color: #6b7a99; cursor: pointer; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    transition: background .14s, color .14s, border-color .14s;
   }
-  .qv-audit-collapse-btn:hover { color: rgba(255,255,255,.6); }
+  .qv-audit-toggle-btn:hover { background: #eef1f8; border-color: #c8d0e4; color: #1a2540; }
 
   /* ── Scroll area ── */
   .qv-audit-scroll {
-    flex: 1; overflow-y: auto; padding: 18px 16px 32px;
-    opacity: 0; pointer-events: none;
-    transition: opacity .2s .05s;
-    scrollbar-width: thin; scrollbar-color: rgba(99,140,255,.2) transparent;
+    flex: 1; overflow-y: auto; padding: 14px 12px 24px;
+    scrollbar-width: thin; scrollbar-color: #d0d7e8 transparent;
   }
-  .qv-audit-panel.open .qv-audit-scroll { opacity: 1; pointer-events: auto; }
+  .qv-audit-panel.closed .qv-audit-scroll { display: none; }
   .qv-audit-scroll::-webkit-scrollbar { width: 4px; }
-  .qv-audit-scroll::-webkit-scrollbar-thumb { background: rgba(99,140,255,.2); border-radius: 4px; }
+  .qv-audit-scroll::-webkit-scrollbar-thumb { background: #d0d7e8; border-radius: 4px; }
 
   .qv-audit-empty {
-    text-align: center; padding: 48px 0 32px;
-    font-family: 'DM Sans', sans-serif; font-size: 12px;
-    color: rgba(255,255,255,.45); line-height: 1.8;
+    text-align: center; padding: 40px 8px 24px;
+    font-family: 'Inter', sans-serif; font-size: 12px;
+    color: #9aa3b8; line-height: 1.7;
   }
   .qv-audit-empty-icon {
     width: 36px; height: 36px; border-radius: 10px;
-    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.07);
+    background: #f0f3fa; border: 1px solid #e4e8f0;
     display: flex; align-items: center; justify-content: center;
     margin: 0 auto 12px;
   }
 
   /* ── Date divider ── */
   .qv-date-divider {
-    display: flex; align-items: center; gap: 10px;
-    margin: 22px 0 14px; padding: 0 2px;
+    display: flex; align-items: center; gap: 8px;
+    margin: 18px 0 10px;
   }
   .qv-date-divider:first-child { margin-top: 4px; }
-  .qv-date-divider-line { flex: 1; height: 1px; background: rgba(99,140,255,.1); }
+  .qv-date-divider-line { flex: 1; height: 1px; background: #e8ecf5; }
   .qv-date-divider-chip {
-    font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; font-weight: 600;
-    color: #fff; letter-spacing: .5px;
-    background: rgba(99,140,255,.18); border: 1px solid rgba(99,140,255,.35);
-    border-radius: 20px; padding: 2px 10px; white-space: nowrap;
+    font-family: 'Inter', sans-serif; font-size: 10px; font-weight: 600;
+    color: #8a95b0; white-space: nowrap; letter-spacing: .3px;
   }
 
   /* ── Entry card ── */
   .qv-entry-card {
-    background: rgba(255,255,255,.03); border: 1px solid rgba(255,255,255,.06);
-    border-radius: 10px; padding: 12px 13px 11px;
-    margin-bottom: 8px; position: relative;
-    overflow: hidden;
-    animation: qv-card-in .25s cubic-bezier(.4,0,.2,1) both;
+    background: #f8f9fc; border: 1px solid #e8ecf5;
+    border-radius: 8px; padding: 10px 12px;
+    margin-bottom: 6px; transition: border-color .14s;
   }
+  .qv-entry-card:hover { border-color: #c8d0e4; }
   .qv-entry-card:last-child { margin-bottom: 0; }
-  .qv-entry-card::before {
-    content: ''; position: absolute; left: 0; top: 0; bottom: 0;
-    width: 3px; background: linear-gradient(180deg, #638cff 0%, rgba(99,140,255,.3) 100%);
-    border-radius: 3px 0 0 3px;
-  }
-  .qv-entry-card:nth-child(n+3)::before {
-    background: linear-gradient(180deg, rgba(99,140,255,.4) 0%, rgba(99,140,255,.1) 100%);
-  }
-  @keyframes qv-card-in {
-    from { opacity: 0; transform: translateX(8px); }
-    to   { opacity: 1; transform: translateX(0); }
-  }
   .qv-entry-time {
-    font-family: 'IBM Plex Mono', monospace; font-size: 11px; font-weight: 500;
-    color: #fff; letter-spacing: .3px;
-    margin-bottom: 9px; display: flex; align-items: center; gap: 6px;
+    font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500;
+    color: #8a95b0; margin-bottom: 8px;
   }
-  .qv-entry-time-dot {
-    width: 5px; height: 5px; border-radius: 50%;
-    background: #638cff; flex-shrink: 0;
-    box-shadow: 0 0 6px rgba(99,140,255,.7);
-  }
-  .qv-entry-card:nth-child(n+3) .qv-entry-time-dot {
-    background: rgba(99,140,255,.4);
-    box-shadow: none;
-  }
-  .qv-entry-card:nth-child(n+3) .qv-entry-time { color: rgba(255,255,255,.7); }
-  .qv-entry-tags { display: flex; flex-wrap: wrap; gap: 5px; }
+  .qv-entry-tags { display: flex; flex-wrap: wrap; gap: 4px; }
   .qv-entry-tag {
-    font-family: 'DM Sans', sans-serif; font-size: 10.5px; font-weight: 600;
-    color: rgba(255,255,255,.85); background: rgba(255,255,255,.08);
-    border: 1px solid rgba(255,255,255,.15); border-radius: 5px; padding: 2px 8px;
-    transition: border-color .12s, color .12s;
+    font-family: 'Inter', sans-serif; font-size: 10.5px; font-weight: 500;
+    color: #374269; background: #fff;
+    border: 1px solid #dce2f0; border-radius: 4px; padding: 2px 8px;
   }
-  .qv-entry-card:hover .qv-entry-tag {
-    border-color: rgba(99,140,255,.4); color: #fff;
-  }
-
-  .qv-body { flex: 1; display: flex; overflow: hidden; }
 
   @keyframes qv-spin { to { transform: rotate(360deg); } }
 
@@ -337,99 +294,70 @@ const CSS = `
     zoom: var(--iframe-scale, 1);
   }
 
-  /* Audit panel - hidden by default on mobile */
+  /* Mobile: body is a single flex row (iframe fills it) */
   .qv-body {
     flex: 1;
     display: flex;
     overflow: hidden;
-    flex-direction: column;
-  }
-
-  .qv-audit-panel {
-    flex-shrink: 0;
-    background: #07111e;
-    border-top: 1px solid rgba(99,140,255,.12);
-    border-left: none;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-    width: 100%;
-    height: 48px;
-    transition: height .3s cubic-bezier(.4,0,.2,1);
-  }
-
-  .qv-audit-panel.open {
-    width: 100%;
-    height: 40vh;
-    min-height: 240px;
-    max-height: 420px;
-  }
-
-  .qv-audit-panel.closed {
-    width: 100%;
-    height: 48px;
-  }
-
-  /* Collapsed tab - horizontal on mobile */
-  .qv-audit-tab {
     position: relative;
-    inset: auto;
-    flex-direction: row;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px;
-    height: 48px;
   }
 
-  .qv-audit-panel.open .qv-audit-tab {
-    display: none;
+  /* Audit panel: fixed right-side drawer on mobile */
+  .qv-audit-panel {
+    position: fixed;
+    top: 56px; right: 0; bottom: 0;
+    width: 290px !important;
+    height: calc(100% - 56px) !important;
+    border-left: 1px solid #e4e8f0;
+    border-top: 1px solid #e4e8f0;
+    z-index: 300;
+    transition: transform .25s ease;
+    align-self: auto;
+    box-shadow: -4px 0 24px rgba(0,0,0,.12);
   }
 
-  .qv-audit-tab-label {
-    writing-mode: horizontal-tb;
-    transform: none;
-    font-size: 12px;
-  }
+  .qv-audit-panel.open  { transform: translateX(0); }
+  .qv-audit-panel.closed { transform: translateX(100%); }
 
-  /* Audit panel header */
-  .qv-audit-head {
-    padding: 0 14px;
-    height: 48px;
-    flex-shrink: 0;
-    border-bottom: 1px solid rgba(99,140,255,.1);
+  /* Backdrop when drawer is open */
+  .qv-audit-backdrop {
+    display: block;
+    position: fixed;
+    top: 56px; left: 0; right: 0; bottom: 0;
+    background: rgba(13,24,40,.35);
+    z-index: 299;
+    animation: qv-fade-in .2s ease both;
+  }
+  @keyframes qv-fade-in { from { opacity: 0; } to { opacity: 1; } }
+
+  /* Floating button to reopen history drawer */
+  .qv-audit-fab {
     display: flex;
+    position: fixed;
+    right: 0; bottom: 80px;
+    z-index: 200;
     align-items: center;
+    gap: 6px;
+    padding: 8px 12px 8px 14px;
+    background: #1a2540;
+    color: #fff;
+    border: none; border-radius: 8px 0 0 8px;
+    font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
+    cursor: pointer;
+    box-shadow: -2px 2px 12px rgba(0,0,0,.2);
+    transition: background .15s;
+  }
+  .qv-audit-fab:hover { background: #263357; }
+  .qv-audit-fab-count {
+    background: rgba(255,255,255,.18); border-radius: 10px;
+    padding: 1px 6px; font-size: 10px;
+  }
+
+  .qv-audit-head {
     justify-content: space-between;
+    padding: 0 14px;
   }
-
-  .qv-audit-scroll {
-    flex: 1;
-    overflow-y: auto;
-    padding: 14px;
-    opacity: 1;
-    pointer-events: auto;
-  }
-
-  .qv-audit-panel.closed .qv-audit-scroll {
-    opacity: 0;
-    pointer-events: none;
-    height: 0;
-  }
-
-  /* Entry cards */
-  .qv-entry-card {
-    padding: 10px 12px;
-  }
-
-  .qv-entry-time {
-    font-size: 10px;
-    margin-bottom: 6px;
-  }
-
-  .qv-entry-tag {
-    font-size: 10px;
-    padding: 2px 6px;
-  }
+  .qv-audit-panel.closed .qv-audit-head-left { display: flex; }
 
 
   /* Loading spinner */
@@ -506,53 +434,40 @@ const CSS = `
       box-shadow: 0 8px 48px rgba(0,0,0,.35);
     }
 
-    /* Audit panel on the right */
-    .qv-body {
-      flex-direction: row;
-    }
+    /* Audit panel on the right — inline, not fixed */
+    .qv-body { flex-direction: row; }
 
     .qv-audit-panel {
+      position: static !important;
+      transform: none !important;
       border-top: none;
-      border-left: 1px solid rgba(99,140,255,.12);
-      width: auto;
-      height: auto;
+      border-left: 1px solid #e4e8f0;
+      height: auto !important;
+      min-height: 0 !important;
+      max-height: none !important;
+      align-self: stretch;
+      box-shadow: none;
+      transition: width .22s ease;
     }
 
-    .qv-audit-panel.open {
-      width: 320px;
-      height: auto;
-    }
+    .qv-audit-panel.open  { width: 288px !important; }
+    .qv-audit-panel.closed { width: 44px !important; }
 
-    .qv-audit-panel.closed {
-      width: 40px;
-      height: auto;
-    }
-
-    .qv-audit-tab {
-      position: absolute;
-      inset: 0;
-      flex-direction: column;
+    .qv-audit-panel.closed .qv-audit-head {
       justify-content: center;
-      gap: 14px;
       padding: 0;
+      border-bottom: 1px solid #e4e8f0;
+    }
+    .qv-audit-panel.closed .qv-audit-head-left { display: none; }
+
+    .qv-audit-head {
+      justify-content: space-between;
+      padding: 0 12px;
     }
 
-    .qv-audit-tab-label {
-      writing-mode: vertical-rl;
-      transform: rotate(180deg);
-      font-size: 10px;
-    }
-
-    .qv-audit-scroll {
-      padding: 18px 16px 32px;
-      opacity: 0;
-      pointer-events: none;
-    }
-
-    .qv-audit-panel.open .qv-audit-scroll {
-      opacity: 1;
-      pointer-events: auto;
-    }
+    /* Hide mobile-only elements on desktop */
+    .qv-audit-backdrop { display: none !important; }
+    .qv-audit-fab { display: none !important; }
 
   }
 
@@ -632,8 +547,8 @@ export default function QuotationViewPage() {
         </button>
       </div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, flexDirection: 'column', gap: 12 }}>
-        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 15, fontWeight: 700, color: '#fff' }}>Quotation not found</div>
-        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: 'rgba(255,255,255,.5)' }}>ID: {id}</div>
+        <div style={{ fontFamily: "'Inter', sans-serif", fontSize: 15, fontWeight: 700, color: '#1a2230' }}>Quotation not found</div>
+        <div style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, color: '#94a3b8' }}>ID: {id}</div>
       </div>
     </div>
   );
@@ -643,7 +558,7 @@ export default function QuotationViewPage() {
       <style>{CSS}</style>
       <div className="qv-bar" />
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1 }}>
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'qv-spin 0.8s linear infinite' }}>
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'qv-spin 0.8s linear infinite' }}>
           <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
         </svg>
         <style>{`@keyframes qv-spin { to { transform: rotate(360deg); } }`}</style>
@@ -741,9 +656,7 @@ export default function QuotationViewPage() {
         {/* Edit enquiry button */}
         {record.enquiryId && (
           <button
-            style={{ height: 30, padding: '0 14px', borderRadius: 6, border: '1px solid rgba(255,255,255,.18)', background: 'rgba(255,255,255,.07)', color: 'rgba(255,255,255,.75)', fontSize: 12, fontFamily: "'DM Sans',sans-serif", fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6, transition: 'all .15s' }}
-            onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,.35)'; e.currentTarget.style.color = '#fff'; }}
-            onMouseLeave={e => { e.currentTarget.style.borderColor = 'rgba(255,255,255,.18)'; e.currentTarget.style.color = 'rgba(255,255,255,.75)'; }}
+            className="qv-close-btn"
             onClick={() => router.push(`/dashboard/enquiry/${record.enquiryId}`)}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -820,25 +733,40 @@ export default function QuotationViewPage() {
           />
         </div>
 
+        {/* Backdrop — mobile only, closes drawer on tap */}
+        {auditOpen && (
+          <div className="qv-audit-backdrop" onClick={() => setAuditOpen(false)} />
+        )}
+
+        {/* Floating reopen button — mobile only, shown when drawer is closed */}
+        {!auditOpen && (
+          <button className="qv-audit-fab" onClick={() => setAuditOpen(true)}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/>
+            </svg>
+            History
+            {auditLog.length > 0 && <span className="qv-audit-fab-count">{auditLog.length}</span>}
+          </button>
+        )}
+
         {/* Audit log panel */}
         <div className={`qv-audit-panel ${auditOpen ? 'open' : 'closed'}`}>
 
-          {/* Collapsed tab — visible only when closed */}
-          <div className="qv-audit-tab" onClick={() => setAuditOpen(true)}>
-            <span className="qv-audit-tab-label">History</span>
-            <span className="qv-audit-tab-count">{auditLog.length}</span>
-          </div>
-
-          {/* Open header */}
-          <div className="qv-audit-head">
+          <div className="qv-audit-head" onClick={() => !auditOpen && setAuditOpen(true)} style={!auditOpen ? { cursor: 'pointer' } : {}}>
             <div className="qv-audit-head-left">
               <span className="qv-audit-title">Change History</span>
-              <span className="qv-audit-count-pill">{auditLog.length}</span>
+              {auditLog.length > 0 && <span className="qv-audit-count-pill">{auditLog.length}</span>}
             </div>
-            <button className="qv-audit-collapse-btn" onClick={() => setAuditOpen(false)} title="Collapse">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
+            <button
+              className="qv-audit-toggle-btn"
+              onClick={e => { e.stopPropagation(); setAuditOpen(o => !o); }}
+              title={auditOpen ? 'Collapse' : 'View Change History'}
+            >
+              {auditOpen ? (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
+              ) : (
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+              )}
             </button>
           </div>
 
@@ -846,20 +774,20 @@ export default function QuotationViewPage() {
             {auditLoading ? (
               <div className="qv-audit-empty">
                 <div className="qv-audit-empty-icon">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(99,140,255,.4)" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'qv-spin 0.9s linear infinite' }}>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9aa3b8" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'qv-spin 0.9s linear infinite' }}>
                     <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
                   </svg>
                 </div>
-                Loading audit log…
+                Loading…
               </div>
             ) : auditLog.length === 0 ? (
               <div className="qv-audit-empty">
                 <div className="qv-audit-empty-icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,.15)" strokeWidth="1.8" strokeLinecap="round">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c8d8" strokeWidth="1.8" strokeLinecap="round">
                     <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/>
                   </svg>
                 </div>
-                No edits recorded yet.<br/>Changes will appear here<br/>after the first save.
+                No changes recorded yet.
               </div>
             ) : (() => {
               // Group entries by date
@@ -874,11 +802,8 @@ export default function QuotationViewPage() {
                 }
                 const timeStr = ts ? ts.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—';
                 items.push(
-                  <div key={entry.id} className="qv-entry-card" style={{ animationDelay: `${idx * 40}ms` }}>
-                    <div className="qv-entry-time">
-                      <span className="qv-entry-time-dot"/>
-                      {timeStr}
-                    </div>
+                  <div key={entry.id} className="qv-entry-card">
+                    <div className="qv-entry-time">{timeStr}</div>
                     <div className="qv-entry-tags">
                       {(entry.fields || []).map((label, i) => (
                         <span key={i} className="qv-entry-tag">{label}</span>

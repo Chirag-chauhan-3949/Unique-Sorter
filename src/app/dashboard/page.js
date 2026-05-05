@@ -71,134 +71,26 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Role-based Content */}
-        {isAdminUser ? (
-          /* Admin Dashboard */
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
-            <div className="card" style={{ padding: '24px' }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📊</div>
-              <h3 style={{
-                fontFamily: 'var(--font-poppins), Poppins, sans-serif',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                marginBottom: '8px',
-              }}>
-                Analytics
-              </h3>
-              <p style={{
-                fontFamily: 'var(--font-inter), Inter, sans-serif',
-                fontSize: '14px',
-                color: 'var(--text-muted)',
-              }}>
-                View detailed reports and analytics about your business performance.
-              </p>
-            </div>
-
-            <div className="card" style={{ padding: '24px' }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>👥</div>
-              <h3 style={{
-                fontFamily: 'var(--font-poppins), Poppins, sans-serif',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                marginBottom: '8px',
-              }}>
-                User Management
-              </h3>
-              <p style={{
-                fontFamily: 'var(--font-inter), Inter, sans-serif',
-                fontSize: '14px',
-                color: 'var(--text-muted)',
-              }}>
-                Manage user accounts, roles, and permissions from the settings page.
-              </p>
-            </div>
-
-            <div className="card" style={{ padding: '24px' }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📋</div>
-              <h3 style={{
-                fontFamily: 'var(--font-poppins), Poppins, sans-serif',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                marginBottom: '8px',
-              }}>
-                Enquiries & Quotations
-              </h3>
-              <p style={{
-                fontFamily: 'var(--font-inter), Inter, sans-serif',
-                fontSize: '14px',
-                color: 'var(--text-muted)',
-              }}>
-                Create, edit, and manage customer enquiries and quotations.
-              </p>
-            </div>
-
-            <div className="card" style={{ padding: '24px' }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>⚙️</div>
-              <h3 style={{
-                fontFamily: 'var(--font-poppins), Poppins, sans-serif',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                marginBottom: '8px',
-              }}>
-                Settings
-              </h3>
-              <p style={{
-                fontFamily: 'var(--font-inter), Inter, sans-serif',
-                fontSize: '14px',
-                color: 'var(--text-muted)',
-              }}>
-                Configure system settings and manage platform preferences.
-              </p>
-            </div>
-          </div>
-        ) : (
-          /* User Dashboard - Limited Access */
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '24px' }}>
-            <div className="card" style={{ padding: '24px', opacity: 0.7 }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>🔒</div>
-              <h3 style={{
-                fontFamily: 'var(--font-poppins), Poppins, sans-serif',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                marginBottom: '8px',
-              }}>
-                View Only Access
-              </h3>
-              <p style={{
-                fontFamily: 'var(--font-inter), Inter, sans-serif',
-                fontSize: '14px',
-                color: 'var(--text-muted)',
-              }}>
-                You have view-only access to the dashboard. Contact an administrator for additional permissions.
-              </p>
-            </div>
-
-            <div className="card" style={{ padding: '24px' }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📢</div>
-              <h3 style={{
-                fontFamily: 'var(--font-poppins), Poppins, sans-serif',
-                fontSize: '18px',
-                fontWeight: 600,
-                color: 'var(--text-primary)',
-                marginBottom: '8px',
-              }}>
-                Announcements
-              </h3>
-              <p style={{
-                fontFamily: 'var(--font-inter), Inter, sans-serif',
-                fontSize: '14px',
-                color: 'var(--text-muted)',
-              }}>
-                Stay updated with the latest announcements and notifications from the team.
-              </p>
-            </div>
-          </div>
-        )}
+        {/* Under Development */}
+        <div className="card" style={{ padding: '48px 32px', textAlign: 'center' }}>
+          <div style={{ fontSize: '48px', marginBottom: '16px' }}>🚧</div>
+          <h2 style={{
+            fontFamily: 'var(--font-poppins), Poppins, sans-serif',
+            fontSize: '20px',
+            fontWeight: 600,
+            color: 'var(--text-primary)',
+            marginBottom: '8px',
+          }}>
+            Under Development
+          </h2>
+          <p style={{
+            fontFamily: 'var(--font-inter), Inter, sans-serif',
+            fontSize: '14px',
+            color: 'var(--text-muted)',
+          }}>
+            The dashboard overview is coming soon.
+          </p>
+        </div>
       </div>
     </div>
   );

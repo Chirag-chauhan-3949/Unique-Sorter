@@ -882,415 +882,359 @@ export default function EnquiryPage() {
   return (
     <div className="page-wrapper">
       <style>{`
-        /* ==========================================================
-           ENQUIRY PAGE - FULLY RESPONSIVE
-           ========================================================== */
+        @keyframes enq-spin { to { transform: rotate(360deg); } }
 
-        /* ── Status pills ── */
-        .status-pill {
-          display: inline-flex; align-items: center; gap: 5px;
-          padding: 4px 12px; border-radius: 20px;
-          font-size: 11.5px; font-weight: 600; letter-spacing: 0.2px;
-          white-space: nowrap;
-        }
-        .status-pill--green {
-          background: rgba(82,186,79,0.12); color: #2e8c2b;
-          border: 1px solid rgba(82,186,79,0.25);
-        }
-        .status-pill--yellow {
-          background: rgba(232,160,32,0.12); color: #b07d10;
-          border: 1px solid rgba(232,160,32,0.25);
-        }
+        /* ── ENQUIRY PAGE ── */
+        .enq-page { padding: 0; }
 
-        /* ── Table row styles ── */
-        .table-row-clickable { cursor: pointer; transition: background 0.12s; }
-        .table-row-clickable:hover td { background: var(--surface-2); }
-        .table-id { color: var(--text-muted); font-size: 12px; }
-        .table-primary { font-weight: 600; color: var(--text-primary); }
-        .table-muted { color: var(--text-secondary); font-size: 12.5px; }
-
-        /* ── Card header ── */
-        .enq-card > .card-header {
-          display: flex;
-          align-items: center;
-          justify-content: space-between;
-          padding: 20px 24px;
-          gap: 16px;
-          flex-wrap: wrap;
+        /* top bar */
+        .enq-topbar {
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 16px 16px 12px; gap: 10px;
         }
+        .enq-topbar-left { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
+        .enq-title {
+          font-family: var(--font-poppins), Poppins, sans-serif;
+          font-size: 18px; font-weight: 700; color: var(--text-primary);
+          white-space: nowrap; margin: 0;
+        }
+        .enq-count { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+        .enq-topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
-        .card-actions {
-          display: flex;
-          align-items: center;
-          gap: 10px;
+        /* filter button */
+        .enq-filter-btn {
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 34px; padding: 0 12px; border-radius: 6px;
+          border: 1.5px solid var(--border, #e2e8f2);
+          background: #fff; color: #64748b;
+          font-family: var(--font-inter), Inter, sans-serif;
+          font-size: 12.5px; font-weight: 600;
+          cursor: pointer; white-space: nowrap;
+          transition: border-color .15s, color .15s, background .15s;
           flex-shrink: 0;
         }
-
-        /* ── Filter panel ── */
-        .qf-panel { padding: 12px; }
-        .qf-grid { grid-template-columns: 1fr !important; gap: 12px; }
-        .qf-field { width: 100%; }
-        .qf-input { width: 100%; height: 44px; }
-        .qf-result-bar { padding: 12px 16px; font-size: 12px; }
-
-        /* ── Table wrapper ── */
-        .table-wrapper { margin: 0; width: 100%; }
-
-        /* ── Mobile (< 768px) ── */
-        @media (max-width: 767px) {
-          .enq-card > .card-header {
-            flex-direction: column;
-            align-items: stretch;
-            padding: 16px;
-            gap: 12px;
-          }
-
-          .card-actions {
-            width: 100%;
-          }
-
-          .card-actions .eq-filter-wrap { flex: 1; }
-          .card-actions a.btn.btn-primary { flex: 1; }
-
-          .card-actions .qf-btn,
-          .card-actions a.btn.btn-primary {
-            width: 100%; height: 48px;
-            display: inline-flex !important;
-            align-items: center !important;
-            justify-content: center !important;
-            font-size: 14px; gap: 8px;
-          }
-
-          .qf-chips { width: 100%; }
-
-          .table-wrapper { overflow-x: hidden; padding: 0 12px 12px; }
-          .data-table { min-width: unset; }
-          .data-table thead { display: none; }
-          .data-table, .data-table tbody, .data-table tr, .data-table td {
-            display: block; width: 100%;
-          }
-          .data-table tr {
-            margin-bottom: 12px; border: 1px solid var(--border);
-            border-radius: 12px; padding: 14px;
-            background: var(--surface); box-shadow: var(--shadow-sm);
-          }
-          .data-table td {
-            display: flex; justify-content: space-between; align-items: center;
-            padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 13px;
-          }
-          .data-table td:last-child { border-bottom: none; }
-          .data-table td::before {
-            content: attr(data-label); font-weight: 600; color: var(--text-muted);
-            font-size: 11px; text-transform: uppercase; letter-spacing: 0.5px;
-            flex-shrink: 0; margin-right: 12px;
-          }
-          .data-table .table-id { display: none; }
-
-          /* Empty state */
-          .data-table tbody tr:only-child {
-            border: none; box-shadow: none; background: transparent; padding: 40px 16px;
-          }
-          .data-table tbody tr:only-child td {
-            display: block; text-align: center; border: none; padding: 0;
-          }
-          .data-table tbody tr:only-child td::before { display: none; }
-        }
-
-        /* ── Extra small mobile ── */
-        @media (max-width: 360px) {
-          .card-actions { flex-direction: column; }
-          .card-actions .eq-filter-wrap,
-          .card-actions a.btn.btn-primary { width: 100%; }
-        }
-
-        /* ── Tablet (768px+) ── */
-        @media (min-width: 768px) {
-          .qf-panel { padding: 20px; }
-          .qf-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 14px; }
-
-          .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-          .data-table { display: table; min-width: 700px; }
-          .data-table thead { display: table-header-group; }
-          .data-table tbody { display: table-row-group; }
-          .data-table tr {
-            display: table-row; margin: 0; border: none;
-            border-radius: 0; padding: 0; background: transparent; box-shadow: none;
-          }
-          .data-table td {
-            display: table-cell; padding: 14px 12px;
-            border-bottom: 1px solid var(--border); font-size: 13px;
-          }
-          .data-table td::before { content: none; }
-        }
-
-        /* ── Desktop (1024px+) ── */
-        @media (min-width: 1024px) {
-          .enq-card > .card-header { padding: 24px; }
-          .qf-grid { grid-template-columns: repeat(4, 1fr) !important; }
-          .data-table { min-width: 900px; }
-        }
-
-        .eq-filter-wrap { position: relative; display: inline-flex; align-items: center; gap: 8px; }
-        .qf-btn {
-          display: inline-flex; align-items: center; gap: 7px;
-          padding: 0 14px; height: 36px; border-radius: 9px;
-          font-size: 13px; font-weight: 600; font-family: var(--font-body);
-          cursor: pointer; transition: all 0.15s;
-          border: 1.5px solid var(--border);
-          background: var(--surface); color: var(--text-secondary);
-          white-space: nowrap;
-        }
-        .qf-btn:hover { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
-        .qf-btn.qf-open { border-color: var(--blue); color: var(--blue); background: var(--blue-dim); }
-        .qf-count {
+        .enq-filter-btn:hover { border-color: #94a3c4; color: #1e293b; background: #f8faff; }
+        .enq-filter-btn.active { border-color: #1A37AA; color: #1A37AA; background: #f0f4ff; }
+        .enq-filter-btn.has-active { border-color: #1A37AA; color: #1A37AA; }
+        .enq-filter-badge {
           display: inline-flex; align-items: center; justify-content: center;
-          min-width: 18px; height: 18px; border-radius: 99px;
-          background: var(--blue); color: #fff; font-size: 10px; font-weight: 700;
-          padding: 0 5px;
+          min-width: 16px; height: 16px; padding: 0 4px;
+          background: #1A37AA; color: #fff;
+          border-radius: 10px; font-size: 9.5px; font-weight: 700; line-height: 1;
         }
-        .qf-chips { display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
-        .qf-chip {
-          display: inline-flex; align-items: center; gap: 5px;
-          padding: 3px 10px 3px 10px; border-radius: 99px;
-          background: var(--blue-dim); border: 1px solid rgba(26,55,170,0.25);
-          color: var(--blue); font-size: 11.5px; font-weight: 600; font-family: var(--font-body);
-          animation: qf-chip-in 0.18s ease;
-        }
-        .qf-chip button {
-          display: inline-flex; align-items: center; justify-content: center;
-          width: 14px; height: 14px; border-radius: 50%;
-          border: none; background: transparent; color: inherit;
-          cursor: pointer; padding: 0; opacity: 0.7; transition: opacity 0.12s;
-        }
-        .qf-chip button:hover { opacity: 1; }
-        @keyframes qf-chip-in { from { opacity: 0; transform: scale(0.85); } to { opacity: 1; transform: scale(1); } }
 
-        .qf-panel {
-          background: var(--surface); border: 1.5px solid var(--border);
-          border-top: none; padding: 20px 20px 16px;
-          animation: qf-slide-down 0.18s ease;
+        /* filter panel */
+        .enq-filter-panel {
+          border-top: 1px solid #eef1f8; border-bottom: 1px solid #eef1f8;
+          background: #f8faff; padding: 14px 16px 16px;
         }
-        @keyframes qf-slide-down { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
-        .qf-grid {
-          display: grid; grid-template-columns: repeat(4, 1fr);
-          gap: 14px; align-items: flex-start;
+        .enq-filter-grid {
+          display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
         }
-        .qf-field { display: flex; flex-direction: column; gap: 5px; margin-bottom: 0; }
-        .qf-label { font-size: 11px; font-weight: 700; letter-spacing: 0.6px; text-transform: uppercase; color: #1e293b; }
-        .qf-input-wrap { position: relative; }
-        .qf-input {
-          width: 100%; height: 36px; padding: 0 10px 0 32px;
-          border: 1.5px solid var(--border); border-radius: 8px;
-          font-size: 13px; font-family: var(--font-body); color: var(--text-primary);
-          background: var(--bg); outline: none;
-          transition: border-color 0.15s, box-shadow 0.15s; box-sizing: border-box;
+        .enq-filter-label {
+          display: block; font-size: 10px; font-weight: 600;
+          letter-spacing: .5px; text-transform: uppercase;
+          color: #64748b; margin-bottom: 4px;
         }
-        .qf-input:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(26,55,170,0.1); }
-        .qf-input-icon {
+        .enq-filter-input-wrap { position: relative; }
+        .enq-filter-icon {
           position: absolute; left: 9px; top: 50%; transform: translateY(-50%);
-          color: var(--text-muted); pointer-events: none;
+          color: #cbd5e1; pointer-events: none; display: flex; align-items: center;
         }
-        .qf-panel-reset {
-          display: inline-flex; align-items: center; gap: 5px;
-          margin-top: 12px; font-size: 12px; font-weight: 600;
-          color: var(--text-muted); background: none; border: none; cursor: pointer;
-          padding: 0; font-family: var(--font-body); transition: color 0.13s;
+        .enq-filter-input {
+          width: 100%; height: 36px; padding: 0 8px 0 30px;
+          border: 1.5px solid #e2e8f2; border-radius: 6px;
+          background: #fff; color: #1e293b;
+          font-family: var(--font-inter), Inter, sans-serif;
+          font-size: 13px; outline: none; box-sizing: border-box;
+          transition: border-color .15s, box-shadow .15s;
         }
-        .qf-panel-reset:hover { color: #c0392b; }
-        .qf-result-bar {
-          font-size: 12px; color: var(--text-muted); padding: 8px 20px 0;
-          font-family: var(--font-body);
+        .enq-filter-input::placeholder { color: #c0cce0; font-size: 12px; }
+        .enq-filter-input:focus { border-color: #1A37AA; box-shadow: 0 0 0 3px rgba(26,55,170,.09); }
+        .enq-filter-input.has-val { border-color: #93a8e8; background: #f4f7ff; }
+        .enq-filter-input[type="date"] { color-scheme: light; }
+
+        .enq-filter-footer {
+          display: flex; align-items: center; justify-content: space-between;
+          margin-top: 10px; padding-top: 10px;
+          border-top: 1px solid #f1f5f9;
+        }
+        .enq-filter-count { font-size: 11px; color: #94a3b8; }
+        .enq-filter-count strong { color: #1A37AA; }
+        .enq-filter-clear {
+          font-size: 11.5px; font-weight: 600; color: #94a3b8;
+          background: none; border: none; cursor: pointer;
+          padding: 2px 6px; border-radius: 4px;
+          transition: color .12s, background .12s;
+        }
+        .enq-filter-clear:hover { color: #ef4444; background: #fef2f2; }
+
+        /* table wrap — flat, no card border */
+        .enq-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+
+        .enq-table {
+          width: 100%; border-collapse: collapse;
+          font-family: var(--font-inter), Inter, sans-serif;
+        }
+        .enq-table thead { display: none; }
+        .enq-table th {
+          padding: 9px 14px; font-size: 11px; font-weight: 600;
+          letter-spacing: .4px; text-transform: uppercase;
+          color: var(--text-muted); text-align: left;
+          background: #f8fafc; border-bottom: 1px solid #c8d0de; white-space: nowrap;
+        }
+        .enq-table tbody tr {
+          border-top: 1px solid #c8d0de;
+          border-bottom: 1px solid #c8d0de;
+          cursor: pointer; transition: background .1s;
+        }
+        .enq-table tbody tr + tr { border-top: none; }
+        .enq-table tbody tr:hover { background: #f7f9ff; }
+        .enq-table td {
+          display: none; padding: 14px 14px;
+          font-size: 13px; color: var(--text-primary); vertical-align: middle;
+        }
+        .enq-table td:first-child { display: block; }
+        .enq-td-name { font-weight: 600; }
+        .enq-td-muted { color: var(--text-secondary); }
+
+        /* badge */
+        .enq-badge {
+          display: inline-flex; align-items: center; gap: 4px;
+          padding: 2px 7px; border-radius: 4px;
+          font-size: 10px; font-weight: 700;
+          letter-spacing: .3px; text-transform: uppercase;
+          flex-shrink: 0;
+        }
+        .enq-badge-dot { width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+        .enq-badge--green { background: #edfaec; color: #236b21; }
+        .enq-badge--green .enq-badge-dot { background: #236b21; }
+        .enq-badge--amber { background: #fef3c7; color: #92400e; }
+        .enq-badge--amber .enq-badge-dot { background: #f59e0b; }
+
+        /* mobile row */
+        .enq-desk-name { display: none; font-weight: 700; color: #1A37AA; }
+        .enq-mob-row  { display: flex; flex-direction: column; gap: 3px; padding: 6px 0; }
+        .enq-mob-top  { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .enq-mob-name {
+          font-size: 13px; font-weight: 600; color: var(--text-primary);
+          flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+        .enq-mob-sub {
+          font-size: 11.5px; color: var(--text-muted);
+          overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+        }
+
+        /* empty / loading */
+        .enq-state {
+          padding: 48px 24px; text-align: center;
+          display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+        .enq-state-icon { color: #d0d8e8; }
+        .enq-state-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
+        .enq-state-sub   { font-size: 12.5px; color: var(--text-muted); }
+
+        /* desktop */
+        @media (min-width: 768px) {
+          .enq-topbar { padding: 20px 24px 14px; }
+          .enq-title { font-size: 20px; }
+          .enq-filter-panel { padding: 14px 24px 16px; }
+          .enq-filter-grid { grid-template-columns: repeat(4, 1fr); }
+          .enq-table thead { display: table-header-group; }
+          .enq-table td { display: table-cell; }
+          .enq-table td:first-child { display: table-cell; }
+          .enq-mob-row  { display: none; }
+          .enq-desk-name { display: block; }
         }
       `}</style>
-      <div className="page-content">
-        <div className="card enq-card">
-            <div className="card-header">
-            <div>
-              <h2 className="card-title">All Enquiries</h2>
-              <p className="card-subtitle">
-                {loading ? 'Loading…' : `${filtered.length} record${filtered.length !== 1 ? 's' : ''} found`}
-              </p>
-            </div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
-              {hasAny && (
-                <div className="qf-chips">
-                  {chips.map(c => (
-                    <span key={c.key} className="qf-chip">
-                      {c.label}
-                      <button onClick={c.clear} aria-label="Remove filter">
-                        <svg width="8" height="8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
-                          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                        </svg>
-                      </button>
-                    </span>
-                  ))}
-                </div>
-              )}
-              <div className="card-actions">
-                <div className="eq-filter-wrap">
-                  <button className={`qf-btn${open ? ' qf-open' : ''}`} onClick={() => setOpen(v => !v)}>
-                    {open ? (
-                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.8" strokeLinecap="round">
-                        <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                      </svg>
-                    ) : (
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.3" strokeLinecap="round">
-                        <line x1="4" y1="6" x2="20" y2="6"/><line x1="8" y1="12" x2="16" y2="12"/><line x1="12" y1="18" x2="12" y2="18"/>
-                      </svg>
-                    )}
-                    {open ? 'Close' : 'Filter'}
-                    {!open && hasAny && <span className="qf-count">{chips.length}</span>}
-                  </button>
-                </div>
-                {/* Show "New" button only for Admin */}
-                {isAdminUser && (
-                  <Link href="/enquiry" className="btn btn-primary">
-                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                      <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                    </svg>
-                    New
-                  </Link>
-                )}
-              </div>
-            </div>
+      <div className="page-content enq-page">
+
+        {/* Top bar */}
+        <div className="enq-topbar">
+          <div className="enq-topbar-left">
+            <h2 className="enq-title">Enquiries</h2>
+            <span className="enq-count">
+              {loading ? 'Loading…' : hasAny
+                ? `${filtered.length} of ${rows.length}`
+                : `${rows.length} record${rows.length !== 1 ? 's' : ''}`}
+            </span>
           </div>
-
-          {open && (
-            <div className="qf-panel eq-filter-wrap" style={{ width: '100%', boxSizing: 'border-box' }}>
-              <div className="qf-grid">
-                <div className="qf-field">
-                  <label className="qf-label">Name / Company</label>
-                  <div className="qf-input-wrap">
-                    <svg className="qf-input-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
-                    </svg>
-                    <input className="qf-input" placeholder="Search name…" value={fName} onChange={e => setFName(e.target.value)} autoFocus />
-                  </div>
-                </div>
-                <div className="qf-field">
-                  <label className="qf-label">Mobile</label>
-                  <div className="qf-input-wrap">
-                    <svg className="qf-input-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                      <rect x="5" y="2" width="14" height="20" rx="2" ry="2"/><line x1="12" y1="18" x2="12.01" y2="18"/>
-                    </svg>
-                    <input className="qf-input" placeholder="Search mobile…" value={fMobile} onChange={e => setFMobile(e.target.value)} />
-                  </div>
-                </div>
-                <div className="qf-field">
-                  <label className="qf-label">Source</label>
-                  <div className="qf-input-wrap">
-                    <svg className="qf-input-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                      <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                    </svg>
-                    <input className="qf-input" placeholder="Search source…" value={fSource} onChange={e => setFSource(e.target.value)} />
-                  </div>
-                </div>
-                <div className="qf-field">
-                  <label className="qf-label">Date</label>
-                  <div className="qf-input-wrap">
-                    <svg className="qf-input-icon" width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
-                    </svg>
-                    <input className="qf-input" type="date" value={fDate} onChange={e => setFDate(e.target.value)} style={{ paddingLeft: 32 }} />
-                  </div>
-                </div>
-              </div>
-              {hasAny && (
-                <button className="qf-panel-reset" onClick={() => { setFName(''); setFMobile(''); setFSource(''); setFDate(''); }}>
-                  <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                    <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
-                  </svg>
-                  Clear all filters
-                </button>
-              )}
-            </div>
-          )}
-
-          {hasAny && !open && (
-            <div className="qf-result-bar">
-              Showing {filtered.length} of {rows.length} enquiries
-            </div>
-          )}
-
-          <div className="table-wrapper">
-            {error ? (
-              <div style={{ padding: '40px 24px', color: '#c0392b', fontSize: 13 }}>⚠ {error}</div>
-            ) : loading ? (
-              <div style={{ padding: '56px 0', textAlign: 'center' }}>
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round"
-                  style={{ animation: 'spin 0.8s linear infinite', display: 'inline-block' }}>
-                  <path d="M21 12a9 9 0 1 1-6.219-8.56" />
+          <div className="enq-topbar-right">
+            <button
+              className={`enq-filter-btn${open ? ' active' : ''}${hasAny && !open ? ' has-active' : ''}`}
+              onClick={() => setOpen(v => !v)}
+            >
+              {open ? (
+                <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
-              </div>
-            ) : (
-              <table className="data-table">
-                <thead>
-                  <tr>
-                    <th>Customer Name</th>
-                    <th>Mill / Company</th>
-                    <th>Mobile</th>
-                    <th>Requirement</th>
-                    <th>Location</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {filtered.length === 0 ? (
-                    <tr>
-                      <td colSpan={5} style={{ textAlign: 'center', padding: '56px 0' }}>
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
-                          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#d0d8e8" strokeWidth="1.4" strokeLinecap="round">
-                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
-                          </svg>
-                          <div style={{ fontSize: 14, fontWeight: 600, color: '#8898aa' }}>{hasAny ? 'No results match your filters' : 'No enquiries yet'}</div>
-                          <div style={{ fontSize: 12.5, color: '#aab4c4' }}>{hasAny ? 'Try adjusting or clearing the filters' : 'Add your first enquiry to get started'}</div>
-                          {/* Show "New Enquiry" button only for Admin */}
-                          {!hasAny && isAdminUser && (
-                            <Link href="/enquiry" className="btn-primary" style={{ marginTop: 4 }}>
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                                <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                              </svg>
-                              New Enquiry
-                            </Link>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  ) : (
-                    filtered.map((r) => (
-                      <tr
-                        key={r.id}
-                        className="table-row-clickable"
-                        onClick={() => { setNavigatingId(r.id); router.push(`/dashboard/enquiry/${r.id}`); }}
-                        style={{ cursor: 'pointer', position: 'relative' }}
-                      >
-                        <td className="table-primary" data-label="Customer">
-                          {navigatingId === r.id ? (
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 0.8s linear infinite', display: 'block' }}>
-                              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                            </svg>
-                          ) : (
-                            r.customerName || '—'
-                          )}
-                        </td>
-                        <td data-label="Mill / Company">{r.millName || '—'}</td>
-                        <td data-label="Mobile">{r.mobile || '—'}</td>
-                        <td data-label="Requirement">
-                          <span className={`status-pill ${r.hasRequirement ? 'status-pill--green' : 'status-pill--yellow'}`}>
-                            {r.hasRequirement ? 'Immediate' : 'Future'}
-                          </span>
-                        </td>
-                        <td data-label="Location">{[r.location, r.state].filter(Boolean).join(', ') || '—'}</td>
-                      </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+              ) : (
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="4" y1="6" x2="20" y2="6"/>
+                  <line x1="8" y1="12" x2="16" y2="12"/>
+                  <line x1="11" y1="18" x2="13" y2="18"/>
+                </svg>
+              )}
+              {open ? 'Close' : 'Filter'}
+              {!open && hasAny && <span className="enq-filter-badge">{chips.length}</span>}
+            </button>
+            {isAdminUser && (
+              <Link href="/enquiry" className="btn btn-primary">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                New
+              </Link>
             )}
           </div>
         </div>
-      </div>
 
+        {/* Filter panel */}
+        {open && (
+          <div className="enq-filter-panel">
+            <div className="enq-filter-grid">
+
+              <div>
+                <label className="enq-filter-label">Name / Company</label>
+                <div className="enq-filter-input-wrap">
+                  <input className={`enq-filter-input${fName ? ' has-val' : ''}`} placeholder="Search name or company…" value={fName} onChange={e => setFName(e.target.value)} autoFocus />
+                  <span className="enq-filter-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+                </div>
+              </div>
+
+              <div>
+                <label className="enq-filter-label">Mobile</label>
+                <div className="enq-filter-input-wrap">
+                  <input className={`enq-filter-input${fMobile ? ' has-val' : ''}`} placeholder="Search mobile…" value={fMobile} onChange={e => setFMobile(e.target.value)} />
+                  <span className="enq-filter-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg></span>
+                </div>
+              </div>
+
+              <div>
+                <label className="enq-filter-label">Source</label>
+                <div className="enq-filter-input-wrap">
+                  <input className={`enq-filter-input${fSource ? ' has-val' : ''}`} placeholder="Exhibition, Reference…" value={fSource} onChange={e => setFSource(e.target.value)} />
+                  <span className="enq-filter-icon"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg></span>
+                </div>
+              </div>
+
+              <div>
+                <label className="enq-filter-label">Date</label>
+                <div className="enq-filter-input-wrap">
+                  <input className={`enq-filter-input${fDate ? ' has-val' : ''}`} type="date" value={fDate} onChange={e => setFDate(e.target.value)} />
+                  <span className="enq-filter-icon"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></span>
+                </div>
+              </div>
+
+            </div>
+
+            <div className="enq-filter-footer">
+              <span className="enq-filter-count">
+                {loading ? 'Loading…' : <><strong>{filtered.length}</strong> of {rows.length} records match</>}
+              </span>
+              {hasAny && (
+                <button className="enq-filter-clear" onClick={() => { setFName(''); setFMobile(''); setFSource(''); setFDate(''); }}>Reset all</button>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Table */}
+        <div className="enq-table-wrap">
+          <table className="enq-table">
+          {error ? (
+            <tbody><tr><td colSpan={6} style={{ display: 'table-cell' }}><div className="enq-state"><span className="enq-state-title" style={{color:'#c0392b'}}>⚠ {error}</span></div></td></tr></tbody>
+          ) : loading ? (
+            <tbody><tr><td colSpan={6} style={{ display: 'table-cell', textAlign: 'center', padding: '48px 0' }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'enq-spin .8s linear infinite', display: 'inline-block' }}>
+                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+              </svg>
+            </td></tr></tbody>
+          ) : (
+            <>
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Requirement</th>
+                  <th>Mill / Company</th>
+                  <th>Mobile</th>
+                  <th>Location</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.length === 0 ? (
+                  <tr style={{ cursor: 'default' }}>
+                    <td colSpan={6} style={{ display: 'table-cell' }}>
+                      <div className="enq-state">
+                        <svg className="enq-state-icon" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                        </svg>
+                        <span className="enq-state-title">{hasAny ? 'No results match your filters' : 'No enquiries yet'}</span>
+                        <span className="enq-state-sub">{hasAny ? 'Try adjusting or clearing the filters' : 'Add your first enquiry to get started'}</span>
+                        {!hasAny && isAdminUser && (
+                          <Link href="/enquiry" className="btn btn-primary" style={{ marginTop: 4 }}>
+                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                              <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
+                            </svg>
+                            New Enquiry
+                          </Link>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filtered.map((r) => {
+                    const locationStr = [r.location, r.state].filter(Boolean).join(', ');
+                    const isImmediate = r.hasRequirement === true;
+                    const subParts    = [r.millName, r.mobile, locationStr].filter(Boolean);
+                    return (
+                      <tr key={r.id} onClick={() => { setNavigatingId(r.id); router.push(`/dashboard/enquiry/${r.id}`); }}>
+                        {/* first td: mobile layout + desktop name */}
+                        <td className="enq-td-name">
+                          {navigatingId === r.id ? (
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'enq-spin .8s linear infinite', display: 'inline-block', verticalAlign: 'middle' }}>
+                              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                            </svg>
+                          ) : (
+                            <>
+                              {/* mobile row */}
+                              <span className="enq-mob-row">
+                                <span className="enq-mob-top">
+                                  <span className="enq-mob-name">{r.customerName || '—'}</span>
+                                  <span className={`enq-badge ${isImmediate ? 'enq-badge--green' : 'enq-badge--amber'}`}>
+                                    <span className="enq-badge-dot" />
+                                    {isImmediate ? 'Immediate' : 'Future'}
+                                  </span>
+                                </span>
+                                {subParts.length > 0 && <span className="enq-mob-sub">{subParts.join(' · ')}</span>}
+                              </span>
+                              {/* desktop name */}
+                              <span className="enq-desk-name">{r.customerName || '—'}</span>
+                            </>
+                          )}
+                        </td>
+                        <td>
+                          <span className={`enq-badge ${isImmediate ? 'enq-badge--green' : 'enq-badge--amber'}`}>
+                            <span className="enq-badge-dot" />
+                            {isImmediate ? 'Immediate' : 'Future'}
+                          </span>
+                        </td>
+                        <td className="enq-td-muted">{r.millName || '—'}</td>
+                        <td className="enq-td-muted">{r.mobile || '—'}</td>
+                        <td className="enq-td-muted">{locationStr || '—'}</td>
+                        <td className="enq-td-muted" style={{ fontSize: 12.5 }}>{fmtDate(r.createdAt)}</td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </>
+          )}
+          </table>
+        </div>
+
+      </div>
     </div>
   );
 }
