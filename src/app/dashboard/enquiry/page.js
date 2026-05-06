@@ -930,11 +930,13 @@ export default function EnquiryPage() {
 
         /* top bar */
         .enq-topbar {
-          display: flex; align-items: center; justify-content: flex-end;
-          padding: 10px 14px 8px; gap: 8px;
+          display: flex; align-items: center; justify-content: space-between;
+          padding: 16px 16px 12px; gap: 10px;
         }
-        .enq-topbar-left { display: none; }
+        .enq-topbar-left { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
         .enq-topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+        .enq-title { font-family: var(--font-poppins), Poppins, sans-serif; font-size: 18px; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
+        .enq-count { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
 
         /* Filter button */
         .enq-filter-btn {
@@ -1096,7 +1098,8 @@ export default function EnquiryPage() {
 
         /* desktop */
         @media (min-width: 768px) {
-          .enq-topbar { padding: 14px 24px 10px; gap: 10px; }
+          .enq-topbar { padding: 20px 24px 14px; gap: 10px; }
+          .enq-title { font-size: 20px; }
           .enq-filter-btn, .btn.btn-primary { height: 36px; font-size: 13px; padding: 0 16px; border-radius: 8px; }
           .enq-filter-panel { padding: 14px 24px 16px; }
           .enq-filter-grid { grid-template-columns: repeat(4, 1fr); }
@@ -1124,6 +1127,12 @@ export default function EnquiryPage() {
         <div className="eq-filter-wrap">
         <div className="enq-topbar">
           <div className="enq-topbar-left">
+            <span className="enq-title">Enquiry</span>
+            <span className="enq-count">
+              {loading ? 'Loading…' : hasAny
+                ? `${filtered.length} of ${rows.length}`
+                : `${rows.length} entr${rows.length !== 1 ? 'ies' : 'y'}`}
+            </span>
           </div>
           <div className="enq-topbar-right">
             <button

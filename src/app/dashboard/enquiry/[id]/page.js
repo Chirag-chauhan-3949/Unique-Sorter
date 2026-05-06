@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
@@ -42,9 +42,42 @@ const CSS = `
     border-bottom: 2px solid rgba(13,24,40,.08);
     display: flex; align-items: center; justify-content: space-between; gap: 16px;
   }
+  .eqd-page-head-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+  .eqd-page-head-center { min-width: 0; flex: 1; }
   .eqd-page-head-title { font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 700; color: #0d1828; letter-spacing: -.3px; }
   .eqd-page-head-sub { font-family: 'Inter', sans-serif; font-size: 13px; color: #6b7a90; margin-top: 4px; }
   .eqd-page-head-actions { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
+
+  /* 3-dots more menu */
+  .eqd-more-wrap { position: relative; }
+  .eqd-more-btn {
+    width: 36px; height: 36px; border-radius: 8px;
+    border: 1px solid #d8dfe8; background: #fff;
+    color: #4a5568; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s;
+  }
+  .eqd-more-btn:hover { border-color: #b0bbc9; color: #0d1828; background: #f8fafc; }
+  .eqd-more-btn.active { border-color: #1A37AA; color: #1A37AA; background: #f0f4ff; }
+  .eqd-more-dropdown {
+    position: absolute; top: calc(100% + 6px); right: 0;
+    background: #fff; border: 1px solid #e0e8f2; border-radius: 10px;
+    padding: 5px; min-width: 160px; z-index: 200;
+    box-shadow: 0 8px 28px rgba(13,24,40,.12), 0 2px 6px rgba(13,24,40,.06);
+    animation: eqd-drop-in .15s cubic-bezier(.34,1.3,.64,1) both;
+  }
+  @keyframes eqd-drop-in { from { opacity:0; transform:translateY(-5px) scale(.97); } to { opacity:1; transform:translateY(0) scale(1); } }
+  .eqd-more-item {
+    display: flex; align-items: center; gap: 9px;
+    width: 100%; padding: 9px 12px; border-radius: 7px;
+    border: none; background: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    color: #0d1828; text-align: left; transition: background .1s;
+  }
+  .eqd-more-item:hover { background: #f4f7fd; }
+  .eqd-more-item--danger { color: #c0392b; }
+  .eqd-more-item--danger:hover { background: #fff5f5; }
+  .eqd-more-sep { height: 1px; background: #f0f3f8; margin: 4px 6px; }
 
   /* ── Buttons ── */
   .eqd-btn {
@@ -535,9 +568,9 @@ const CSS = `
   @media (max-width: 640px) {
     .eqd-content { padding: 20px 16px 60px; }
     .g2, .g3 { grid-template-columns: 1fr; gap: 12px; }
-    .eqd-page-head { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .eqd-page-head { flex-direction: row; align-items: center; gap: 10px; }
     .eqd-page-head-title { font-size: 18px; }
-    .eqd-page-head-actions { width: 100%; flex-wrap: wrap; }
+    .eqd-page-head-actions { flex-shrink: 0; }
     .eqd-btn { height: 40px; font-size: 12px; min-height: 44px; }
     .eqd-footer { flex-direction: column; align-items: stretch; gap: 12px; }
     .eqd-footer-actions { width: 100%; }
@@ -611,6 +644,8 @@ export default function EnquiryDetailPage() {
   const [saveErr, setSaveErr]   = useState('');
   const [confirmDel, setConfirmDel] = useState(false);
   const [deleting,   setDeleting]   = useState(false);
+  const [showMore, setShowMore] = useState(false);
+  const moreRef = useRef(null);
   const [showGenConfirm, setShowGenConfirm] = useState(false);
   const [quotationType, setQuotationType] = useState('1page');
   const [existingQuotType, setExistingQuotType] = useState(null); // existing quotation type if any
@@ -797,50 +832,59 @@ export default function EnquiryDetailPage() {
 
           {/* ── Page head ── */}
           <div className="eqd-page-head">
-            <div>
+            <div className="eqd-page-head-center">
               <div className="eqd-page-head-title">{row.customerName}</div>
               <div className="eqd-page-head-sub">{row.millName || 'Enquiry Detail'} &nbsp;·&nbsp; Added {fmtDate(row.createdAt)}</div>
             </div>
+
             <div className="eqd-page-head-actions">
-              <Link href="/dashboard/enquiry" className="eqd-btn">
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
-                </svg>
-                Back
-              </Link>
-
-              {/* Show Edit/Delete only for Admin */}
-              {isAdminUser && (
+              {/* confirm delete inline */}
+              {confirmDel && (
                 <>
-                  {confirmDel ? (
-                    <>
-                      <button className="eqd-btn eqd-btn--danger-confirm" onClick={handleDelete} disabled={deleting}>
-                        {deleting ? 'Deleting…' : 'Confirm Delete'}
-                      </button>
-                      <button className="eqd-btn" onClick={() => setConfirmDel(false)}>Cancel</button>
-                    </>
-                  ) : (
-                    <button className="eqd-btn eqd-btn--danger" onClick={() => { setConfirmDel(true); setEditing(false); }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                        <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
-                        <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
-                      </svg>
-                      Delete
-                    </button>
-                  )}
-
-                  {editing ? (
-                    <button className="eqd-btn" onClick={cancelEdit}>Cancel</button>
-                  ) : (
-                    <button className="eqd-btn eqd-btn--edit-active" onClick={() => { setEditing(true); setConfirmDel(false); }}>
-                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                      </svg>
-                      Edit
-                    </button>
-                  )}
+                  <button className="eqd-btn eqd-btn--danger-confirm" onClick={handleDelete} disabled={deleting}>
+                    {deleting ? 'Deleting…' : 'Confirm Delete'}
+                  </button>
+                  <button className="eqd-btn" onClick={() => setConfirmDel(false)}>Cancel</button>
                 </>
+              )}
+              {editing && !confirmDel && (
+                <button className="eqd-btn" onClick={cancelEdit}>Cancel</button>
+              )}
+
+              {/* 3-dots — admin only */}
+              {isAdminUser && !confirmDel && (
+                <div className="eqd-more-wrap" ref={moreRef}>
+                  <button
+                    className={`eqd-more-btn${showMore ? ' active' : ''}`}
+                    onClick={() => setShowMore(v => !v)}
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+                      <circle cx="12" cy="5" r="1" fill="currentColor"/><circle cx="12" cy="12" r="1" fill="currentColor"/><circle cx="12" cy="19" r="1" fill="currentColor"/>
+                    </svg>
+                  </button>
+                  {showMore && (
+                    <>
+                      <div style={{ position: 'fixed', inset: 0, zIndex: 199 }} onClick={() => setShowMore(false)} />
+                      <div className="eqd-more-dropdown">
+                        <button className="eqd-more-item" onClick={() => { setEditing(true); setConfirmDel(false); setShowMore(false); }}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                          </svg>
+                          Edit
+                        </button>
+                        <div className="eqd-more-sep" />
+                        <button className="eqd-more-item eqd-more-item--danger" onClick={() => { setConfirmDel(true); setEditing(false); setShowMore(false); }}>
+                          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                            <polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>
+                            <path d="M10 11v6M14 11v6M9 6V4h6v2"/>
+                          </svg>
+                          Delete
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
               )}
             </div>
           </div>

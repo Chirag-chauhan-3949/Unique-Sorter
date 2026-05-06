@@ -104,7 +104,8 @@ const CSS = `
   .quot-filter-reset:hover { color: #ef4444; background: #fef2f2; }
 
   /* table wrap */
-  .quot-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .quot-table-wrap { overflow-x: hidden; }
+  @media (min-width: 768px) { .quot-table-wrap { overflow-x: auto; } }
 
   /* table */
   .quot-table {
