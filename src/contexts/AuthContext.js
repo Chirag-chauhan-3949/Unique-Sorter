@@ -59,7 +59,7 @@ export function AuthProvider({ children }) {
     setIsAuthenticated(false);
   }, []);
 
-  // Login function - called after successful OTP verification
+  // Login function - called after successful credential verification
   const login = useCallback((token, userData) => {
     const normalizedRole = userData.role?.toUpperCase() || ROLES.USER;
     
