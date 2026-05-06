@@ -15,12 +15,6 @@ const PAGE_META = {
   '/dashboard/enquiry':     { title: 'Enquiries',   subtitle: 'All customer enquiries' },
 };
 
-const NOTIFICATIONS = [
-  { id: 1, icon: '📄', text: 'New quotation request from Ravi Enterprises', time: '2m ago', unread: true },
-  { id: 2, icon: '💬', text: 'Lead status updated to Qualified', time: '1h ago', unread: true },
-  { id: 3, icon: '✅', text: 'Quotation #Q-0042 was approved', time: '3h ago', unread: false },
-];
-
 // Helper to get initials from name
 function getInitials(name) {
   if (!name) return 'U';
@@ -31,15 +25,12 @@ export default function TopBar() {
   const pathname = usePathname();
   const router = useRouter();
   const { user, userRole, logout, isLoading } = useAuth();
-  const [notifOpen, setNotifOpen]   = useState(false);
   const [profileOpen, setProfileOpen] = useState(false);
   const [isMobile, setIsMobile]     = useState(false);
   const [hamburgerHover, setHamburgerHover] = useState(false);
-  const notifRef   = useRef(null);
   const profileRef = useRef(null);
 
   const meta = PAGE_META[pathname] || { title: 'Dashboard', subtitle: '' };
-  const unreadCount = NOTIFICATIONS.filter((n) => n.unread).length;
 
   // Detect mobile viewport
   useEffect(() => {
@@ -52,7 +43,6 @@ export default function TopBar() {
   // Close dropdowns on outside click
   useEffect(() => {
     function handleClick(e) {
-      if (notifRef.current && !notifRef.current.contains(e.target)) setNotifOpen(false);
       if (profileRef.current && !profileRef.current.contains(e.target)) setProfileOpen(false);
     }
     document.addEventListener('mousedown', handleClick);
@@ -169,52 +159,11 @@ export default function TopBar() {
 
         <div className="navbar-divider" />
 
-        {/* Notifications */}
-        <div className="navbar-dropdown-wrap" ref={notifRef}>
-          <button
-            className={`navbar-icon-btn ${notifOpen ? 'navbar-icon-btn--active' : ''}`}
-            onClick={() => { setNotifOpen(!notifOpen); setProfileOpen(false); }}
-            title="Notifications"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round">
-              <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-              <path d="M13.73 21a2 2 0 0 1-3.46 0" />
-            </svg>
-            {unreadCount > 0 && (
-              <span className="navbar-badge">{unreadCount}</span>
-            )}
-          </button>
-
-          {notifOpen && (
-            <div className="navbar-dropdown notif-dropdown">
-              <div className="notif-header">
-                <span className="notif-header-title">Notifications</span>
-                <span className="notif-header-count">{unreadCount} new</span>
-              </div>
-              <div className="notif-list">
-                {NOTIFICATIONS.map((n) => (
-                  <div key={n.id} className={`notif-item ${n.unread ? 'notif-item--unread' : ''}`}>
-                    <span className="notif-item-icon">{n.icon}</span>
-                    <div className="notif-item-body">
-                      <p className="notif-item-text">{n.text}</p>
-                      <span className="notif-item-time">{n.time}</span>
-                    </div>
-                    {n.unread && <span className="notif-item-dot" />}
-                  </div>
-                ))}
-              </div>
-              <div className="notif-footer">
-                <button className="notif-footer-btn">View all notifications</button>
-              </div>
-            </div>
-          )}
-        </div>
-
         {/* User profile */}
         <div className="navbar-dropdown-wrap" ref={profileRef}>
           <button
             className={`navbar-avatar-btn ${profileOpen ? 'navbar-avatar-btn--active' : ''}`}
-            onClick={() => { setProfileOpen(!profileOpen); setNotifOpen(false); }}
+            onClick={() => setProfileOpen(!profileOpen)}
             title="Profile"
           >
             <div className="navbar-avatar">{userInitials}</div>

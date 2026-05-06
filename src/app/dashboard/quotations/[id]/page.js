@@ -10,7 +10,7 @@ const fmtINR = n => n ? '₹ ' + new Intl.NumberFormat('en-IN', { minimumFractio
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Barlow+Condensed:wght@600;700&display=swap');
 
-  .qv-root { height: 100vh; background: #f4f5f7; display: flex; flex-direction: column; overflow: hidden; }
+  .qv-root { height: 100vh; background: #fff; display: flex; flex-direction: column; overflow: hidden; }
 
   /* ── Clean white top bar ── */
   .qv-bar {
@@ -89,15 +89,46 @@ const CSS = `
     transition: all .15s;
   }
   .qv-close-btn:hover { border-color: #94a3c4; color: #1e293b; background: #f8faff; }
+  .qv-history-btn--active { border-color: #1A37AA; color: #1A37AA; background: #f0f4ff; }
+  .qv-history-btn--active:hover { border-color: #1A37AA; background: #e8eeff; }
+
+  /* 3-dots more menu */
+  .qv-more-wrap { position: relative; }
+  .qv-more-btn {
+    width: 34px; height: 34px; border-radius: 7px;
+    border: 1.5px solid #e2e8f2; background: #fff;
+    color: #64748b; cursor: pointer;
+    display: none; align-items: center; justify-content: center;
+    transition: all .15s; flex-shrink: 0;
+  }
+  .qv-more-btn:hover { border-color: #94a3c4; color: #1e293b; background: #f8faff; }
+  .qv-more-dropdown {
+    position: fixed;
+    background: #fff; border: 1px solid #e0e8f2; border-radius: 12px; padding: 6px;
+    box-shadow: 0 12px 40px rgba(13,24,40,.14), 0 2px 8px rgba(13,24,40,.06);
+    min-width: 180px; z-index: 9999;
+    animation: qv-drop-in .18s cubic-bezier(.34,1.3,.64,1) both;
+  }
+  .qv-more-item {
+    display: flex; align-items: center; gap: 10px;
+    width: 100%; padding: 9px 12px; border-radius: 8px;
+    border: none; background: none; cursor: pointer;
+    font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 500;
+    color: #0d1828; text-align: left; transition: background .12s;
+  }
+  .qv-more-item:hover { background: #f4f7fd; }
+  .qv-more-item--danger { color: #c0392b; }
+  .qv-more-item--danger:hover { background: #fff5f5; }
+  .qv-more-item-icon {
+    width: 28px; height: 28px; border-radius: 7px;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0;
+  }
 
   .qv-iframe-wrap {
-    flex: 1; overflow: auto; background: #f4f5f7;
-    display: flex; justify-content: center; padding: 28px 16px 48px;
+    flex: 1; overflow: auto; background: #fff; display: block; padding: 0;
   }
   .qv-iframe-wrap iframe {
-    border: none; width: 860px; height: 1200px;
-    flex-shrink: 0; background: #fff;
-    box-shadow: 0 2px 12px rgba(0,0,0,.08), 0 0 0 1px rgba(0,0,0,.04);
+    border: none; display: block; background: #fff;
   }
 
   /* ── Body ── */
@@ -205,286 +236,184 @@ const CSS = `
   @keyframes qv-spin { to { transform: rotate(360deg); } }
 
   /* ==========================================================
-     RESPONSIVE STYLES - Mobile First
+     MOBILE — single-row bar, icon-only actions
      ========================================================== */
 
-  /* Mobile base styles */
-  .qv-root {
-    height: 100vh;
-    background: #a0a8b8;
-    display: flex;
-    flex-direction: column;
-    overflow: hidden;
-  }
+  .qv-root { background: #fff; }
 
+  /* Single rigid row — never wraps */
   .qv-bar {
-    height: auto;
-    min-height: 56px;
-    padding: 10px 12px;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .qv-bar-back {
-    font-size: 11px;
-    gap: 4px;
-  }
-
-  .qv-bar-dot {
-    display: none;
-  }
-
-  .qv-bar-title {
-    display: none;
-  }
-
-  .qv-bar-name {
-    font-size: 12px;
-    flex: 1;
+    height: 52px;
+    padding: 0 10px;
+    gap: 6px;
+    flex-wrap: nowrap;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 120px;
   }
 
-  .qv-bar-sep {
-    display: none;
+  /* Back button: icon only on mobile */
+  .qv-bar-back {
+    width: 36px; height: 36px; padding: 0;
+    border-radius: 8px; flex-shrink: 0;
+    justify-content: center;
+  }
+  .qv-bar-back-label { display: none; }
+
+  /* Hide decorative / info elements */
+  .qv-bar-dot,
+  .qv-bar-title,
+  .qv-bar-sep,
+  .qv-bar-chip { display: none; }
+
+  /* Quotation number — takes remaining space, truncated */
+  .qv-bar-name {
+    font-size: 13px; font-weight: 700;
+    flex: 1; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
   }
 
-  .qv-bar-space {
-    display: none;
+  .qv-bar-space { display: none; }
+
+  /* Right-side action cluster — pushed to far right */
+  .qv-bar-actions {
+    display: flex; align-items: center; gap: 6px; flex-shrink: 0; margin-left: auto;
   }
 
-  .qv-bar-chip {
-    display: none;
+  /* Icon-only button base (share + more) */
+  .qv-icon-btn {
+    width: 36px; height: 36px; border-radius: 8px;
+    border: 1.5px solid #e2e8f2; background: #fff;
+    color: #64748b; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+    transition: all .15s; flex-shrink: 0;
   }
+  .qv-icon-btn:hover { border-color: #94a3c4; color: #1e293b; background: #f8faff; }
 
-  /* Share and Close buttons */
-  .qv-share-btn,
-  .qv-close-btn {
-    height: 36px;
-    padding: 0 12px;
-    font-size: 11px;
-    flex-shrink: 0;
+  /* Share button: icon-only on mobile */
+  .qv-share-btn {
+    width: 36px; height: 36px; padding: 0;
+    border-radius: 8px; flex-shrink: 0;
+    justify-content: center;
   }
+  .qv-share-label { display: none; }
 
-  .qv-share-btn span,
-  .qv-close-btn span {
-    display: none;
-  }
+  /* Hide quotation ref number on mobile */
+  .qv-bar-name { display: none; }
+
+  /* Hide Close / Edit Enquiry individual buttons; show 3-dots */
+  .qv-close-btn,
+  .qv-edit-enquiry-btn,
+  .qv-history-btn { display: none !important; }
+  .qv-more-btn { display: flex; }
+
+  /* Hide floating FAB — history is in dots menu on mobile */
+  .qv-audit-fab { display: none !important; }
 
   /* Iframe wrapper */
   .qv-iframe-wrap {
-    flex: 1;
-    overflow: auto;
-    background: #a0a8b8;
-    display: flex;
-    justify-content: center;
-    align-items: flex-start;
-    padding: 12px 8px;
-    -webkit-overflow-scrolling: touch;
+    flex: 1; overflow: auto; background: #fff;
+    display: block; padding: 0; -webkit-overflow-scrolling: touch;
   }
-
   .qv-iframe-wrap iframe {
-    border: none;
-    width: 860px;
-    flex-shrink: 0;
-    background: #fff;
-    box-shadow: 0 4px 24px rgba(0,0,0,.2);
-    zoom: var(--iframe-scale, 1);
+    border: none; display: block; background: #fff;
   }
 
-  /* Mobile: body is a single flex row (iframe fills it) */
-  .qv-body {
-    flex: 1;
-    display: flex;
-    overflow: hidden;
-    position: relative;
-  }
+  .qv-body { flex: 1; display: flex; overflow: hidden; position: relative; }
 
   /* Audit panel: fixed right-side drawer on mobile */
   .qv-audit-panel {
-    position: fixed;
-    top: 56px; right: 0; bottom: 0;
-    width: 290px !important;
-    height: calc(100% - 56px) !important;
-    border-left: 1px solid #e4e8f0;
-    border-top: 1px solid #e4e8f0;
-    z-index: 300;
-    transition: transform .25s ease;
-    align-self: auto;
+    position: fixed; top: 52px; right: 0; bottom: 0;
+    width: 290px !important; height: calc(100% - 52px) !important;
+    border-left: 1px solid #e4e8f0; border-top: 1px solid #e4e8f0;
+    z-index: 300; transition: transform .25s ease; align-self: auto;
     box-shadow: -4px 0 24px rgba(0,0,0,.12);
   }
-
   .qv-audit-panel.open  { transform: translateX(0); }
   .qv-audit-panel.closed { transform: translateX(100%); }
 
-  /* Backdrop when drawer is open */
   .qv-audit-backdrop {
-    display: block;
-    position: fixed;
-    top: 56px; left: 0; right: 0; bottom: 0;
-    background: rgba(13,24,40,.35);
-    z-index: 299;
+    display: block; position: fixed;
+    top: 52px; left: 0; right: 0; bottom: 0;
+    background: rgba(13,24,40,.35); z-index: 299;
     animation: qv-fade-in .2s ease both;
   }
   @keyframes qv-fade-in { from { opacity: 0; } to { opacity: 1; } }
 
-  /* Floating button to reopen history drawer */
   .qv-audit-fab {
-    display: flex;
-    position: fixed;
-    right: 0; bottom: 80px;
-    z-index: 200;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 12px 8px 14px;
-    background: #1a2540;
-    color: #fff;
+    display: flex; position: fixed; right: 0; bottom: 80px; z-index: 200;
+    align-items: center; gap: 6px; padding: 8px 12px 8px 14px;
+    background: #1a2540; color: #fff;
     border: none; border-radius: 8px 0 0 8px;
     font-family: 'Inter', sans-serif; font-size: 12px; font-weight: 600;
-    cursor: pointer;
-    box-shadow: -2px 2px 12px rgba(0,0,0,.2);
-    transition: background .15s;
+    cursor: pointer; box-shadow: -2px 2px 12px rgba(0,0,0,.2); transition: background .15s;
   }
   .qv-audit-fab:hover { background: #263357; }
   .qv-audit-fab-count {
-    background: rgba(255,255,255,.18); border-radius: 10px;
-    padding: 1px 6px; font-size: 10px;
+    background: rgba(255,255,255,.18); border-radius: 10px; padding: 1px 6px; font-size: 10px;
   }
 
-  .qv-audit-head {
-    justify-content: space-between;
-    padding: 0 14px;
-  }
+  .qv-audit-head { justify-content: space-between; padding: 0 14px; }
   .qv-audit-panel.closed .qv-audit-head-left { display: flex; }
 
-
-  /* Loading spinner */
   .qv-loading {
-    position: fixed;
-    inset: 0;
-    background: rgba(13,24,40,.95);
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 16px;
-    z-index: 9999;
+    position: fixed; inset: 0; background: rgba(13,24,40,.95);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; z-index: 9999;
   }
 
-  /* Tablet (768px and up) */
+  /* ==========================================================
+     TABLET & DESKTOP (768px+) — restore full bar
+     ========================================================== */
   @media (min-width: 768px) {
+    .qv-root { background: #fff; }
+
     .qv-bar {
-      height: 54px;
-      min-height: auto;
-      padding: 0 20px;
-      gap: 12px;
-      flex-wrap: nowrap;
+      height: 56px; padding: 0 20px; gap: 10px;
     }
 
     .qv-bar-back {
-      font-size: 12px;
-      gap: 6px;
+      width: auto; height: 34px; padding: 0 12px;
+      font-size: 12.5px; gap: 5px; justify-content: flex-start;
     }
+    .qv-bar-back-label { display: inline; }
 
-    .qv-bar-dot {
-      display: block;
+    .qv-bar-dot { display: block; }
+    .qv-bar-title { display: block; }
+    .qv-bar-sep { display: inline; }
+    .qv-bar-chip { display: block; }
+    .qv-bar-space { display: block; }
+    .qv-bar-name { display: inline; font-size: 13.5px; flex: none; min-width: auto; }
+
+    .qv-share-btn {
+      width: auto; height: 34px; padding: 0 14px; gap: 6px; justify-content: flex-start;
     }
+    .qv-share-label { display: inline; }
 
-    .qv-bar-title {
-      display: block;
-    }
+    .qv-close-btn,
+    .qv-edit-enquiry-btn,
+    .qv-history-btn { display: flex !important; }
+    .qv-more-btn { display: none !important; }
+    .qv-bar-actions { gap: 8px; }
 
-    .qv-bar-name {
-      font-size: 13px;
-      flex: none;
-      max-width: none;
-    }
+    .qv-iframe-wrap { background: #fff; padding: 0; display: block; }
+    .qv-iframe-wrap iframe { display: block; }
 
-    .qv-bar-sep {
-      display: inline;
-    }
-
-    .qv-bar-space {
-      display: block;
-    }
-
-    .qv-bar-chip {
-      display: block;
-    }
-
-    .qv-share-btn,
-    .qv-close-btn {
-      height: 30px;
-      padding: 0 14px;
-      font-size: 12px;
-    }
-
-    .qv-share-btn span,
-    .qv-close-btn span {
-      display: inline;
-    }
-
-    .qv-iframe-wrap {
-      padding: 24px 16px 48px;
-    }
-
-    .qv-iframe-wrap iframe {
-      box-shadow: 0 8px 48px rgba(0,0,0,.35);
-    }
-
-    /* Audit panel on the right — inline, not fixed */
     .qv-body { flex-direction: row; }
 
     .qv-audit-panel {
-      position: static !important;
-      transform: none !important;
-      border-top: none;
-      border-left: 1px solid #e4e8f0;
-      height: auto !important;
-      min-height: 0 !important;
-      max-height: none !important;
-      align-self: stretch;
-      box-shadow: none;
-      transition: width .22s ease;
+      position: static !important; transform: none !important;
+      border-top: none; border-left: 1px solid #e4e8f0;
+      height: auto !important; min-height: 0 !important; max-height: none !important;
+      align-self: stretch; box-shadow: none; transition: width .22s ease;
+      top: auto;
     }
-
     .qv-audit-panel.open  { width: 288px !important; }
     .qv-audit-panel.closed { width: 44px !important; }
-
-    .qv-audit-panel.closed .qv-audit-head {
-      justify-content: center;
-      padding: 0;
-      border-bottom: 1px solid #e4e8f0;
-    }
+    .qv-audit-panel.closed .qv-audit-head { justify-content: center; padding: 0; }
     .qv-audit-panel.closed .qv-audit-head-left { display: none; }
+    .qv-audit-head { justify-content: space-between; padding: 0 12px; }
 
-    .qv-audit-head {
-      justify-content: space-between;
-      padding: 0 12px;
-    }
-
-    /* Hide mobile-only elements on desktop */
     .qv-audit-backdrop { display: none !important; }
     .qv-audit-fab { display: none !important; }
-
-  }
-
-  /* Extra small mobile */
-  @media (max-width: 360px) {
-    .qv-bar {
-      min-height: 52px;
-      padding: 8px 10px;
-    }
-
-    .qv-bar-name {
-      max-width: 100px;
-    }
-
-    .qv-iframe-wrap {
-      padding: 8px 4px;
-    }
   }
 `;
 
@@ -496,18 +425,42 @@ export default function QuotationViewPage() {
   const [showShare, setShowShare] = useState(false);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const shareBtnRef = useRef(null);
+  const [showMore, setShowMore] = useState(false);
+  const [morePos, setMorePos] = useState({ top: 0, left: 0 });
+  const moreBtnRef = useRef(null);
   const [auditLog, setAuditLog] = useState([]);
   const [auditLoading, setAuditLoading] = useState(false);
-  const [auditOpen, setAuditOpen] = useState(true);
+  const [auditOpen, setAuditOpen] = useState(false);
   const iframeWrapRef = useRef(null);
+  const iframeRef = useRef(null);
+  const iframeClipRef = useRef(null);
 
-  // Zoom iframe to fit available width on mobile
+  // Scale iframe to fill available width; clip wrapper to scaled dimensions to prevent over-scroll
   useEffect(() => {
     const applyScale = () => {
-      if (!iframeWrapRef.current) return;
-      const available = iframeWrapRef.current.clientWidth - 16; // subtract padding
-      const scale = available < 860 ? Math.max(0.28, available / 860) : 1;
-      iframeWrapRef.current.style.setProperty('--iframe-scale', scale);
+      const wrap = iframeWrapRef.current;
+      const frame = iframeRef.current;
+      const clip = iframeClipRef.current;
+      if (!wrap || !frame || !clip) return;
+      const available = wrap.clientWidth;
+      const contentWidth = 860;
+      const iframeHeight = frame.offsetHeight || (record?.quotationType === 'detailed' ? 8400 : 1400);
+      if (available < contentWidth) {
+        const scale = available / contentWidth;
+        frame.style.width = contentWidth + 'px';
+        frame.style.transform = `scale(${scale})`;
+        frame.style.transformOrigin = 'top left';
+        // clip div matches the scaled visual size exactly — no excess scroll
+        clip.style.width = available + 'px';
+        clip.style.height = Math.ceil(iframeHeight * scale) + 'px';
+        clip.style.overflow = 'hidden';
+      } else {
+        frame.style.width = '100%';
+        frame.style.transform = 'none';
+        clip.style.width = '';
+        clip.style.height = '';
+        clip.style.overflow = '';
+      }
     };
     applyScale();
     window.addEventListener('resize', applyScale);
@@ -641,22 +594,23 @@ export default function QuotationViewPage() {
       <style>{CSS}</style>
 
       <div className="qv-bar">
+        {/* Back */}
         <button className="qv-bar-back" onClick={() => router.push('/dashboard/quotations')}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-          All Quotations
+          <span className="qv-bar-back-label">All Quotations</span>
         </button>
-        <div className="qv-bar-dot" />
-        <span className="qv-bar-title">Quotation</span>
-        {record.quotNo && <><span className="qv-bar-sep">·</span><span className="qv-bar-name">{record.quotNo}</span></>}
-        {record.contact && <><span className="qv-bar-sep">·</span><span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 12, color: 'rgba(255,255,255,.5)' }}>{record.salutation} {record.contact}</span></>}
-        {record.quotationType === '1page'    && <span className="qv-bar-chip">1-PAGE</span>}
-        {record.quotationType === 'detailed' && <span className="qv-bar-chip" style={{ background: 'rgba(82,186,79,.25)', borderColor: 'rgba(82,186,79,.5)', color: '#7edd7b' }}>DETAILED · 6 PG</span>}
+
+        {/* Title info */}
+        {record.contact && <span style={{ fontFamily: "'DM Sans', sans-serif", fontSize: 13, fontWeight: 600, color: '#1a2230' }}>{record.salutation} {record.contact}</span>}
         <div className="qv-bar-space" />
 
-        {/* Edit enquiry button */}
+        {/* Right action cluster */}
+        <div className="qv-bar-actions">
+
+        {/* Edit enquiry button (desktop only) */}
         {record.enquiryId && (
           <button
-            className="qv-close-btn"
+            className="qv-close-btn qv-edit-enquiry-btn"
             onClick={() => router.push(`/dashboard/enquiry/${record.enquiryId}`)}
           >
             <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
@@ -678,12 +632,12 @@ export default function QuotationViewPage() {
             }
             setShowShare(s => !s);
           }}>
-            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
               <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
             </svg>
-            Share
-            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg>
+            <span className="qv-share-label">Share</span>
+            <span className="qv-share-label"><svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="6 9 12 15 18 9"/></svg></span>
           </button>
           {showShare && (
             <>
@@ -716,106 +670,90 @@ export default function QuotationViewPage() {
           )}
         </div>
 
-        <button className="qv-close-btn" onClick={() => router.push('/dashboard/quotations')}>
-          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        {/* History toggle — desktop only */}
+        <button
+          className={`qv-close-btn qv-history-btn${auditOpen ? ' qv-history-btn--active' : ''}`}
+          onClick={() => setAuditOpen(o => !o)}
+        >
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            <circle cx="12" cy="12" r="10"/>
+            <polyline points="12 6 12 12 16 14"/>
           </svg>
-          Close
+          History
         </button>
+
+        {/* 3-dots menu (mobile only) */}
+        <div className="qv-more-wrap">
+          <button
+            className="qv-more-btn"
+            ref={moreBtnRef}
+            title="More options"
+            onClick={() => {
+              if (!showMore && moreBtnRef.current) {
+                const r = moreBtnRef.current.getBoundingClientRect();
+                const dropW = 180;
+                const left = Math.min(r.right - dropW, window.innerWidth - dropW - 8);
+                setMorePos({ top: r.bottom + 8, left: Math.max(8, left) });
+              }
+              setShowMore(s => !s);
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/>
+            </svg>
+          </button>
+          {showMore && (
+            <>
+              <div style={{ position: 'fixed', inset: 0, zIndex: 998 }} onClick={() => setShowMore(false)} />
+              <div className="qv-more-dropdown" style={{ top: morePos.top, left: morePos.left }}>
+                <button className="qv-more-item" onClick={() => { setShowMore(false); setAuditOpen(true); }}>
+                  <span className="qv-more-item-icon" style={{ background: '#f0f3fa' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#374269" strokeWidth="2.2" strokeLinecap="round">
+                      <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/>
+                    </svg>
+                  </span>
+                  History
+                  {auditLog.length > 0 && <span style={{ marginLeft: 'auto', fontSize: 11, fontWeight: 600, color: '#6b7a99', background: '#eef1f8', borderRadius: 10, padding: '1px 7px' }}>{auditLog.length}</span>}
+                </button>
+                {record.enquiryId && (
+                  <button className="qv-more-item" onClick={() => { setShowMore(false); router.push(`/dashboard/enquiry/${record.enquiryId}`); }}>
+                    <span className="qv-more-item-icon" style={{ background: '#eef1fc' }}>
+                      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.2" strokeLinecap="round">
+                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/>
+                      </svg>
+                    </span>
+                    Edit Enquiry
+                  </button>
+                )}
+                <button className="qv-more-item qv-more-item--danger" onClick={() => { setShowMore(false); router.push('/dashboard/quotations'); }}>
+                  <span className="qv-more-item-icon" style={{ background: '#fff5f5' }}>
+                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#c0392b" strokeWidth="2.5" strokeLinecap="round">
+                      <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+                    </svg>
+                  </span>
+                  Close
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+
+        </div>{/* /qv-bar-actions */}
       </div>
 
       <div className="qv-body">
         <div ref={iframeWrapRef} className="qv-iframe-wrap">
-          <iframe
-            srcDoc={html}
-            title="Quotation"
-            style={{ height: record.quotationType === 'detailed' ? 8400 : 1400 }}
-          />
-        </div>
-
-        {/* Backdrop — mobile only, closes drawer on tap */}
-        {auditOpen && (
-          <div className="qv-audit-backdrop" onClick={() => setAuditOpen(false)} />
-        )}
-
-        {/* Floating reopen button — mobile only, shown when drawer is closed */}
-        {!auditOpen && (
-          <button className="qv-audit-fab" onClick={() => setAuditOpen(true)}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-              <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/>
-            </svg>
-            History
-            {auditLog.length > 0 && <span className="qv-audit-fab-count">{auditLog.length}</span>}
-          </button>
-        )}
-
-        {/* Audit log panel */}
-        <div className={`qv-audit-panel ${auditOpen ? 'open' : 'closed'}`}>
-
-          <div className="qv-audit-head" onClick={() => !auditOpen && setAuditOpen(true)} style={!auditOpen ? { cursor: 'pointer' } : {}}>
-            <div className="qv-audit-head-left">
-              <span className="qv-audit-title">Change History</span>
-              {auditLog.length > 0 && <span className="qv-audit-count-pill">{auditLog.length}</span>}
-            </div>
-            <button
-              className="qv-audit-toggle-btn"
-              onClick={e => { e.stopPropagation(); setAuditOpen(o => !o); }}
-              title={auditOpen ? 'Collapse' : 'View Change History'}
-            >
-              {auditOpen ? (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9 18 15 12 9 6"/></svg>
-              ) : (
-                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-              )}
-            </button>
-          </div>
-
-          <div className="qv-audit-scroll">
-            {auditLoading ? (
-              <div className="qv-audit-empty">
-                <div className="qv-audit-empty-icon">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#9aa3b8" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'qv-spin 0.9s linear infinite' }}>
-                    <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                  </svg>
-                </div>
-                Loading…
-              </div>
-            ) : auditLog.length === 0 ? (
-              <div className="qv-audit-empty">
-                <div className="qv-audit-empty-icon">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#c0c8d8" strokeWidth="1.8" strokeLinecap="round">
-                    <path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4z"/>
-                  </svg>
-                </div>
-                No changes recorded yet.
-              </div>
-            ) : (() => {
-              // Group entries by date
-              let lastDate = null;
-              const items = [];
-              auditLog.forEach((entry, idx) => {
-                const ts = entry.timestamp ? new Date(entry.timestamp) : null;
-                const dateKey = ts ? ts.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }) : '—';
-                if (dateKey !== lastDate) {
-                  lastDate = dateKey;
-                  items.push(<div key={`d-${idx}`} className="qv-date-divider"><div className="qv-date-divider-line"/><span className="qv-date-divider-chip">{dateKey}</span><div className="qv-date-divider-line"/></div>);
-                }
-                const timeStr = ts ? ts.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', hour12: true }) : '—';
-                items.push(
-                  <div key={entry.id} className="qv-entry-card">
-                    <div className="qv-entry-time">{timeStr}</div>
-                    <div className="qv-entry-tags">
-                      {(entry.fields || []).map((label, i) => (
-                        <span key={i} className="qv-entry-tag">{label}</span>
-                      ))}
-                    </div>
-                  </div>
-                );
-              });
-              return items;
-            })()}
+          <div ref={iframeClipRef}>
+            <iframe
+              ref={iframeRef}
+              srcDoc={html}
+              title="Quotation"
+              style={{ height: record.quotationType === 'detailed' ? 8400 : 1400, border: 'none', display: 'block' }}
+            />
           </div>
         </div>
+
       </div>
     </div>
   );

@@ -175,6 +175,20 @@ const CSS = `
   /* highlight */
   .quot-hl { background: #fde68a; border-radius: 2px; padding: 0 1px; color: #92400e; }
 
+  /* nav loader */
+  .quot-nav-loader {
+    position: fixed; inset: 0; z-index: 9999;
+    display: flex; align-items: center; justify-content: center;
+    pointer-events: none;
+  }
+  .quot-nav-loader-inner {
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .quot-nav-loader-text {
+    font-family: 'DM Sans', sans-serif; font-size: 13px;
+    font-weight: 600; color: #94a3b8; letter-spacing: 0.2px;
+  }
+
   /* loading / empty */
   @keyframes quot-spin { to { transform: rotate(360deg); } }
   .quot-empty {
@@ -268,6 +282,18 @@ export default function QuotationsPage() {
   return (
     <div className="page-wrapper">
       <style>{CSS}</style>
+
+      {navigatingId && (
+        <div className="quot-nav-loader">
+          <div className="quot-nav-loader-inner">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'quot-spin .8s linear infinite' }}>
+              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+            </svg>
+            <span className="quot-nav-loader-text">Loading…</span>
+          </div>
+        </div>
+      )}
+
       <div className="page-content quot-page">
 
         {/* top bar */}
@@ -411,13 +437,7 @@ export default function QuotationsPage() {
                       <span className="quot-mob-row">
                         <span className="quot-mob-top">
                           <span className="quot-mob-num">
-                            {navigatingId === r.id ? (
-                              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'quot-spin .8s linear infinite', display: 'inline-block', verticalAlign: 'middle' }}>
-                                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                              </svg>
-                            ) : (
-                              <Hl text={r.quotNo || r.refNo} query={fNum} />
-                            )}
+                            <Hl text={r.quotNo || r.refNo} query={fNum} />
                           </span>
                           <span className={`quot-badge ${isDetailed ? 'quot-badge--green' : 'quot-badge--blue'}`}>
                             <span className="quot-badge-dot" />
@@ -429,13 +449,7 @@ export default function QuotationsPage() {
 
                       {/* desktop: just the quote number */}
                       <span className="quot-desk-num" style={{ fontWeight: 700, fontSize: 13, color: '#1A37AA' }}>
-                        {navigatingId === r.id ? (
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'quot-spin .8s linear infinite', display: 'inline-block', verticalAlign: 'middle' }}>
-                            <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                          </svg>
-                        ) : (
-                          <Hl text={r.quotNo || r.refNo} query={fNum} />
-                        )}
+                        <Hl text={r.quotNo || r.refNo} query={fNum} />
                       </span>
                     </td>
 

@@ -54,7 +54,7 @@ const MODELS = [
   },
 ];
 
-const INIT = () => ({
+export const INIT = () => ({
   refNo:'USEPL/Q-D/2026/005/R0', refDate:todayISO(), quotNo:'USE/DNR- 15112501/R0', quotDate:todayISO(),
   salutation:'Mr.', contact:'', company:'', addr1:'', addr2:'',
   city:'', state:'', mobile:'', email:'',
@@ -462,61 +462,63 @@ const CSS = `
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   .qf-root {
-    min-height: 100vh;
-    background: #eef0f5;
+    background: var(--bg, #f8fafc);
     font-family: 'DM Sans', sans-serif;
   }
 
-  /* ── Top bar ── */
+  /* ── Sub-header bar (sits below dashboard TopBar) ── */
   .qf-bar {
-    position: sticky; top: 0; z-index: 100;
+    position: sticky; top: 0; z-index: 50;
     height: 52px;
-    background: #0d1828;
-    border-bottom: 1px solid rgba(255,255,255,.06);
-    display: flex; align-items: center; gap: 12px; padding: 0 24px;
+    background: #fff;
+    border-bottom: 1px solid #e5e8ef;
+    display: flex; align-items: center; gap: 8px; padding: 0 20px;
+    flex-shrink: 0;
   }
   .qf-bar-back {
-    display: flex; align-items: center; gap: 6px;
-    color: rgba(255,255,255,.38); font-size: 12px; font-weight: 500;
-    text-decoration: none; letter-spacing: .2px;
-    transition: color .15s;
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 32px; padding: 0 11px; border-radius: 7px;
+    border: 1.5px solid #e2e8f2; background: #fff;
+    color: #64748b; font-size: 12.5px; font-weight: 600;
+    font-family: 'DM Sans', sans-serif;
+    text-decoration: none; transition: all .15s; flex-shrink: 0;
   }
-  .qf-bar-back:hover { color: rgba(255,255,255,.8); }
-  .qf-bar-dot { width: 1px; height: 22px; background: rgba(255,255,255,.1); }
+  .qf-bar-back:hover { border-color: #94a3c4; color: #1e293b; background: #f8faff; }
+  .qf-bar-dot { width: 1px; height: 18px; background: #e5e8ef; flex-shrink: 0; }
   .qf-bar-title {
-    font-family: 'Inter', sans-serif; font-size: 13.5px; font-weight: 700;
-    color: #fff; letter-spacing: .2px;
+    font-family: 'Inter', sans-serif; font-size: 13px; font-weight: 700;
+    color: #1a2230;
   }
   .qf-bar-chip {
-    background: rgba(26,55,170,.35); border: 1px solid rgba(26,55,170,.5);
-    border-radius: 5px; padding: 2px 8px; font-size: 10.5px; font-weight: 600;
-    color: #7ea8ff; letter-spacing: .3px; font-family: 'Barlow Condensed', sans-serif;
+    background: #eef1fc; border: 1px solid #c7d2f5;
+    border-radius: 5px; padding: 2px 8px; font-size: 11px; font-weight: 600;
+    color: #1A37AA; font-family: 'DM Sans', sans-serif;
   }
   .qf-bar-space { flex: 1; }
   .qf-bar-btn {
-    height: 30px; padding: 0 14px; border-radius: 6px;
-    border: 1px solid rgba(255,255,255,.12); background: transparent;
-    color: rgba(255,255,255,.45); font-size: 12px; font-family: 'DM Sans', sans-serif;
-    font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 6px;
-    transition: all .15s; letter-spacing: .1px;
+    height: 32px; padding: 0 12px; border-radius: 7px;
+    border: 1.5px solid #e2e8f2; background: #fff;
+    color: #64748b; font-size: 12.5px; font-family: 'DM Sans', sans-serif;
+    font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 6px;
+    transition: all .15s;
   }
-  .qf-bar-btn:hover { border-color: rgba(255,255,255,.28); color: rgba(255,255,255,.8); }
+  .qf-bar-btn:hover { border-color: #94a3c4; color: #1e293b; background: #f8faff; }
   .qf-bar-btn-primary {
-    height: 30px; padding: 0 16px; border-radius: 6px;
-    border: none; background: #1A37AA; color: #fff;
-    font-size: 12px; font-family: 'DM Sans', sans-serif; font-weight: 600;
+    height: 32px; padding: 0 14px; border-radius: 7px;
+    border: 1.5px solid #1A37AA; background: #1A37AA; color: #fff;
+    font-size: 12.5px; font-family: 'DM Sans', sans-serif; font-weight: 600;
     cursor: pointer; display: flex; align-items: center; gap: 6px;
-    box-shadow: 0 2px 10px rgba(26,55,170,.5); transition: all .15s;
+    transition: all .15s;
   }
-  .qf-bar-btn-primary:hover { background: #1e42cc; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(26,55,170,.55); }
+  .qf-bar-btn-primary:hover { background: #1e42cc; border-color: #1e42cc; }
   .qf-bar-btn-save {
-    height: 30px; padding: 0 16px; border-radius: 6px;
-    border: none; background: #52ba4f; color: #fff;
-    font-size: 12px; font-family: 'DM Sans', sans-serif; font-weight: 600;
+    height: 32px; padding: 0 14px; border-radius: 7px;
+    border: 1.5px solid #16a34a; background: #fff; color: #16a34a;
+    font-size: 12.5px; font-family: 'DM Sans', sans-serif; font-weight: 600;
     cursor: pointer; display: flex; align-items: center; gap: 6px;
-    box-shadow: 0 2px 10px rgba(82,186,79,.4); transition: all .15s;
+    transition: all .15s;
   }
-  .qf-bar-btn-save:hover { background: #47a844; transform: translateY(-1px); }
+  .qf-bar-btn-save:hover { background: #f0fdf4; }
   .qf-toast {
     position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
     background: #1a2a1a; color: #7edd7b; border: 1px solid #3a6b38;
@@ -800,7 +802,7 @@ function F({ label, full, required, children }) {
 }
 
 /* ─── Map enquiry → quotation form fields ─────────────────────── */
-function mapEnquiryToForm(enq) {
+export function mapEnquiryToForm(enq) {
   const item = enq.items?.[0] || {};
   // Try to match a model from the MODELS catalogue
   const modelMatch = item.modelNo
@@ -1244,17 +1246,20 @@ export default function QuotationForm({ enquiryId = null, quotationType = null }
         </div>
       )}
 
-      {/* TOP BAR */}
+      {/* SUB-HEADER BAR */}
       <div className="qf-bar">
-        <Link href={enquiryId ? `/dashboard/enquiry/${enquiryId}` : '/dashboard'} className="qf-bar-back">
+        <Link href="/dashboard/quotations" className="qf-bar-back">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="15 18 9 12 15 6"/></svg>
-          {enquiryId ? 'Back to Enquiry' : 'Dashboard'}
+          All Quotations
         </Link>
-        <div className="qf-bar-dot"/>
-        <span className="qf-bar-title">{enquiryId ? '1-Page Quotation' : 'New Quotation'}</span>
-        {enquiryName && <span className="qf-bar-chip">{enquiryName}</span>}
-        {!enquiryName && f.quotNo && <span className="qf-bar-chip">{f.quotNo}</span>}
+        {enquiryName && <><div className="qf-bar-dot"/><span className="qf-bar-title">{enquiryName}</span></>}
         <div className="qf-bar-space"/>
+        {enquiryId && (
+          <Link href={`/dashboard/enquiry/${enquiryId}`} className="qf-bar-btn">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>
+            Edit Enquiry
+          </Link>
+        )}
         <button className="qf-bar-btn" onClick={() => setF(INIT())}>
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.5"/></svg>
           Reset

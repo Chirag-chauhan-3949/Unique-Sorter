@@ -34,7 +34,7 @@
   /* Sidebar */
   --sidebar-bg:      #111c2d;
   --sidebar-border:        oklch(0.922 0 0);
-  --sidebar-text:    rgba(255,255,255,0.55);
+  --sidebar-text:    rgba(255,255,255,0.92);
   --sidebar-active:  rgba(26,55,170,0.25);
   --sidebar-hover:   rgba(255,255,255,0.10);
 
@@ -385,7 +385,7 @@ p, span, div {
   justify-content: center;
   gap: 12px;
   padding: 24px 16px;
-  border-bottom: 1px solid var(--sidebar-border);
+  border-bottom: none;
   min-height: 90px;
   position: relative;
   flex-shrink: 0;
@@ -438,7 +438,7 @@ p, span, div {
 .sidebar-collapse-btn {
   width: 100%;
   padding: 10px 12px 12px;
-  border-top: 1px solid var(--sidebar-border);
+  border-top: none;
   flex-shrink: 0;
   background: none;
   border-left: none;
@@ -472,14 +472,14 @@ p, span, div {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: rgba(255,255,255,0.45);
+  color: rgba(255,255,255,0.9);
   transition: color 0.2s;
 }
 
 .sidebar-collapse-btn-label {
   font-size: 12px;
   font-weight: 500;
-  color: rgba(255,255,255,0.35);
+  color: rgba(255,255,255,0.9);
   letter-spacing: 0.2px;
   white-space: nowrap;
   transition: opacity 0.2s var(--ease), color 0.2s;

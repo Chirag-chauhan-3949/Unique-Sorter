@@ -5,6 +5,8 @@ import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { isAdmin } from '@/lib/rbac';
+import { mapEnquiryToForm, INIT as INIT1 } from '@/components/QuotationForm';
+import { mapEnquiryToForm2, INIT as INIT2 } from '@/components/QuotationForm2';
 
 const MODELS  = ['Pinnacle','Nandak'];
 const SIZES   = ['5','6','7','8','10'];
@@ -751,14 +753,38 @@ export default function EnquiryDetailPage() {
   };
 
   const handleGenConfirm = async (router) => {
-    // Delete any existing quotation for this enquiry before generating new one
     if (existingQuotType) {
       setOverwriting(true);
       await fetch(`/api/quotations/${id}_${existingQuotType}`, { method: 'DELETE' }).catch(() => {});
       setOverwriting(false);
     }
-    setShowGenConfirm(false);
-    router.push(`/dashboard/quotations/new?enquiryId=${id}&type=${quotationType}`);
+    setOverwriting(true);
+    try {
+      const mapped = quotationType === 'detailed' ? mapEnquiryToForm2(row) : mapEnquiryToForm(row);
+      const base    = Math.round(parseFloat(mapped.basePrice) || 0);
+      const gstRate = parseFloat(mapped.gstRate ?? mapped.gst ?? 18) || 0;
+      const gstAmt  = Math.round(base * gstRate / 100);
+      const total   = base + gstAmt;
+      const payload = {
+        enquiryId: id,
+        quotationType,
+        ...mapped,
+        gstAmt,
+        total,
+        savedAt: new Date().toISOString(),
+      };
+      const res  = await fetch('/api/quotations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      const docId = data.id || `${id}_${quotationType}`;
+      setShowGenConfirm(false);
+      router.push(`/dashboard/quotations/${docId}`);
+    } catch {
+      setOverwriting(false);
+    }
   };
 
   const isImmediate = draft.hasRequirement === true;

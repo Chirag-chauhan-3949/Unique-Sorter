@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { isAdmin } from '@/lib/rbac';
+import { mapEnquiryToForm, INIT } from '@/components/QuotationForm';
 
 const fmtDate = iso => {
   if (!iso) return '—';
@@ -13,6 +14,7 @@ const fmtDate = iso => {
 
 /* ── Drawer ────────────────────────────────────────────────────── */
 function EnquiryDrawer({ row, onClose, onUpdated, onDeleted, userRole }) {
+  const router = useRouter();
   const [visible, setVisible] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({});
@@ -20,9 +22,41 @@ function EnquiryDrawer({ row, onClose, onUpdated, onDeleted, userRole }) {
   const [saveErr, setSaveErr] = useState('');
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
-  
+  const [generating, setGenerating] = useState(false);
+
   // Check if user is admin
   const isAdminUser = isAdmin(userRole);
+
+  const handleGenerateQuotation = async () => {
+    if (!row?.id || generating) return;
+    setGenerating(true);
+    try {
+      const mapped = mapEnquiryToForm(row);
+      const base    = Math.round(parseFloat(mapped.basePrice) || 0);
+      const gstRate = parseFloat(mapped.gstRate) || 0;
+      const gstAmt  = Math.round(base * gstRate / 100);
+      const total   = base + gstAmt;
+      const payload = {
+        enquiryId: row.id,
+        quotationType: '1page',
+        ...mapped,
+        gstAmt,
+        total,
+        savedAt: new Date().toISOString(),
+      };
+      const res  = await fetch('/api/quotations', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await res.json();
+      const docId = data.id || `${row.id}_1page`;
+      onClose();
+      router.push(`/dashboard/quotations/${docId}`);
+    } catch {
+      setGenerating(false);
+    }
+  };
 
   useEffect(() => {
     if (row) { requestAnimationFrame(() => setVisible(true)); setDraft({ ...row }); setEditing(false); }
@@ -386,6 +420,7 @@ function EnquiryDrawer({ row, onClose, onUpdated, onDeleted, userRole }) {
           transform: translateY(-1px);
         }
         .eq-gen-btn:active { transform: translateY(0); }
+        .eq-gen-btn:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
 
         @keyframes spin { to { transform: rotate(360deg); } }
 
@@ -776,12 +811,18 @@ function EnquiryDrawer({ row, onClose, onUpdated, onDeleted, userRole }) {
               {saving ? 'Saving…' : 'Save Changes'}
             </button>
           ) : (
-            <Link href="/dashboard/quotations/new" className="eq-gen-btn" onClick={handleClose}>
-              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
-              </svg>
-              Generate Quotation
-            </Link>
+            <button className="eq-gen-btn" onClick={handleGenerateQuotation} disabled={generating}>
+              {generating ? (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'spin 0.8s linear infinite' }}>
+                  <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+                </svg>
+              ) : (
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+                </svg>
+              )}
+              {generating ? 'Generating…' : 'Generate Quotation'}
+            </button>
           )}
         </div>
 
@@ -889,33 +930,38 @@ export default function EnquiryPage() {
 
         /* top bar */
         .enq-topbar {
-          display: flex; align-items: center; justify-content: space-between;
-          padding: 16px 16px 12px; gap: 10px;
+          display: flex; align-items: center; justify-content: flex-end;
+          padding: 10px 14px 8px; gap: 8px;
         }
-        .enq-topbar-left { display: flex; align-items: baseline; gap: 10px; min-width: 0; }
-        .enq-title {
-          font-family: var(--font-poppins), Poppins, sans-serif;
-          font-size: 18px; font-weight: 700; color: var(--text-primary);
-          white-space: nowrap; margin: 0;
-        }
-        .enq-count { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+        .enq-topbar-left { display: none; }
         .enq-topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
 
-        /* filter button */
+        /* Filter button */
         .enq-filter-btn {
           display: inline-flex; align-items: center; gap: 6px;
-          height: 34px; padding: 0 12px; border-radius: 6px;
-          border: 1.5px solid var(--border, #e2e8f2);
-          background: #fff; color: #64748b;
+          height: 34px; padding: 0 13px; border-radius: 7px;
+          border: 1.5px solid #e2e8f2; background: #fff; color: #64748b;
           font-family: var(--font-inter), Inter, sans-serif;
           font-size: 12.5px; font-weight: 600;
           cursor: pointer; white-space: nowrap;
           transition: border-color .15s, color .15s, background .15s;
-          flex-shrink: 0;
         }
         .enq-filter-btn:hover { border-color: #94a3c4; color: #1e293b; background: #f8faff; }
         .enq-filter-btn.active { border-color: #1A37AA; color: #1A37AA; background: #f0f4ff; }
         .enq-filter-btn.has-active { border-color: #1A37AA; color: #1A37AA; }
+
+        /* New button */
+        .btn.btn-primary {
+          display: inline-flex; align-items: center; gap: 6px;
+          height: 34px; padding: 0 13px; border-radius: 7px;
+          border: 1.5px solid #1A37AA; background: #fff; color: #1A37AA;
+          font-family: var(--font-inter), Inter, sans-serif;
+          font-size: 12.5px; font-weight: 600;
+          cursor: pointer; white-space: nowrap; text-decoration: none;
+          transition: background .15s, color .15s;
+        }
+        .btn.btn-primary:hover { background: #f0f4ff; }
+
         .enq-filter-badge {
           display: inline-flex; align-items: center; justify-content: center;
           min-width: 16px; height: 16px; padding: 0 4px;
@@ -1034,10 +1080,24 @@ export default function EnquiryPage() {
         .enq-state-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); }
         .enq-state-sub   { font-size: 12.5px; color: var(--text-muted); }
 
+        /* nav loader overlay */
+        .enq-nav-loader {
+          position: fixed; inset: 0; z-index: 9999;
+          display: flex; align-items: center; justify-content: center;
+          pointer-events: none;
+        }
+        .enq-nav-loader-inner {
+          display: flex; flex-direction: column; align-items: center; gap: 10px;
+        }
+        .enq-nav-loader-text {
+          font-family: 'DM Sans', sans-serif; font-size: 13px;
+          font-weight: 600; color: #94a3b8; letter-spacing: 0.2px;
+        }
+
         /* desktop */
         @media (min-width: 768px) {
-          .enq-topbar { padding: 20px 24px 14px; }
-          .enq-title { font-size: 20px; }
+          .enq-topbar { padding: 14px 24px 10px; gap: 10px; }
+          .enq-filter-btn, .btn.btn-primary { height: 36px; font-size: 13px; padding: 0 16px; border-radius: 8px; }
           .enq-filter-panel { padding: 14px 24px 16px; }
           .enq-filter-grid { grid-template-columns: repeat(4, 1fr); }
           .enq-table thead { display: table-header-group; }
@@ -1047,17 +1107,23 @@ export default function EnquiryPage() {
           .enq-desk-name { display: block; }
         }
       `}</style>
+      {navigatingId && (
+        <div className="enq-nav-loader">
+          <div className="enq-nav-loader-inner">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'enq-spin .8s linear infinite' }}>
+              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
+            </svg>
+            <span className="enq-nav-loader-text">Loading…</span>
+          </div>
+        </div>
+      )}
+
       <div className="page-content enq-page">
 
-        {/* Top bar */}
+        {/* Top bar + filter panel wrapped so outside-click handler doesn't close on button click */}
+        <div className="eq-filter-wrap">
         <div className="enq-topbar">
           <div className="enq-topbar-left">
-            <h2 className="enq-title">Enquiries</h2>
-            <span className="enq-count">
-              {loading ? 'Loading…' : hasAny
-                ? `${filtered.length} of ${rows.length}`
-                : `${rows.length} record${rows.length !== 1 ? 's' : ''}`}
-            </span>
           </div>
           <div className="enq-topbar-right">
             <button
@@ -1078,14 +1144,6 @@ export default function EnquiryPage() {
               {open ? 'Close' : 'Filter'}
               {!open && hasAny && <span className="enq-filter-badge">{chips.length}</span>}
             </button>
-            {isAdminUser && (
-              <Link href="/enquiry" className="btn btn-primary">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
-                  <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                New
-              </Link>
-            )}
           </div>
         </div>
 
@@ -1138,6 +1196,7 @@ export default function EnquiryPage() {
             </div>
           </div>
         )}
+        </div>{/* /eq-filter-wrap */}
 
         {/* Table */}
         <div className="enq-table-wrap">
@@ -1192,12 +1251,7 @@ export default function EnquiryPage() {
                       <tr key={r.id} onClick={() => { setNavigatingId(r.id); router.push(`/dashboard/enquiry/${r.id}`); }}>
                         {/* first td: mobile layout + desktop name */}
                         <td className="enq-td-name">
-                          {navigatingId === r.id ? (
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'enq-spin .8s linear infinite', display: 'inline-block', verticalAlign: 'middle' }}>
-                              <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                            </svg>
-                          ) : (
-                            <>
+                          <>
                               {/* mobile row */}
                               <span className="enq-mob-row">
                                 <span className="enq-mob-top">
@@ -1212,7 +1266,6 @@ export default function EnquiryPage() {
                               {/* desktop name */}
                               <span className="enq-desk-name">{r.customerName || '—'}</span>
                             </>
-                          )}
                         </td>
                         <td>
                           <span className={`enq-badge ${isImmediate ? 'enq-badge--green' : 'enq-badge--amber'}`}>

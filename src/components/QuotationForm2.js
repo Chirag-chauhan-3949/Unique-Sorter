@@ -119,7 +119,7 @@ const PRODUCTS = [
 ];
 
 /* ─── Initial state ───────────────────────────────────────────── */
-const INIT = () => ({
+export const INIT = () => ({
   refNo: "USEPL/Q-D/2026/005/R0",
   refDate: todayISO(),
   companyPrefix: "",
@@ -454,17 +454,19 @@ export function buildHTML(f) {
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-  .qf-root { min-height:100vh; background:#eef0f5; font-family:'DM Sans',sans-serif; }
-  .qf-bar { position:sticky; top:0; z-index:100; height:52px; background:#0d1828; border-bottom:1px solid rgba(255,255,255,.06); display:flex; align-items:center; gap:12px; padding:0 24px; }
-  .qf-bar-back { display:flex; align-items:center; gap:6px; color:rgba(255,255,255,.38); font-size:12px; font-weight:500; text-decoration:none; letter-spacing:.2px; transition:color .15s; }
-  .qf-bar-back:hover { color:rgba(255,255,255,.8); }
-  .qf-bar-dot { width:1px; height:22px; background:rgba(255,255,255,.1); }
-  .qf-bar-title { font-family:'Inter',sans-serif; font-size:13.5px; font-weight:700; color:#fff; letter-spacing:.2px; }
+  .qf-root { min-height:100vh; background:var(--bg,#f8fafc); font-family:'DM Sans',sans-serif; }
+  .qf-bar { position:sticky; top:0; z-index:50; height:52px; background:#fff; border-bottom:1px solid #e5e8ef; box-shadow:0 1px 4px rgba(0,0,0,.04); display:flex; align-items:center; gap:10px; padding:0 20px; flex-shrink:0; }
+  .qf-bar-back { display:inline-flex; align-items:center; gap:5px; height:34px; padding:0 12px; border-radius:7px; border:1.5px solid #e2e8f2; background:#fff; color:#64748b; font-size:12.5px; font-weight:600; font-family:'DM Sans',sans-serif; text-decoration:none; transition:all .15s; flex-shrink:0; }
+  .qf-bar-back:hover { border-color:#94a3c4; color:#1e293b; background:#f8faff; }
+  .qf-bar-dot { width:1px; height:20px; background:#e5e8ef; }
+  .qf-bar-title { font-family:'Inter',sans-serif; font-size:13.5px; font-weight:700; color:#1a2230; letter-spacing:.05px; }
   .qf-bar-space { flex:1; }
-  .qf-bar-btn { height:30px; padding:0 14px; border-radius:6px; border:1px solid rgba(255,255,255,.12); background:transparent; color:rgba(255,255,255,.45); font-size:12px; font-family:'DM Sans',sans-serif; font-weight:500; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all .15s; }
-  .qf-bar-btn:hover { border-color:rgba(255,255,255,.28); color:rgba(255,255,255,.8); }
-  .qf-bar-btn-primary { height:30px; padding:0 16px; border-radius:6px; border:none; background:#1A37AA; color:#fff; font-size:12px; font-family:'DM Sans',sans-serif; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; box-shadow:0 2px 10px rgba(26,55,170,.5); transition:all .15s; }
-  .qf-bar-btn-primary:hover { background:#1e42cc; transform:translateY(-1px); }
+  .qf-bar-btn { height:34px; padding:0 13px; border-radius:7px; border:1.5px solid #e2e8f2; background:#fff; color:#64748b; font-size:12.5px; font-family:'DM Sans',sans-serif; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all .15s; }
+  .qf-bar-btn:hover { border-color:#94a3c4; color:#1e293b; background:#f8faff; }
+  .qf-bar-btn-primary { height:34px; padding:0 16px; border-radius:7px; border:1.5px solid #1A37AA; background:#1A37AA; color:#fff; font-size:12.5px; font-family:'DM Sans',sans-serif; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all .15s; }
+  .qf-bar-btn-primary:hover { background:#1e42cc; border-color:#1e42cc; }
+  .qf-bar-btn-save { height:34px; padding:0 16px; border-radius:7px; border:1.5px solid #16a34a; background:#fff; color:#16a34a; font-size:12.5px; font-family:'DM Sans',sans-serif; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:6px; transition:all .15s; }
+  .qf-bar-btn-save:hover { background:#f0fdf4; }
   .qf-content { max-width:1080px; margin:0 auto; padding:36px 32px 80px; }
   .qf-page-head { margin-bottom:32px; padding-bottom:24px; border-bottom:2px solid rgba(13,24,40,.08); display:flex; align-items:flex-end; justify-content:space-between; }
   .qf-page-head h1 { font-family:'Inter',sans-serif; font-size:22px; font-weight:700; color:#0d1828; letter-spacing:-.3px; line-height:1.25; }
@@ -551,7 +553,7 @@ function F({ label, required, children }) {
 }
 
 /* ─── Map enquiry → QuotationForm2 fields ────────────────────── */
-function mapEnquiryToForm2(enq) {
+export function mapEnquiryToForm2(enq) {
   const item = enq.items?.[0] || {};
   const size = parseInt(item.size) || 0;
   let productId = "pinnacle6v";
@@ -1024,7 +1026,7 @@ export default function QuotationForm2({ enquiryId = null, quotationType = null 
 
       {/* TOP BAR */}
       <div className="qf-bar">
-        <Link href="/dashboard" className="qf-bar-back">
+        <Link href="/dashboard/quotations" className="qf-bar-back">
           <svg
             width="14"
             height="14"
@@ -1036,95 +1038,35 @@ export default function QuotationForm2({ enquiryId = null, quotationType = null 
           >
             <polyline points="15 18 9 12 15 6" />
           </svg>
-          Dashboard
+          All Quotations
         </Link>
-        <div className="qf-bar-dot" />
-        <span className="qf-bar-title">New Quotation (6-Page)</span>
+        {enquiryName && (
+          <>
+            <div className="qf-bar-dot" />
+            <span className="qf-bar-title">{enquiryName}</span>
+          </>
+        )}
         <div className="qf-bar-space" />
+        {enquiryId && (
+          <Link href={`/dashboard/enquiry/${enquiryId}`} className="qf-bar-btn">
+            Edit Enquiry
+          </Link>
+        )}
         <button className="qf-bar-btn" onClick={() => setF(INIT())}>
-          <svg
-            width="11"
-            height="11"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-          >
-            <polyline points="1 4 1 10 7 10" />
-            <path d="M3.51 15a9 9 0 1 0 .49-3.5" />
-          </svg>
           Reset
         </button>
         <button className="qf-bar-btn" onClick={openPreview}>
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          >
-            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
-            <circle cx="12" cy="12" r="3" />
-          </svg>
           Preview
+        </button>
+        <button className="qf-bar-btn-save" onClick={handleSave}>
+          Save
         </button>
         <button
           className="qf-bar-btn-primary"
           onClick={handleDownload}
           disabled={downloading}
         >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-          >
-            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-            <polyline points="7 10 12 15 17 10" />
-            <line x1="12" y1="15" x2="12" y2="3" />
-          </svg>
           {downloading ? "Generating…" : "Download PDF"}
-        </button>
-        <button
-          className="qf-bar-btn-save"
-          style={{
-            height: 30,
-            padding: "0 16px",
-            borderRadius: 6,
-            border: "none",
-            background: "#52ba4f",
-            color: "#fff",
-            fontSize: 12,
-            fontFamily: "'DM Sans',sans-serif",
-            fontWeight: 600,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
-            boxShadow: "0 2px 10px rgba(82,186,79,.4)",
-          }}
-          onClick={handleSave}
-        >
-          <svg
-            width="12"
-            height="12"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.2"
-            strokeLinecap="round"
-          >
-            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-            <polyline points="17 21 17 13 7 13 7 21" />
-            <polyline points="7 3 7 8 15 8" />
-          </svg>
-          Save
         </button>
       </div>
 
