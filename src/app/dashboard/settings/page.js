@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { isAdmin, canAccessSettings } from '@/lib/rbac';
 import { db as firebaseDb } from '@/lib/firebase';
-import { doc, setDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, setDoc, serverTimestamp, collection, getDocs } from 'firebase/firestore';
 
 /* ─── Loading State ─── */
 function LoadingState() {
@@ -101,12 +101,6 @@ function AccessDenied() {
   );
 }
 
-/* ─── mock user list ─── */
-const INITIAL_USERS = [
-  { id: 1, name: 'Ashok Sharma',   phone: '9876543210', role: 'Admin',  avatar: 'AS', active: true  },
-  { id: 2, name: 'Priya Mehta',    phone: '9123456789', role: 'User',   avatar: 'PM', active: true  },
-  { id: 3, name: 'Rahul Verma',    phone: '9988776655', role: 'User',   avatar: 'RV', active: false },
-];
 
 const SECTIONS = [
   { id: 'users',    label: 'User Management', icon: <IconUsers /> },
@@ -304,19 +298,6 @@ function UserModal({ user, onSave, onClose }) {
                 ))}
               </div>
             </Field>
-            {isEdit && (
-              <Field label="Account Status">
-                <div style={styles.toggleRow}>
-                  <button
-                    style={{ ...styles.toggle, ...(form.active ? styles.toggleOn : styles.toggleOff) }}
-                    onClick={() => set('active', !form.active)}
-                  >
-                    <span style={{ ...styles.toggleThumb, ...(form.active ? styles.toggleThumbOn : {}) }} />
-                  </button>
-                  <span style={styles.toggleLabel}>{form.active ? 'Active' : 'Inactive'}</span>
-                </div>
-              </Field>
-            )}
           </div>
         </div>
 
@@ -380,8 +361,9 @@ function DeleteConfirm({ user, onConfirm, onClose }) {
 export default function SettingsPage() {
   const { userRole, isLoading } = useAuth();
   const [activeSection] = useState('users');
-  const [users, setUsers]       = useState(INITIAL_USERS);
-  const [modal, setModal]       = useState(null); // null | { type:'add'|'edit'|'delete', user? }
+  const [users, setUsers]       = useState([]);
+  const [usersLoading, setUsersLoading] = useState(true);
+  const [modal, setModal]       = useState(null);
   const [search, setSearch]     = useState('');
   const [roleFilter, setRoleFilter] = useState('All');
   const [toast, setToast]       = useState(null);
@@ -393,6 +375,37 @@ export default function SettingsPage() {
       setIsAuthorized(canAccessSettings(userRole));
     }
   }, [userRole, isLoading]);
+
+  // Load users from Firestore on mount
+  useEffect(() => {
+    if (!isAuthorized) return;
+    const loadUsers = async () => {
+      setUsersLoading(true);
+      try {
+        if (firebaseDb) {
+          const snapshot = await getDocs(collection(firebaseDb, 'userdata'));
+          const fetched = snapshot.docs.map(d => {
+            const data = d.data();
+            const name = data.name || '';
+            return {
+              id: data.id || d.id,
+              name,
+              phone: data.phone || d.id,
+              role: data.role ? (data.role.charAt(0).toUpperCase() + data.role.slice(1).toLowerCase()) : 'User',
+              active: data.active !== undefined ? data.active : true,
+              avatar: name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U',
+            };
+          });
+          setUsers(fetched);
+        }
+      } catch (err) {
+        console.error('Failed to load users:', err);
+      } finally {
+        setUsersLoading(false);
+      }
+    };
+    loadUsers();
+  }, [isAuthorized]);
 
   const showToast = (msg, type = 'success') => {
     setToast({ msg, type });
@@ -407,53 +420,78 @@ export default function SettingsPage() {
   });
 
   const handleSave = async (data) => {
-    // For existing users - just update local state
+    // Edit existing user
     if (data.id && users.find(u => u.id === data.id)) {
-      setUsers(us => us.map(u => u.id === data.id ? { ...u, ...data } : u));
-      showToast('User updated successfully');
+      try {
+        if (firebaseDb) {
+          const updatePayload = {
+            name: data.name,
+            role: data.role.toLowerCase(),
+            active: data.active,
+            syncedAt: serverTimestamp(),
+          };
+          if (data.password) updatePayload.password = data.password;
+          await setDoc(doc(firebaseDb, 'userdata', data.phone), updatePayload, { merge: true });
+        }
+        setUsers(us => us.map(u => u.id === data.id ? { ...u, ...data } : u));
+        showToast('User updated successfully');
+      } catch (error) {
+        console.error('Error updating user:', error);
+        showToast('Failed to update user: ' + error.message, 'error');
+      }
       setModal(null);
       return;
     }
 
-    // For new users - create in Firebase first
+    // Create new user via API so it's stored in both backend DB and Firebase
     try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name: data.name,
+          phone: data.phone,
+          password: data.password,
+          role: data.role.toLowerCase(),
+        }),
+      });
+
+      const json = await res.json();
+      if (!res.ok) {
+        showToast(json.message || 'Failed to create user', 'error');
+        setModal(null);
+        return;
+      }
+
       const newUser = {
         ...data,
-        id: Date.now().toString(),
+        id: json.user.id,
         active: true,
         avatar: data.name ? data.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U',
       };
-
-      // Save to Firebase Firestore
-      if (firebaseDb) {
-        const userDocRef = doc(firebaseDb, 'userdata', newUser.phone);
-        await setDoc(userDocRef, {
-          id: newUser.id,
-          name: newUser.name,
-          phone: newUser.phone,
-          password: newUser.password,
-          role: newUser.role.toLowerCase(),
-          active: newUser.active,
-          createdAt: serverTimestamp(),
-          syncedAt: serverTimestamp(),
-        });
-        console.log('User saved to Firebase:', newUser.phone);
-      }
-
-      // Update local state
       setUsers(us => [...us, newUser]);
       showToast('User created successfully');
     } catch (error) {
-      console.error('Error saving user:', error);
+      console.error('Error creating user:', error);
       showToast('Failed to create user: ' + error.message, 'error');
     }
     setModal(null);
   };
 
-  const handleDelete = (id) => {
-    setUsers(us => us.filter(u => u.id !== id));
+  const handleDelete = async (id) => {
+    const target = users.find(u => u.id === id);
+    try {
+      if (firebaseDb && target?.phone) {
+        const { deleteDoc } = await import('firebase/firestore');
+        await deleteDoc(doc(firebaseDb, 'userdata', target.phone));
+      }
+      setUsers(us => us.filter(u => u.id !== id));
+      showToast('User removed', 'info');
+    } catch (err) {
+      console.error('Delete failed:', err);
+      showToast('Failed to remove user: ' + err.message, 'error');
+    }
     setModal(null);
-    showToast('User removed', 'info');
   };
 
   // Show loading state
@@ -475,19 +513,38 @@ export default function SettingsPage() {
         @keyframes toastIn { from { opacity:0; transform:translateY(12px) scale(0.96); } to { opacity:1; transform:translateY(0) scale(1); } }
         @keyframes toastOut { from { opacity:1; } to { opacity:0; transform:translateY(8px); } }
         .user-row:hover { background: #f7f9fd !important; }
-        .user-row:hover .row-actions { opacity: 1 !important; }
-        .row-actions { opacity: 0; transition: opacity 0.15s; }
+        .row-actions { opacity: 1; }
         .action-btn:hover { background: #eef2fb !important; color: #1A37AA !important; }
         .action-btn-del:hover { background: #fef2f2 !important; color: #dc2626 !important; }
         .filter-btn:hover { border-color: #1A37AA !important; color: #1A37AA !important; }
         .filter-btn.active { background: #1A37AA !important; color: #fff !important; border-color: #1A37AA !important; }
-        @media (max-width: 640px) {
-          .settings-header-row { flex-direction: column !important; align-items: flex-start !important; gap: 12px !important; }
-          .settings-toolbar { flex-direction: column !important; gap: 10px !important; }
-          .settings-toolbar input { width: 100% !important; }
-          .user-table-name { font-size: 13px !important; }
-          .user-table-meta { font-size: 11px !important; }
-          .row-actions { opacity: 1 !important; }
+
+        /* ── Responsive table ── */
+        @media (max-width: 700px) {
+          .settings-header-row { flex-direction: column !important; align-items: flex-start !important; gap: 10px !important; }
+          .settings-toolbar { flex-wrap: wrap !important; gap: 8px !important; }
+          .settings-toolbar > div:first-child { flex: 1 1 100% !important; }
+
+          /* hide desktop table header */
+          .table-head { display: none !important; }
+
+          /* each row: single tight line, no forced width */
+          .user-row { min-width: 0 !important; padding: 10px 14px !important; gap: 7px !important; }
+
+          /* user col: grows, truncates, hides the ID meta */
+          .col-user { flex: 1 1 0 !important; min-width: 0 !important; max-width: none !important; gap: 8px !important; }
+          .col-user .user-table-meta { display: none !important; }
+          .col-user .avatar-mob { width: 28px !important; height: 28px !important; border-radius: 7px !important; font-size: 10px !important; flex-shrink: 0 !important; }
+          .user-table-name { font-size: 13px !important; white-space: nowrap !important; overflow: hidden !important; text-overflow: ellipsis !important; }
+
+          /* role: tighten pill */
+          .col-role { flex: 0 0 auto !important; }
+          .col-role .role-pill-inner { padding: 2px 7px !important; font-size: 10px !important; gap: 3px !important; }
+          .col-role .role-pill-inner svg { width: 10px !important; height: 10px !important; }
+
+          /* actions: smaller buttons */
+          .col-actions { flex: 0 0 auto !important; gap: 3px !important; }
+          .col-actions .action-btn { width: 26px !important; height: 26px !important; border-radius: 6px !important; }
         }
       `}</style>
 
@@ -553,22 +610,24 @@ export default function SettingsPage() {
           {/* Table */}
           <div style={styles.tableWrap}>
             {/* Head */}
-            <div style={styles.tableHead}>
+            <div style={styles.tableHead} className="table-head">
               <span style={{ flex: '1 1 200px' }}>User</span>
-              <span style={{ flex: '0 0 140px' }}>Phone</span>
               <span style={{ flex: '0 0 100px' }}>Role</span>
-              <span style={{ flex: '0 0 90px' }}>Status</span>
               <span style={{ flex: '0 0 90px', textAlign: 'right' }}>Actions</span>
             </div>
 
             {/* Rows */}
-            {filtered.length === 0 ? (
+            {usersLoading ? (
+              <div style={styles.emptyState}>
+                <p style={{ color: 'var(--text-muted)', fontSize: 14 }}>Loading users…</p>
+              </div>
+            ) : filtered.length === 0 ? (
               <div style={styles.emptyState}>
                 <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#c8d0dc" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/>
                   <path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
                 </svg>
-                <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 10 }}>No users match your search</p>
+                <p style={{ color: 'var(--text-muted)', fontSize: 14, marginTop: 10 }}>No users found</p>
               </div>
             ) : filtered.map((u, i) => (
               <div
@@ -577,36 +636,23 @@ export default function SettingsPage() {
                 style={{ ...styles.tableRow, animationDelay: `${i * 60}ms` }}
               >
                 {/* User */}
-                <div style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
-                  <div style={{ ...styles.avatarSm, background: avatarColor(u.id) }}>{u.avatar}</div>
+                <div className="col-user" style={{ flex: '1 1 200px', display: 'flex', alignItems: 'center', gap: 12, minWidth: 0 }}>
+                  <div className="avatar-mob" style={{ ...styles.avatarSm, background: avatarColor(u.id) }}>{u.avatar}</div>
                   <div style={{ minWidth: 0 }}>
                     <p style={styles.userName} className="user-table-name">{u.name}</p>
                     <p style={styles.userMeta} className="user-table-meta">ID #{String(u.id).padStart(4, '0')}</p>
                   </div>
                 </div>
 
-                {/* Phone */}
-                <div style={{ flex: '0 0 140px' }}>
-                  <span style={styles.phoneChip}>+91 {u.phone}</span>
-                </div>
-
                 {/* Role */}
-                <div style={{ flex: '0 0 100px' }}>
-                  <span style={{ ...styles.rolePill, ...(u.role === 'Admin' ? styles.rolePillAdmin : styles.rolePillUser) }}>
-                    {u.role === 'Admin' && <IconShield />} {u.role}
-                  </span>
-                </div>
-
-                {/* Status */}
-                <div style={{ flex: '0 0 90px' }}>
-                  <span style={{ ...styles.statusDot, background: u.active ? '#dcfce7' : '#f1f5f9', color: u.active ? '#16a34a' : '#64748b' }}>
-                    <span style={{ width: 6, height: 6, borderRadius: '50%', background: u.active ? '#22c55e' : '#94a3b8', display: 'inline-block' }} />
-                    {u.active ? 'Active' : 'Inactive'}
+                <div className="col-role" style={{ flex: '0 0 100px' }}>
+                  <span className="role-pill-inner" style={{ ...styles.rolePill, ...(u.role === 'Admin' ? styles.rolePillAdmin : styles.rolePillUser) }}>
+                    {u.role}
                   </span>
                 </div>
 
                 {/* Actions */}
-                <div style={{ flex: '0 0 90px', display: 'flex', justifyContent: 'flex-end', gap: 4 }} className="row-actions">
+                <div className="col-actions row-actions" style={{ flex: '0 0 90px', display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
                   <button
                     className="action-btn"
                     style={styles.actionBtn}
@@ -662,7 +708,7 @@ export default function SettingsPage() {
 /* ─── Styles ─── */
 const styles = {
   root: {
-    padding: '28px 24px 48px',
+    padding: 'clamp(16px, 4vw, 28px) clamp(12px, 4vw, 24px) 48px',
     maxWidth: 1100,
     margin: '0 auto',
     fontFamily: "var(--font-inter), 'Inter', sans-serif",
@@ -728,9 +774,9 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '20px 24px',
+    padding: 'clamp(14px,3vw,20px) clamp(14px,3vw,24px)',
     borderBottom: '1px solid #f0f4fa',
-    gap: 16,
+    gap: 12,
     flexWrap: 'wrap',
   },
   cardHeaderLeft: {
@@ -765,8 +811,8 @@ const styles = {
   toolbar: {
     display: 'flex',
     alignItems: 'center',
-    gap: 12,
-    padding: '14px 24px',
+    gap: 10,
+    padding: 'clamp(10px,2vw,14px) clamp(14px,3vw,24px)',
     borderBottom: '1px solid #f0f4fa',
     flexWrap: 'wrap',
   },
@@ -826,7 +872,6 @@ const styles = {
     textTransform: 'uppercase',
     color: '#8898aa',
     borderBottom: '1px solid #f0f4fa',
-    minWidth: 580,
   },
   tableRow: {
     display: 'flex',
@@ -835,7 +880,6 @@ const styles = {
     padding: '14px 24px',
     borderBottom: '1px solid #f7f9fc',
     transition: 'background 0.12s',
-    minWidth: 580,
     animation: 'slideUp 0.35s cubic-bezier(0.4,0,0.2,1) both',
   },
   avatarSm: {
@@ -886,15 +930,6 @@ const styles = {
   rolePillUser: {
     background: '#f1f5f9',
     color: '#475569',
-  },
-  statusDot: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: 5,
-    padding: '3px 9px',
-    borderRadius: 6,
-    fontSize: 11,
-    fontWeight: 600,
   },
   actionBtn: {
     width: 32,
@@ -1107,7 +1142,7 @@ const styles = {
   },
   roleOptionActive: {
     background: 'rgba(26,55,170,0.08)',
-    borderColor: '#1A37AA',
+    border: '1.5px solid #1A37AA',
     color: '#1A37AA',
   },
   toggleRow: {
