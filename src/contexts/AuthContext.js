@@ -172,12 +172,16 @@ export function AuthProvider({ children }) {
     const publicRoutes = ['/login', '/register', '/enquiry', '/inquiry'];
     const isPublicRoute = publicRoutes.some(route => pathname?.startsWith(route)) || pathname === '/';
 
+    // Only redirect unauthenticated users away from protected routes
     if (!isAuthenticated && !isPublicRoute) {
       router.push('/login');
       return;
     }
 
-    if (isAuthenticated && isPublicRoute) {
+    // Only redirect authenticated users away from auth pages (login/register), not all public pages
+    const authOnlyRoutes = ['/login', '/register'];
+    const isAuthOnlyRoute = authOnlyRoutes.some(route => pathname?.startsWith(route));
+    if (isAuthenticated && isAuthOnlyRoute) {
       router.push(getRedirectPath(userRole));
       return;
     }
