@@ -1,13 +1,11 @@
 'use client';
 
-import { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter, usePathname } from 'next/navigation';
 import { ROLES, canAccessRoute, getRedirectPath } from '@/lib/rbac';
 
-// Create the Auth Context
 const AuthContext = createContext(null);
 
-// Hook to use the auth context
 export function useAuth() {
   const context = useContext(AuthContext);
   if (!context) {
@@ -16,28 +14,88 @@ export function useAuth() {
   return context;
 }
 
-// Auth Provider Component
 export function AuthProvider({ children }) {
   const router = useRouter();
   const pathname = usePathname();
-  
+
   const [user, setUser] = useState(null);
   const [userRole, setUserRole] = useState(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const refreshTimerRef = useRef(null);
 
-  // Check if a JWT token is expired
-  const isTokenExpired = useCallback((token) => {
+  // Decode JWT-format token (Firebase ID tokens are JWTs)
+  const decodeToken = useCallback((token) => {
     try {
-      const payload = JSON.parse(atob(token.split('.')[1]));
-      if (payload.exp && Date.now() >= payload.exp * 1000) {
-        return true;
-      }
-      return false;
+      return JSON.parse(atob(token.split('.')[1]));
     } catch {
-      return true;
+      return null;
     }
   }, []);
+
+  const isTokenExpired = useCallback((token) => {
+    const payload = decodeToken(token);
+    if (!payload?.exp) return true;
+    return Date.now() >= payload.exp * 1000;
+  }, [decodeToken]);
+
+  const clearAuth = useCallback(() => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('refreshToken');
+    localStorage.removeItem('user');
+    document.cookie = 'authToken=; path=/; max-age=0; SameSite=Strict';
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    setUser(null);
+    setUserRole(null);
+    setIsAuthenticated(false);
+  }, []);
+
+  const logout = useCallback(() => {
+    clearAuth();
+    router.push('/login');
+  }, [clearAuth, router]);
+
+  // Schedule a proactive token refresh 5 minutes before expiry
+  const scheduleRefresh = useCallback((idToken) => {
+    if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    const payload = decodeToken(idToken);
+    if (!payload?.exp) return;
+
+    const msUntilExpiry = payload.exp * 1000 - Date.now();
+    const refreshIn = msUntilExpiry - 5 * 60 * 1000; // 5 min before expiry
+
+    if (refreshIn <= 0) {
+      // Already near expiry — refresh immediately
+      doRefresh();
+      return;
+    }
+
+    refreshTimerRef.current = setTimeout(doRefresh, refreshIn);
+  }, [decodeToken]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Exchange refresh token for a new Firebase ID token
+  const doRefresh = useCallback(async () => {
+    const storedRefreshToken = localStorage.getItem('refreshToken');
+    if (!storedRefreshToken) { logout(); return; }
+
+    try {
+      const res = await fetch('/api/auth/refresh', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ refreshToken: storedRefreshToken }),
+      });
+
+      if (!res.ok) { logout(); return; }
+
+      const data = await res.json();
+      localStorage.setItem('authToken', data.idToken);
+      localStorage.setItem('refreshToken', data.refreshToken);
+      document.cookie = 'authToken=' + data.idToken + '; path=/; max-age=3600; SameSite=Strict';
+      scheduleRefresh(data.idToken);
+    } catch {
+      logout();
+    }
+  }, [logout, scheduleRefresh]);
 
   // Initialize auth state from localStorage on mount
   useEffect(() => {
@@ -48,13 +106,20 @@ export function AuthProvider({ children }) {
 
         if (token && storedUser) {
           if (isTokenExpired(token)) {
-            clearAuth();
+            // Try to refresh silently before giving up
+            const refreshToken = localStorage.getItem('refreshToken');
+            if (refreshToken) {
+              doRefresh();
+            } else {
+              clearAuth();
+            }
             return;
           }
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
           setUserRole(parsedUser.role?.toUpperCase() || ROLES.USER);
           setIsAuthenticated(true);
+          scheduleRefresh(token);
         }
       } catch (error) {
         console.error('Auth initialization error:', error);
@@ -65,85 +130,63 @@ export function AuthProvider({ children }) {
     };
 
     initAuth();
-  }, []);
 
-  // Clear authentication state
-  const clearAuth = useCallback(() => {
-    localStorage.removeItem('authToken');
-    localStorage.removeItem('user');
-    document.cookie = 'authToken=; path=/; max-age=0; SameSite=Strict';
-    setUser(null);
-    setUserRole(null);
-    setIsAuthenticated(false);
-  }, []);
+    return () => {
+      if (refreshTimerRef.current) clearTimeout(refreshTimerRef.current);
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Login function - called after successful credential verification
-  const login = useCallback((token, userData) => {
+  // login — called after successful OTP verification
+  // idToken: Firebase ID token (1h), refreshToken: Firebase refresh token (persistent)
+  const login = useCallback((idToken, userData, refreshToken) => {
     const normalizedRole = userData.role?.toUpperCase() || ROLES.USER;
-    
-    localStorage.setItem('authToken', token);
-    document.cookie = 'authToken=' + token + '; path=/; max-age=86400; SameSite=Strict';
-    localStorage.setItem('user', JSON.stringify({
-      ...userData,
-      role: normalizedRole,
-    }));
-    
+
+    localStorage.setItem('authToken', idToken);
+    if (refreshToken) localStorage.setItem('refreshToken', refreshToken);
+    document.cookie = 'authToken=' + idToken + '; path=/; max-age=3600; SameSite=Strict';
+    localStorage.setItem('user', JSON.stringify({ ...userData, role: normalizedRole }));
+
     setUser({ ...userData, role: normalizedRole });
     setUserRole(normalizedRole);
     setIsAuthenticated(true);
-    
-    return normalizedRole;
-  }, []);
+    scheduleRefresh(idToken);
 
-  // Get auth headers for API requests
+    return normalizedRole;
+  }, [scheduleRefresh]);
+
+  // Returns auth headers synchronously — token is always fresh via the auto-refresh timer
   const getAuthHeaders = useCallback(() => {
     const token = localStorage.getItem('authToken');
-    if (token) {
-      if (isTokenExpired(token)) {
-        logout();
-        return {};
-      }
-      return { Authorization: 'Bearer ' + token };
+    if (!token) return {};
+    if (isTokenExpired(token)) {
+      doRefresh();
+      return {};
     }
-    return {};
-  }, [isTokenExpired]);
+    return { Authorization: 'Bearer ' + token };
+  }, [isTokenExpired, doRefresh]);
 
-  // Logout function
-  const logout = useCallback(() => {
-    clearAuth();
-    router.push('/login');
-  }, [clearAuth, router]);
-
-  // Check if user can access current route
+  // Route guard
   useEffect(() => {
     if (isLoading) return;
-    
-    // Public routes that don't require authentication
+
     const publicRoutes = ['/login', '/register'];
     const isPublicRoute = publicRoutes.some(route => pathname?.startsWith(route));
-    
-    // If not authenticated and trying to access protected route, redirect to login
+
     if (!isAuthenticated && !isPublicRoute) {
       router.push('/login');
       return;
     }
-    
-    // If authenticated and trying to access login/register, redirect to dashboard
+
     if (isAuthenticated && isPublicRoute) {
-      const redirectPath = getRedirectPath(userRole);
-      router.push(redirectPath);
+      router.push(getRedirectPath(userRole));
       return;
     }
-    
-    // Check route access for authenticated users
-    if (isAuthenticated && pathname && pathname.startsWith('/dashboard')) {
-      // USER trying to access settings - redirect to dashboard
+
+    if (isAuthenticated && pathname?.startsWith('/dashboard')) {
       if (userRole === ROLES.USER && pathname.startsWith('/dashboard/settings')) {
         router.push('/dashboard');
         return;
       }
-      
-      // Check if route is allowed
       if (!canAccessRoute(userRole, pathname)) {
         router.push('/dashboard');
         return;

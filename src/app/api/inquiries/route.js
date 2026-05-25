@@ -6,7 +6,7 @@ import { verifyAuth, verifyAdmin } from '@/lib/auth';
 // GET all inquiries
 export async function GET(request) {
   try {
-    const auth = verifyAuth(request);
+    const auth = await verifyAuth(request);
     if (auth.error) {
       return NextResponse.json({ message: auth.error }, { status: auth.status });
     }
@@ -120,7 +120,7 @@ export async function POST(request) {
 // PUT update inquiry
 export async function PUT(request) {
   try {
-    const auth = verifyAuth(request);
+    const auth = await verifyAuth(request);
     if (auth.error) {
       return NextResponse.json({ message: auth.error }, { status: auth.status });
     }
@@ -175,7 +175,7 @@ export async function PUT(request) {
 // DELETE inquiry
 export async function DELETE(request) {
   try {
-    const auth = verifyAdmin(request);
+    const auth = await verifyAdmin(request);
     if (auth.error) {
       return NextResponse.json({ message: auth.error }, { status: auth.status });
     }

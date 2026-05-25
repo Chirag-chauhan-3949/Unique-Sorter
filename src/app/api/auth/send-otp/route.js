@@ -24,7 +24,7 @@ async function findUserByPhone(phone) {
 
 export async function POST(request) {
   try {
-    const { phone } = await request.json();
+    const { phone, checkOnly, recaptchaToken } = await request.json();
 
     if (!phone) return NextResponse.json({ message: 'Phone number is required' }, { status: 400 });
 
@@ -41,13 +41,18 @@ export async function POST(request) {
       return NextResponse.json({ message: 'This phone number is not registered. Please register first.' }, { status: 404 });
     }
 
-    // Call Firebase Auth REST API from server (no reCAPTCHA needed server-side)
+    // checkOnly = true: just verify the user is registered, OTP is sent client-side via Firebase SDK
+    if (checkOnly) {
+      return NextResponse.json({ success: true, message: 'User verified', userName: user.name });
+    }
+
+    // Legacy: server-side OTP send (used for test numbers / fallback)
     const firebaseRes = await fetch(
       'https://identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=' + FIREBASE_API_KEY,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: '+91' + phone, recaptchaToken: '' }),
+        body: JSON.stringify({ phoneNumber: '+91' + phone, recaptchaToken: recaptchaToken || '' }),
       }
     );
 
@@ -58,7 +63,6 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Failed to send OTP. Please try again.' }, { status: 500 });
     }
 
-    // Store sessionInfo in Firestore (needed to verify OTP later)
     try {
       const { adminDb } = await import('@/lib/firebase-admin');
       if (adminDb) {
@@ -73,11 +77,7 @@ export async function POST(request) {
       console.warn('Firestore session store skipped:', err.message);
     }
 
-    return NextResponse.json({
-      success: true,
-      message: 'OTP sent to +91' + phone,
-      userName: user.name,
-    });
+    return NextResponse.json({ success: true, message: 'OTP sent to +91' + phone, userName: user.name });
 
   } catch (error) {
     console.error('Send OTP error:', error);

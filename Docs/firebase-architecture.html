@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Firebase Architecture — Unique Sorter CRM</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8f9fa; color: #1a1a2e; line-height: 1.6; }
+  header { background: linear-gradient(135deg, #1a73e8 0%, #0d47a1 100%); color: white; padding: 40px 48px; }
+  header h1 { font-size: 2rem; font-weight: 700; margin-bottom: 8px; }
+  header p { opacity: 0.85; font-size: 1.05rem; }
+  nav { background: #fff; border-bottom: 1px solid #e0e0e0; padding: 0 48px; display: flex; gap: 0; overflow-x: auto; }
+  nav a { display: block; padding: 14px 20px; color: #555; text-decoration: none; font-size: 0.9rem; white-space: nowrap; border-bottom: 3px solid transparent; transition: all 0.2s; }
+  nav a:hover { color: #1a73e8; border-bottom-color: #1a73e8; }
+  main { max-width: 1100px; margin: 0 auto; padding: 40px 24px; }
+  section { background: white; border-radius: 12px; padding: 36px; margin-bottom: 32px; box-shadow: 0 1px 4px rgba(0,0,0,0.08); }
+  h2 { font-size: 1.4rem; font-weight: 700; color: #0d47a1; margin-bottom: 20px; padding-bottom: 12px; border-bottom: 2px solid #e8f0fe; }
+  h3 { font-size: 1.05rem; font-weight: 600; color: #1a1a2e; margin: 24px 0 12px; }
+  p { margin-bottom: 12px; color: #333; }
+  ul, ol { margin: 8px 0 16px 24px; color: #333; }
+  li { margin-bottom: 6px; }
+  code { background: #f1f3f4; padding: 2px 6px; border-radius: 4px; font-family: 'Courier New', monospace; font-size: 0.88em; color: #d93025; }
+  pre { background: #1e1e2e; color: #cdd6f4; padding: 20px 24px; border-radius: 8px; overflow-x: auto; margin: 16px 0; font-size: 0.85rem; line-height: 1.7; }
+  pre .comment { color: #6c7086; }
+  pre .key { color: #89b4fa; }
+  pre .val { color: #a6e3a1; }
+  pre .str { color: #f9e2af; }
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 20px; font-size: 0.78rem; font-weight: 600; }
+  .badge-blue { background: #e8f0fe; color: #1a73e8; }
+  .badge-green { background: #e6f4ea; color: #137333; }
+  .badge-red { background: #fce8e6; color: #c5221f; }
+  .badge-orange { background: #fef7e0; color: #b45309; }
+  table { width: 100%; border-collapse: collapse; margin: 16px 0; font-size: 0.9rem; }
+  th { background: #e8f0fe; color: #0d47a1; padding: 12px 16px; text-align: left; font-weight: 600; }
+  td { padding: 11px 16px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background: #fafafa; }
+  .flow { display: flex; align-items: flex-start; gap: 0; margin: 20px 0; flex-wrap: wrap; }
+  .flow-step { background: #f8f9ff; border: 2px solid #c5d5f8; border-radius: 10px; padding: 14px 18px; min-width: 160px; flex: 1; position: relative; }
+  .flow-step:not(:last-child)::after { content: '→'; position: absolute; right: -22px; top: 50%; transform: translateY(-50%); font-size: 1.4rem; color: #1a73e8; z-index: 1; }
+  .flow-step .step-num { font-size: 0.7rem; font-weight: 700; color: #1a73e8; text-transform: uppercase; letter-spacing: 0.5px; }
+  .flow-step .step-title { font-weight: 600; font-size: 0.9rem; margin: 4px 0; }
+  .flow-step .step-detail { font-size: 0.78rem; color: #666; }
+  .flow-gap { width: 28px; flex-shrink: 0; }
+  .callout { border-left: 4px solid #1a73e8; background: #e8f0fe; padding: 14px 18px; border-radius: 0 8px 8px 0; margin: 16px 0; }
+  .callout.warn { border-color: #f59e0b; background: #fef3c7; }
+  .callout.success { border-color: #10b981; background: #d1fae5; }
+  .callout.danger { border-color: #ef4444; background: #fee2e2; }
+  .callout strong { display: block; margin-bottom: 4px; }
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+  .card { background: #f8f9ff; border: 1px solid #c5d5f8; border-radius: 8px; padding: 18px; }
+  .card h4 { font-size: 0.95rem; font-weight: 700; color: #0d47a1; margin-bottom: 10px; }
+  @media (max-width: 700px) { .two-col { grid-template-columns: 1fr; } header { padding: 24px; } nav { padding: 0 8px; } main { padding: 16px; } section { padding: 20px; } .flow { flex-direction: column; } .flow-step:not(:last-child)::after { content: '↓'; right: auto; left: 50%; top: auto; bottom: -22px; transform: translateX(-50%); } }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Firebase Architecture</h1>
+  <p>Unique Sorter CRM — Complete guide to how Firebase is used in this project</p>
+</header>
+
+<nav>
+  <a href="#overview">Overview</a>
+  <a href="#sdks">SDKs</a>
+  <a href="#env">Environment Variables</a>
+  <a href="#otp-flow">OTP Flow</a>
+  <a href="#token-system">Token System</a>
+  <a href="#collections">Firestore</a>
+  <a href="#api-routes">API Routes</a>
+  <a href="#security">Security</a>
+  <a href="#what-firebase-does">What Firebase Does</a>
+</nav>
+
+<main>
+
+<!-- OVERVIEW -->
+<section id="overview">
+  <h2>Overview</h2>
+  <p>Firebase is used for two things in this project:</p>
+  <ol>
+    <li><strong>Phone Number Authentication (OTP)</strong> — Firebase sends a real SMS one-time password to the user's phone. No username/password is used.</li>
+    <li><strong>Firestore Database</strong> — All CRM data (users, enquiries, quotations, audit logs, OTP sessions) is stored in Cloud Firestore.</li>
+  </ol>
+
+  <div class="two-col" style="margin-top:24px">
+    <div class="card">
+      <h4>Firebase Admin SDK (Server)</h4>
+      <ul>
+        <li>Runs in Next.js API routes only</li>
+        <li>Initialized with a service account</li>
+        <li>Full access — bypasses security rules</li>
+        <li>Used to verify Firebase ID tokens</li>
+        <li>Used for all Firestore reads/writes</li>
+        <li>Never sent to the browser</li>
+      </ul>
+    </div>
+    <div class="card">
+      <h4>Firebase Client SDK (Browser)</h4>
+      <ul>
+        <li>Runs in the browser only</li>
+        <li>Initialized with public API keys</li>
+        <li>Obeys Firestore security rules</li>
+        <li>Used to initialize the Auth object</li>
+        <li>Not used directly for phone auth flow</li>
+        <li>Loaded via <code>src/lib/firebase.js</code></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="callout success" style="margin-top:20px">
+    <strong>Key Design Decision</strong>
+    OTP sending is done entirely server-side via the Firebase Auth REST API. This means <strong>no reCAPTCHA is required</strong> — the server calls Firebase directly as a trusted party.
+  </div>
+</section>
+
+<!-- SDKs -->
+<section id="sdks">
+  <h2>SDKs and Initialization</h2>
+
+  <h3>Client SDK — <code>src/lib/firebase.js</code></h3>
+  <p>Initializes the Firebase app for use in the browser. Used only for setting up the <code>auth</code>, <code>db</code>, and <code>storage</code> objects. The phone auth flow itself goes through our own API routes, not the client SDK.</p>
+  <pre><span class="comment">// Initializes once, reuses existing app on hot reload</span>
+app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
+db = getFirestore(app);
+auth = getAuth(app);
+storage = getStorage(app);
+
+<span class="comment">// Pre-warms reCAPTCHA Enterprise config (reduces first-auth latency)</span>
+<span class="comment">// Only runs in browser, errors are silently ignored</span>
+initializeRecaptchaConfig(auth).catch(() => {});</pre>
+
+  <h3>Admin SDK — <code>src/lib/firebase-admin.js</code></h3>
+  <p>Initialized with a service account private key from environment variables. Only imported in <code>src/app/api/</code> routes — never bundled to the browser.</p>
+  <pre><span class="comment">// Exported objects used across all API routes:</span>
+<span class="key">adminAuth</span> <span class="comment">// firebase-admin/auth — verifyIdToken, getUser</span>
+<span class="key">adminDb</span>   <span class="comment">// firebase-admin/firestore — collection, doc, get, set, update, delete</span></pre>
+</section>
+
+<!-- ENV VARS -->
+<section id="env">
+  <h2>Environment Variables</h2>
+  <table>
+    <thead>
+      <tr><th>Variable</th><th>Where Used</th><th>Description</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>NEXT_PUBLIC_FIREBASE_API_KEY</code></td>
+        <td>Client + Server</td>
+        <td>Firebase Web API key. Used in REST API calls to <code>identitytoolkit.googleapis.com</code> for sending and verifying OTPs.</td>
+      </tr>
+      <tr>
+        <td><code>NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN</code></td>
+        <td>Client</td>
+        <td>Firebase auth domain (e.g. <code>yourapp.firebaseapp.com</code>). Used for client SDK initialization.</td>
+      </tr>
+      <tr>
+        <td><code>NEXT_PUBLIC_FIREBASE_PROJECT_ID</code></td>
+        <td>Client + Server</td>
+        <td>Firebase project ID. Used in client SDK and Admin SDK initialization.</td>
+      </tr>
+      <tr>
+        <td><code>NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET</code></td>
+        <td>Client</td>
+        <td>Firebase Storage bucket URL. Used for file upload features.</td>
+      </tr>
+      <tr>
+        <td><code>NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID</code></td>
+        <td>Client</td>
+        <td>Firebase Cloud Messaging sender ID. Required for client SDK config.</td>
+      </tr>
+      <tr>
+        <td><code>NEXT_PUBLIC_FIREBASE_APP_ID</code></td>
+        <td>Client</td>
+        <td>Firebase app ID. Required for client SDK config.</td>
+      </tr>
+      <tr>
+        <td><code>FIREBASE_PROJECT_ID</code></td>
+        <td>Server only</td>
+        <td>Same project ID, used explicitly in Admin SDK initialization.</td>
+      </tr>
+      <tr>
+        <td><code>FIREBASE_CLIENT_EMAIL</code></td>
+        <td>Server only</td>
+        <td>Service account email from the downloaded JSON key file.</td>
+      </tr>
+      <tr>
+        <td><code>FIREBASE_PRIVATE_KEY</code></td>
+        <td>Server only</td>
+        <td>Service account private key (RSA). Must include <code>\n</code> newlines. Never expose to browser.</td>
+      </tr>
+      <tr>
+        <td><code>JWT_SECRET</code></td>
+        <td>Server only</td>
+        <td>Secret for signing our own app JWTs issued after Firebase OTP verification. Min 32 chars recommended.</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>Security Rule</strong>
+    Variables prefixed <code>NEXT_PUBLIC_</code> are bundled into the browser JavaScript. The Firebase API key is safe to expose (it only identifies your project, not authenticate it). However, <code>FIREBASE_PRIVATE_KEY</code> and <code>JWT_SECRET</code> must NEVER have the <code>NEXT_PUBLIC_</code> prefix.
+  </div>
+</section>
+
+<!-- OTP FLOW -->
+<section id="otp-flow">
+  <h2>OTP Authentication Flow</h2>
+  <p>The complete login flow uses two API routes. No client-side Firebase SDK calls are made during authentication.</p>
+
+  <h3>Step 1 — Send OTP (<code>POST /api/auth/send-otp</code>)</h3>
+  <div class="flow">
+    <div class="flow-step">
+      <div class="step-num">Step 1</div>
+      <div class="step-title">Validate Input</div>
+      <div class="step-detail">Check phone format <code>/^[6-9]\d{9}$/</code>, rate limit (5/hour)</div>
+    </div>
+    <div class="flow-gap"></div>
+    <div class="flow-step">
+      <div class="step-num">Step 2</div>
+      <div class="step-title">Check User Exists</div>
+      <div class="step-detail">Look up <code>userdata/{phone}</code> in Firestore via Admin SDK</div>
+    </div>
+    <div class="flow-gap"></div>
+    <div class="flow-step">
+      <div class="step-num">Step 3</div>
+      <div class="step-title">Call Firebase REST API</div>
+      <div class="step-detail"><code>accounts:sendVerificationCode</code> with API key and phone number</div>
+    </div>
+    <div class="flow-gap"></div>
+    <div class="flow-step">
+      <div class="step-num">Step 4</div>
+      <div class="step-title">Store sessionInfo</div>
+      <div class="step-detail">Save Firebase <code>sessionInfo</code> token to <code>otps/{phone}</code> in Firestore (5min TTL)</div>
+    </div>
+    <div class="flow-gap"></div>
+    <div class="flow-step">
+      <div class="step-num">Step 5</div>
+      <div class="step-title">SMS Delivered</div>
+      <div class="step-detail">Firebase sends real SMS to user's phone via its carrier network</div>
+    </div>
+  </div>
+
+  <pre><span class="comment">// Server calls Firebase Auth REST API — no reCAPTCHA needed server-side</span>
+POST https://identitytoolkit.googleapis.com/v1/accounts:sendVerificationCode?key=API_KEY
+Body: { <span class="key">phoneNumber</span>: <span class="str">'+919876543210'</span>, <span class="key">recaptchaToken</span>: <span class="str">''</span> }
+
+<span class="comment">// Firebase responds with a sessionInfo token</span>
+Response: { <span class="key">sessionInfo</span>: <span class="str">'AJOnW4Q...'</span> }</pre>
+
+  <h3>Step 2 — Verify OTP (<code>POST /api/auth/verify-otp</code>)</h3>
+  <div class="flow">
+    <div class="flow-step">
+      <div class="step-num">Step 1</div>
+      <div class="step-title">Get sessionInfo</div>
+      <div class="step-detail">Fetch from Firestore <code>otps/{phone}</code>, check expiry (5 min)</div>
+    </div>
+    <div class="flow-gap"></div>
+    <div class="flow-step">
+      <div class="step-num">Step 2</div>
+      <div class="step-title">Verify OTP Code</div>
+      <div class="step-detail">Call <code>accounts:signInWithPhoneNumber</code> with sessionInfo + OTP code</div>
+    </div>
+    <div class="flow-gap"></div>
+    <div class="flow-step">
+      <div class="step-num">Step 3</div>
+      <div class="step-title">Verify ID Token</div>
+      <div class="step-detail">Firebase returns <code>idToken</code> → verified with <code>adminAuth.verifyIdToken()</code></div>
+    </div>
+    <div class="flow-gap"></div>
+    <div class="flow-step">
+      <div class="step-num">Step 4</div>
+      <div class="step-title">Fetch User Data</div>
+      <div class="step-detail">Look up <code>userdata/{phone}</code> to get name, role</div>
+    </div>
+    <div class="flow-gap"></div>
+    <div class="flow-step">
+      <div class="step-num">Step 5</div>
+      <div class="step-title">Issue App JWT</div>
+      <div class="step-detail">Sign 24h JWT with userId, phone, role. Delete used OTP session.</div>
+    </div>
+  </div>
+
+  <pre><span class="comment">// Verify the OTP the user typed</span>
+POST https://identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber?key=API_KEY
+Body: { <span class="key">sessionInfo</span>: <span class="str">'AJOnW4Q...'</span>, <span class="key">code</span>: <span class="str">'123456'</span> }
+
+<span class="comment">// Firebase returns a Firebase ID token if OTP is correct</span>
+Response: { <span class="key">idToken</span>: <span class="str">'eyJhbGci...'</span>, <span class="key">localId</span>: <span class="str">'...'</span> }
+
+<span class="comment">// We verify it with Admin SDK, then issue our own JWT</span>
+const decoded = await adminAuth.verifyIdToken(firebaseData.idToken);
+const token = jwt.sign({ userId, phone, role }, JWT_SECRET, { expiresIn: <span class="str">'24h'</span> });</pre>
+
+  <div class="callout">
+    <strong>Why store sessionInfo in Firestore?</strong>
+    Next.js runs multiple worker processes in development (Turbopack) and in production (serverless functions). An in-memory Map is not shared across workers — so the sessionInfo would be lost between the send and verify requests. Firestore solves this.
+  </div>
+</section>
+
+<!-- TOKEN SYSTEM -->
+<section id="token-system">
+  <h2>Two-Token System</h2>
+  <p>This project uses two different tokens, each with a specific purpose:</p>
+
+  <table>
+    <thead>
+      <tr><th>Token</th><th>Issued By</th><th>Lifetime</th><th>Purpose</th><th>Stored In</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>Firebase ID Token</strong></td>
+        <td>Firebase Auth</td>
+        <td>1 hour</td>
+        <td>Proves the user successfully verified their phone number via OTP. Used only during the login API call to exchange for our JWT.</td>
+        <td>Not stored — used immediately then discarded</td>
+      </tr>
+      <tr>
+        <td><strong>App JWT</strong></td>
+        <td>Our server (<code>/api/auth/verify-otp</code>)</td>
+        <td>24 hours</td>
+        <td>Authorizes all subsequent API calls. Contains <code>userId</code>, <code>phone</code>, <code>role</code>. Verified by <code>src/lib/auth.js</code>.</td>
+        <td>Browser localStorage + cookie (<code>authToken</code>)</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout success">
+    <strong>Why not use Firebase ID tokens for API auth?</strong>
+    Firebase ID tokens expire after 1 hour and require a network call to Firebase to verify. Our app JWT is verified locally (no network round-trip), expires after 24 hours for better UX, and contains our custom <code>role</code> field which Firebase doesn't know about.
+  </div>
+
+  <h3>Auth Header Format</h3>
+  <pre><span class="comment">// All protected API calls send:</span>
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+
+<span class="comment">// Verified in src/lib/auth.js:</span>
+const { userId, phone, role } = jwt.verify(token, JWT_SECRET);</pre>
+</section>
+
+<!-- FIRESTORE COLLECTIONS -->
+<section id="collections">
+  <h2>Firestore Collections</h2>
+  <table>
+    <thead>
+      <tr><th>Collection</th><th>Document ID</th><th>Key Fields</th><th>Purpose</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>userdata</code></td>
+        <td>Phone number (10 digits)</td>
+        <td><code>id</code>, <code>name</code>, <code>phone</code>, <code>role</code>, <code>email</code></td>
+        <td>All registered users. Role is <code>USER</code> or <code>ADMIN</code>.</td>
+      </tr>
+      <tr>
+        <td><code>otps</code></td>
+        <td>Phone number (10 digits)</td>
+        <td><code>sessionInfo</code>, <code>phone</code>, <code>createdAt</code>, <code>expiresAt</code></td>
+        <td>Temporary OTP sessions. Deleted on successful verification or expiry (5 min TTL).</td>
+      </tr>
+      <tr>
+        <td><code>enquiries</code></td>
+        <td>Auto-generated</td>
+        <td><code>customerName</code>, <code>phone</code>, <code>status</code>, <code>assignedTo</code>, <code>createdAt</code></td>
+        <td>Customer enquiry records. Status: <code>OPEN</code>, <code>IN_PROGRESS</code>, <code>CLOSED</code>.</td>
+      </tr>
+      <tr>
+        <td><code>quotations</code></td>
+        <td>Auto-generated</td>
+        <td><code>enquiryId</code>, <code>items</code>, <code>total</code>, <code>quotationType</code>, <code>createdAt</code></td>
+        <td>Quotations linked to enquiries. Type: <code>basic</code> or <code>detailed</code>.</td>
+      </tr>
+      <tr>
+        <td><code>enquiries/{id}/auditLog</code></td>
+        <td>Auto-generated</td>
+        <td><code>action</code>, <code>userId</code>, <code>userName</code>, <code>timestamp</code>, <code>changes</code></td>
+        <td>Subcollection. Tracks every change made to an enquiry.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- API ROUTES -->
+<section id="api-routes">
+  <h2>API Routes Using Firebase</h2>
+  <table>
+    <thead>
+      <tr><th>Route</th><th>Method</th><th>Auth Required</th><th>Firebase Usage</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><code>/api/auth/send-otp</code></td>
+        <td>POST</td>
+        <td><span class="badge badge-green">No</span></td>
+        <td>Reads <code>userdata/{phone}</code> via Admin SDK. Calls Firebase Auth REST API to send SMS. Writes <code>otps/{phone}</code>.</td>
+      </tr>
+      <tr>
+        <td><code>/api/auth/verify-otp</code></td>
+        <td>POST</td>
+        <td><span class="badge badge-green">No</span></td>
+        <td>Reads/deletes <code>otps/{phone}</code>. Calls Firebase Auth REST API to verify OTP. Verifies Firebase ID token with Admin SDK. Reads <code>userdata/{phone}</code>.</td>
+      </tr>
+      <tr>
+        <td><code>/api/auth/register</code></td>
+        <td>POST</td>
+        <td><span class="badge badge-green">No</span></td>
+        <td>Reads/writes <code>userdata/{phone}</code> via Admin SDK. Creates Firebase Auth user.</td>
+      </tr>
+      <tr>
+        <td><code>/api/auth/verify-credentials</code></td>
+        <td>POST</td>
+        <td><span class="badge badge-green">No</span></td>
+        <td>Reads <code>userdata/{phone}</code> via Admin SDK. Verifies bcrypt password hash. Issues app JWT.</td>
+      </tr>
+      <tr>
+        <td><code>/api/enquiry</code></td>
+        <td>GET, POST</td>
+        <td>GET: <span class="badge badge-green">No</span> / POST: <span class="badge badge-blue">JWT</span></td>
+        <td>Reads/writes <code>enquiries</code> collection via Admin SDK.</td>
+      </tr>
+      <tr>
+        <td><code>/api/enquiry/[id]</code></td>
+        <td>GET, PATCH, DELETE</td>
+        <td><span class="badge badge-blue">JWT</span></td>
+        <td>Reads/updates/deletes single document in <code>enquiries</code> collection.</td>
+      </tr>
+      <tr>
+        <td><code>/api/enquiry/[id]/auditLog</code></td>
+        <td>GET, POST</td>
+        <td><span class="badge badge-blue">JWT</span></td>
+        <td>Reads/writes <code>enquiries/{id}/auditLog</code> subcollection.</td>
+      </tr>
+      <tr>
+        <td><code>/api/quotations</code></td>
+        <td>GET, POST</td>
+        <td><span class="badge badge-blue">JWT</span></td>
+        <td>Reads/writes <code>quotations</code> collection via Admin SDK.</td>
+      </tr>
+      <tr>
+        <td><code>/api/quotations/[id]</code></td>
+        <td>GET, PATCH, DELETE</td>
+        <td><span class="badge badge-blue">JWT</span></td>
+        <td>Reads/updates/deletes single document in <code>quotations</code> collection.</td>
+      </tr>
+      <tr>
+        <td><code>/api/inquiries</code></td>
+        <td>GET</td>
+        <td><span class="badge badge-blue">JWT</span></td>
+        <td>Queries <code>enquiries</code> collection. Supports filtering and pagination.</td>
+      </tr>
+    </tbody>
+  </table>
+</section>
+
+<!-- SECURITY -->
+<section id="security">
+  <h2>Security Setup</h2>
+
+  <h3>Firebase Phone Auth Settings</h3>
+  <ul>
+    <li>Phone authentication is enabled in the Firebase Console under Authentication → Sign-in methods</li>
+    <li>SMS region policy is set to <strong>DENY with empty country list</strong> (meaning all countries are allowed, including India)</li>
+    <li>reCAPTCHA Enterprise is enabled in Google Cloud Console (required for client SDK, not for server-side REST API calls)</li>
+  </ul>
+
+  <h3>Firestore Security Rules</h3>
+  <p>Because all database access goes through our server-side Admin SDK (which bypasses rules), Firestore security rules act as a defense-in-depth layer. The Admin SDK uses a service account with full access.</p>
+  <pre><span class="comment">// firestore.rules — locks down direct client access</span>
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    <span class="comment">// Block all direct client access — use API routes instead</span>
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}</pre>
+
+  <h3>Rate Limiting</h3>
+  <p>Implemented in <code>src/lib/rateLimit.js</code> using an in-memory Map:</p>
+  <table>
+    <thead><tr><th>Endpoint</th><th>Limit</th><th>Window</th></tr></thead>
+    <tbody>
+      <tr><td>Send OTP</td><td>5 requests</td><td>Per hour, per phone number</td></tr>
+      <tr><td>Verify OTP</td><td>5 attempts</td><td>Per hour, per phone number</td></tr>
+      <tr><td>Firebase token exchange</td><td>10 requests</td><td>Per hour, per phone number</td></tr>
+    </tbody>
+  </table>
+
+  <div class="callout warn">
+    <strong>Production Note</strong>
+    The in-memory rate limiter is not shared across multiple server instances (serverless). For production with multiple instances, replace with a Redis-based rate limiter or use Firebase Firestore as the backing store.
+  </div>
+
+  <h3>Service Account</h3>
+  <ul>
+    <li>Service account JSON downloaded from Firebase Console → Project Settings → Service Accounts</li>
+    <li>Key fields extracted and stored as individual environment variables (not the whole JSON)</li>
+    <li>Private key must have literal newlines in the env var, or use <code>.replace(/\\n/g, '\n')</code> when initializing</li>
+    <li>Never commit the service account JSON to git</li>
+  </ul>
+</section>
+
+<!-- WHAT FIREBASE DOES -->
+<section id="what-firebase-does">
+  <h2>What Firebase Does and Doesn't Do</h2>
+  <table>
+    <thead>
+      <tr><th>Capability</th><th>Firebase Does It?</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>Send SMS with OTP to phone</td>
+        <td><span class="badge badge-green">Yes</span></td>
+        <td>Firebase contacts the carrier network and delivers a real SMS. Requires Blaze (pay-as-you-go) plan.</td>
+      </tr>
+      <tr>
+        <td>Generate the OTP code</td>
+        <td><span class="badge badge-green">Yes</span></td>
+        <td>Firebase generates a random 6-digit code internally. We never see this code — only the user does.</td>
+      </tr>
+      <tr>
+        <td>Verify the OTP the user types</td>
+        <td><span class="badge badge-green">Yes</span></td>
+        <td>We send the user's code to <code>accounts:signInWithPhoneNumber</code> and Firebase confirms if it matches.</td>
+      </tr>
+      <tr>
+        <td>Store user profile data (name, role)</td>
+        <td><span class="badge badge-red">No</span></td>
+        <td>Firebase Auth only stores phone number and UID. We store name, role, etc. in Firestore <code>userdata</code>.</td>
+      </tr>
+      <tr>
+        <td>Issue long-lived session tokens</td>
+        <td><span class="badge badge-red">No</span></td>
+        <td>Firebase ID tokens last 1 hour. We issue our own 24h JWT after verification.</td>
+      </tr>
+      <tr>
+        <td>Enforce access control (RBAC)</td>
+        <td><span class="badge badge-red">No</span></td>
+        <td>Role-based access (USER vs ADMIN) is managed by our API routes using the JWT <code>role</code> field.</td>
+      </tr>
+      <tr>
+        <td>Handle reCAPTCHA for server calls</td>
+        <td><span class="badge badge-red">No</span></td>
+        <td>reCAPTCHA is only required for client-side Firebase SDK calls. Server-to-server REST API calls do not need reCAPTCHA.</td>
+      </tr>
+      <tr>
+        <td>Deliver SMS to Indian numbers</td>
+        <td><span class="badge badge-green">Yes</span></td>
+        <td>Requires the SMS region policy to include India (or allow all regions by setting DENY with empty list).</td>
+      </tr>
+    </tbody>
+  </table>
+
+  <div class="callout success" style="margin-top:24px">
+    <strong>Summary</strong>
+    Firebase handles the hard part — SMS delivery and OTP verification. Our server handles user data, sessions, access control, and business logic. The two systems are connected at exactly one point: when we exchange a Firebase ID token for our own app JWT.
+  </div>
+</section>
+
+</main>
+
+<footer style="text-align:center; padding:32px; color:#888; font-size:0.85rem; border-top:1px solid #e0e0e0; margin-top:8px;">
+  Unique Sorter CRM — Firebase Architecture Documentation — Generated 2026
+</footer>
+
+</body>
+</html>

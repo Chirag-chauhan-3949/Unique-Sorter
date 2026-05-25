@@ -125,6 +125,38 @@ export default function LoginPage() {
 
   const otpRefs = useRef([]);
 
+  // Load reCAPTCHA Enterprise and return a token for phone auth
+  const getRecaptchaToken = () => new Promise((resolve) => {
+    const siteKey = '6LfbhPssAAAAAHu6OZnz3-v69BDHwXKf_ZxezpOH';
+    const execute = () => {
+      if (window.grecaptcha?.enterprise) {
+        window.grecaptcha.enterprise.ready(async () => {
+          try {
+            const token = await window.grecaptcha.enterprise.execute(siteKey, { action: 'SEND_OTP' });
+            resolve(token);
+          } catch {
+            resolve('');
+          }
+        });
+      } else {
+        resolve('');
+      }
+    };
+    // If script already loaded, execute immediately
+    if (window.grecaptcha?.enterprise) { execute(); return; }
+    // Otherwise load the script first
+    if (!document.getElementById('recaptcha-enterprise-script')) {
+      const s = document.createElement('script');
+      s.id = 'recaptcha-enterprise-script';
+      s.src = `https://www.google.com/recaptcha/enterprise.js?render=${siteKey}`;
+      s.onload = execute;
+      s.onerror = () => resolve('');
+      document.head.appendChild(s);
+    } else {
+      setTimeout(execute, 500);
+    }
+  });
+
   useEffect(() => {
     const id = '__login_styles__';
     if (document.getElementById(id)) return;
@@ -149,17 +181,18 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
+      const recaptchaToken = await getRecaptchaToken();
       const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone, recaptchaToken }),
       });
       const data = await res.json();
       if (!res.ok) {
         setError(data.message || 'Failed to send OTP');
         return;
       }
-      setSuccessMsg(data.devOtp ? 'DEV MODE — your OTP is: ' + data.devOtp : data.message);
+      setSuccessMsg(data.message);
       setStep('otp');
       setTimer(60);
     } catch {
@@ -186,8 +219,8 @@ export default function LoginPage() {
         body: JSON.stringify({ phone, otp: otpCode }),
       });
       const data = await res.json();
-      if (res.ok && data.token && data.user) {
-        login(data.token, data.user);
+      if (res.ok && data.idToken && data.user) {
+        login(data.idToken, data.user, data.refreshToken);
         router.push('/dashboard');
       } else {
         setError(data.message || 'Verification failed');
@@ -206,10 +239,11 @@ export default function LoginPage() {
     setOtp(['', '', '', '', '', '']);
     setLoading(true);
     try {
+      const recaptchaToken = await getRecaptchaToken();
       const res = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone, recaptchaToken }),
       });
       const data = await res.json();
       if (res.ok) {

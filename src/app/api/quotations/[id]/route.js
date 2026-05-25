@@ -4,7 +4,7 @@ import { verifyAuth, verifyAdmin } from '@/lib/auth';
 
 export async function GET(request, { params }) {
   try {
-    const auth = verifyAuth(request);
+    const auth = await verifyAuth(request);
     if (auth.error) {
       return NextResponse.json({ message: auth.error }, { status: auth.status });
     }
@@ -30,7 +30,7 @@ export async function GET(request, { params }) {
 
 export async function DELETE(request, { params }) {
   try {
-    const auth = verifyAdmin(request);
+    const auth = await verifyAdmin(request);
     if (auth.error) {
       return NextResponse.json({ message: auth.error }, { status: auth.status });
     }

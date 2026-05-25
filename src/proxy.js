@@ -16,7 +16,7 @@ export function proxy(request) {
   const isPublic = publicRoutes.some(route => pathname.startsWith(route));
 
   // Public API routes
-  const publicApiRoutes = ['/api/auth/register', '/api/auth/send-otp', '/api/auth/verify-otp', '/api/enquiry'];
+  const publicApiRoutes = ['/api/auth/register', '/api/auth/send-otp', '/api/auth/verify-otp', '/api/auth/verify-firebase-token', '/api/auth/refresh', '/api/enquiry'];
   const isPublicApi = publicApiRoutes.some(route => pathname.startsWith(route));
 
   // Static files and Next.js internals
@@ -56,7 +56,7 @@ export function proxy(request) {
   response.headers.set('Strict-Transport-Security', 'max-age=63072000; includeSubDomains; preload');
   response.headers.set(
     'Content-Security-Policy',
-    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://*.googleapis.com; frame-src 'none';"
+    "default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' https://apis.google.com https://www.gstatic.com https://www.google.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://firestore.googleapis.com https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://*.googleapis.com; frame-src https://www.google.com https://recaptcha.google.com https://*.firebaseapp.com;"
   );
   response.headers.set('Permissions-Policy', 'camera=(), microphone=(), geolocation=()');
 

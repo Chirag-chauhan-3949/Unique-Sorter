@@ -1,117 +1,75 @@
 import { NextResponse } from 'next/server';
-import bcrypt from 'bcryptjs';
-import db from '@/lib/db';
 import { rateLimit } from '@/lib/rateLimit';
 
 export async function POST(request) {
   try {
-    const { name, phone, password, role = 'user' } = await request.json();
+    const { name, phone, role = 'user' } = await request.json();
 
-    // Validate input
-    if (!name || !phone || !password) {
-      return NextResponse.json(
-        { message: 'Name, phone, and password are required' },
-        { status: 400 }
-      );
+    if (!name || !phone) {
+      return NextResponse.json({ message: 'Name and phone are required' }, { status: 400 });
     }
 
-    // Validate phone format
     const phoneRegex = /^[6-9]\d{9}$/;
     if (!phoneRegex.test(phone)) {
-      return NextResponse.json(
-        { message: 'Invalid phone number format' },
-        { status: 400 }
-      );
+      return NextResponse.json({ message: 'Invalid phone number format' }, { status: 400 });
     }
 
     if (!rateLimit(`register:${phone}`, 3, 60 * 60 * 1000)) {
       return NextResponse.json({ message: 'Too many registration attempts. Please try again later.' }, { status: 429 });
     }
 
-    // Block admin self-registration
     if (role.toLowerCase() === 'admin') {
-      return NextResponse.json(
-        { message: 'Admin registration is not allowed. Contact an existing admin.' },
-        { status: 403 }
-      );
+      return NextResponse.json({ message: 'Admin registration is not allowed. Contact an existing admin.' }, { status: 403 });
     }
 
-    // Check if user exists in Firebase (Admin SDK - server side, with timeout)
-    let firebaseChecked = false;
+    const { adminDb, adminAuth } = await import('@/lib/firebase-admin');
+    if (!adminDb || !adminAuth) {
+      return NextResponse.json({ message: 'Service unavailable' }, { status: 503 });
+    }
+
+    // Check Firestore — is phone already registered?
+    const existing = await adminDb.collection('userdata').doc(phone).get();
+    if (existing.exists) {
+      return NextResponse.json({ message: 'This phone number is already registered' }, { status: 409 });
+    }
+
+    const normalizedRole = 'USER';
+    const userId = phone;
+
+    // Create Firebase Auth user with this phone number
+    // This allows server-side OTP to work without reCAPTCHA
     try {
-      const { adminDb } = await import('@/lib/firebase-admin');
-      if (adminDb) {
-        const docRef = adminDb.collection('userdata').doc(phone);
-        const docSnap = await Promise.race([
-          docRef.get(),
-          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
-        ]);
-        firebaseChecked = true;
-        if (docSnap.exists) {
-          return NextResponse.json(
-            { message: 'User with this phone number already exists' },
-            { status: 409 }
-          );
-        }
-      }
+      await adminAuth.createUser({ phoneNumber: '+91' + phone });
     } catch (err) {
-      console.warn('Firebase check skipped:', err.message);
-    }
-
-    // Check local DB
-    const existingUser = db.findUserByPhone(phone);
-    if (existingUser) {
-      return NextResponse.json(
-        { message: 'User with this phone number already exists' },
-        { status: 409 }
-      );
-    }
-
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12);
-
-    // Create user in local DB (role forced to 'user')
-    const user = db.createUser({ name, phone, password: hashedPassword, role: 'user' });
-
-    // Sync to Firebase in background (don't await - fire and forget)
-    try {
-      const { adminDb } = await import('@/lib/firebase-admin');
-      if (adminDb) {
-        // Fire and forget - don't block the response
-        adminDb.collection('userdata').doc(user.phone).set({
-          id: user.id,
-          name: user.name,
-          phone: user.phone,
-          password: user.password,
-          role: user.role,
-          createdAt: user.createdAt,
-          syncedAt: new Date().toISOString(),
-        }).then(() => {
-          console.log('User synced to Firebase:', user.phone);
-        }).catch((err) => {
-          console.error('Firebase sync error:', err.message);
-        });
+      if (err.code === 'auth/phone-number-already-exists') {
+        // Auth user exists but Firestore record didn't — continue
+      } else {
+        console.error('Firebase Auth createUser error:', err.message);
+        return NextResponse.json({ message: 'Registration failed. Please try again.' }, { status: 500 });
       }
-    } catch (err) {
-      console.warn('Firebase sync skipped:', err.message);
     }
+
+    // Set custom claims (role)
+    const authUser = await adminAuth.getUserByPhoneNumber('+91' + phone);
+    await adminAuth.setCustomUserClaims(authUser.uid, { role: normalizedRole, userId });
+
+    // Save profile to Firestore
+    await adminDb.collection('userdata').doc(phone).set({
+      id: userId,
+      name,
+      phone,
+      role: normalizedRole,
+      createdAt: new Date().toISOString(),
+    });
 
     return NextResponse.json({
       success: true,
-      message: 'User registered successfully',
-      user: {
-        id: user.id,
-        name: user.name,
-        phone: user.phone,
-        role: user.role,
-      },
+      message: 'Registered successfully. You can now login with OTP.',
+      user: { id: userId, name, phone, role: normalizedRole },
     });
 
   } catch (error) {
     console.error('Register error:', error);
-    return NextResponse.json(
-      { message: 'Internal server error' },
-      { status: 500 }
-    );
+    return NextResponse.json({ message: 'Internal server error' }, { status: 500 });
   }
 }

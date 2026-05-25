@@ -1,9 +1,6 @@
 import { NextResponse } from 'next/server';
-import jwt from 'jsonwebtoken';
 import { rateLimit } from '@/lib/rateLimit';
 
-if (!process.env.JWT_SECRET) throw new Error('JWT_SECRET environment variable is required');
-const JWT_SECRET = process.env.JWT_SECRET;
 const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
 
 export async function POST(request) {
@@ -16,10 +13,11 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Too many attempts. Please request a new OTP.' }, { status: 429 });
     }
 
+    const { adminDb, adminAuth } = await import('@/lib/firebase-admin');
+
     // Get sessionInfo from Firestore
     let sessionInfo = null;
     try {
-      const { adminDb } = await import('@/lib/firebase-admin');
       if (adminDb) {
         const otpDoc = await Promise.race([
           adminDb.collection('otps').doc(phone).get(),
@@ -27,7 +25,6 @@ export async function POST(request) {
         ]);
         if (otpDoc.exists) {
           const data = otpDoc.data();
-          // Check expiry
           if (new Date(data.expiresAt) < new Date()) {
             await adminDb.collection('otps').doc(phone).delete();
             return NextResponse.json({ message: 'OTP has expired. Please request a new one.' }, { status: 400 });
@@ -43,8 +40,8 @@ export async function POST(request) {
       return NextResponse.json({ message: 'OTP not found. Please request a new one.' }, { status: 400 });
     }
 
-    // Verify OTP with Firebase REST API
-    const firebaseRes = await fetch(
+    // Step 1: Verify OTP with Firebase REST API → get Firebase idToken + refreshToken
+    const verifyRes = await fetch(
       'https://identitytoolkit.googleapis.com/v1/accounts:signInWithPhoneNumber?key=' + FIREBASE_API_KEY,
       {
         method: 'POST',
@@ -53,10 +50,10 @@ export async function POST(request) {
       }
     );
 
-    const firebaseData = await firebaseRes.json();
+    const verifyData = await verifyRes.json();
 
-    if (!firebaseRes.ok || !firebaseData.idToken) {
-      const msg = firebaseData.error?.message || '';
+    if (!verifyRes.ok || !verifyData.idToken) {
+      const msg = verifyData.error?.message || '';
       if (msg.includes('INVALID_CODE')) return NextResponse.json({ message: 'Invalid OTP. Please try again.' }, { status: 401 });
       if (msg.includes('SESSION_EXPIRED')) return NextResponse.json({ message: 'OTP has expired. Please request a new one.' }, { status: 400 });
       return NextResponse.json({ message: 'Verification failed. Please try again.' }, { status: 401 });
@@ -64,34 +61,50 @@ export async function POST(request) {
 
     // Delete used OTP session
     try {
-      const { adminDb } = await import('@/lib/firebase-admin');
       if (adminDb) await adminDb.collection('otps').doc(phone).delete();
     } catch {}
 
-    // Verify ID token and fetch user from Firestore
-    const { adminAuth, adminDb } = await import('@/lib/firebase-admin');
-    const decoded = await adminAuth.verifyIdToken(firebaseData.idToken);
+    // Step 2: Verify the Firebase ID token to get the UID
+    const decoded = await adminAuth.verifyIdToken(verifyData.idToken);
+    const uid = decoded.uid;
     const cleanPhone = (decoded.phone_number || '+91' + phone).replace(/^\+91/, '');
 
+    // Step 3: Get user profile from Firestore
     const userDoc = await adminDb.collection('userdata').doc(cleanPhone).get();
     if (!userDoc.exists) {
       return NextResponse.json({ message: 'User not found.' }, { status: 404 });
     }
 
     const data = userDoc.data();
-    const user = { id: data.id || cleanPhone, name: data.name || '', phone: cleanPhone, role: (data.role || 'USER').toUpperCase() };
+    const role = (data.role || 'USER').toUpperCase();
+    const userId = data.id || cleanPhone;
 
-    const token = jwt.sign(
-      { userId: user.id, phone: user.phone, role: user.role },
-      JWT_SECRET,
-      { expiresIn: '24h' }
+    // Step 4: Set custom claims on the Firebase Auth user (role + userId)
+    // This bakes role into the token so API routes can read it without a Firestore lookup
+    await adminAuth.setCustomUserClaims(uid, { role, userId });
+
+    // Step 5: Exchange the refreshToken to get a fresh idToken that includes the new custom claims
+    const refreshRes = await fetch(
+      'https://securetoken.googleapis.com/v1/token?key=' + FIREBASE_API_KEY,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ grant_type: 'refresh_token', refresh_token: verifyData.refreshToken }),
+      }
     );
+
+    const refreshData = await refreshRes.json();
+    if (!refreshRes.ok || !refreshData.id_token) {
+      console.error('Token refresh error:', refreshData);
+      return NextResponse.json({ message: 'Login failed. Please try again.' }, { status: 500 });
+    }
 
     return NextResponse.json({
       success: true,
       message: 'Login successful',
-      token,
-      user: { id: user.id, name: user.name, phone: user.phone, role: user.role },
+      idToken: refreshData.id_token,
+      refreshToken: refreshData.refresh_token,
+      user: { id: userId, name: data.name || '', phone: cleanPhone, role },
     });
 
   } catch (error) {
