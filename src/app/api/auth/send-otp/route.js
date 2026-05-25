@@ -105,6 +105,7 @@ export async function POST(request) {
       success: true,
       message: `OTP sent to +91${phone}`,
       userName: user.name,
+      ...(process.env.NODE_ENV !== 'production' && { devOtp: otp }),
     });
 
   } catch (error) {

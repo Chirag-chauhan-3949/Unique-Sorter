@@ -159,7 +159,7 @@ export default function LoginPage() {
         setError(data.message || 'Failed to send OTP');
         return;
       }
-      setSuccessMsg(data.message);
+      setSuccessMsg(data.devOtp ? 'DEV MODE — your OTP is: ' + data.devOtp : data.message);
       setStep('otp');
       setTimer(60);
     } catch {
