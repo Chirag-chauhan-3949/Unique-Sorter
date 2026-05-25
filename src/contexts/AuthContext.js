@@ -169,8 +169,8 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (isLoading) return;
 
-    const publicRoutes = ['/login', '/register'];
-    const isPublicRoute = publicRoutes.some(route => pathname?.startsWith(route));
+    const publicRoutes = ['/login', '/register', '/enquiry', '/inquiry'];
+    const isPublicRoute = publicRoutes.some(route => pathname?.startsWith(route)) || pathname === '/';
 
     if (!isAuthenticated && !isPublicRoute) {
       router.push('/login');
