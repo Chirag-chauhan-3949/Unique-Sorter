@@ -1,6 +1,6 @@
 import { initializeApp, getApps } from 'firebase/app';
 import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth, initializeRecaptchaConfig } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
 // Firebase configuration
@@ -30,6 +30,13 @@ if (isFirebaseConfigured) {
     auth = getAuth(app);
     storage = getStorage(app);
     console.log('Firebase initialized successfully');
+
+    // Pre-fetch reCAPTCHA Enterprise config so phone auth works without delay
+    if (typeof window !== 'undefined') {
+      initializeRecaptchaConfig(auth).catch(() => {
+        // Silently ignore — falls back to reCAPTCHA v2 automatically
+      });
+    }
 
     // Note: Firestore database needs to be created in Firebase Console
     // Go to https://console.firebase.google.com/ -> Firestore Database -> Create database
