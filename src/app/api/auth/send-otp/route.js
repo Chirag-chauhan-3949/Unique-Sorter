@@ -2,6 +2,40 @@ import { NextResponse } from 'next/server';
 import { rateLimit } from '@/lib/rateLimit';
 
 const FIREBASE_API_KEY = process.env.NEXT_PUBLIC_FIREBASE_API_KEY;
+const RECAPTCHA_SITE_KEY = '6LfbhPssAAAAAHu6OZnz3-v69BDHwXKf_ZxezpOH';
+const FIREBASE_PROJECT_ID = process.env.FIREBASE_ADMIN_PROJECT_ID;
+
+async function verifyRecaptchaToken(token) {
+  try {
+    const res = await fetch(
+      `https://recaptchaenterprise.googleapis.com/v1/projects/${FIREBASE_PROJECT_ID}/assessments?key=${FIREBASE_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          event: {
+            token,
+            expectedAction: 'SEND_OTP',
+            siteKey: RECAPTCHA_SITE_KEY,
+          },
+        }),
+      }
+    );
+    const data = await res.json();
+
+    if (!data.tokenProperties?.valid) {
+      console.warn('reCAPTCHA token invalid:', data.tokenProperties?.invalidReason);
+      return { valid: false, score: 0 };
+    }
+
+    const score = data.riskAnalysis?.score ?? 0;
+    console.log('reCAPTCHA score:', score);
+    return { valid: true, score };
+  } catch (err) {
+    console.warn('reCAPTCHA verification skipped:', err.message);
+    return { valid: true, score: 1 }; // fail open — don't block if assessment fails
+  }
+}
 
 async function findUserByPhone(phone) {
   try {
@@ -44,6 +78,14 @@ export async function POST(request) {
     // checkOnly = true: just verify the user is registered, OTP is sent client-side via Firebase SDK
     if (checkOnly) {
       return NextResponse.json({ success: true, message: 'User verified', userName: user.name });
+    }
+
+    // Verify reCAPTCHA Enterprise token (score < 0.5 = likely bot)
+    if (recaptchaToken) {
+      const captcha = await verifyRecaptchaToken(recaptchaToken);
+      if (!captcha.valid || captcha.score < 0.5) {
+        return NextResponse.json({ message: 'Request blocked. Please try again.' }, { status: 403 });
+      }
     }
 
     // Legacy: server-side OTP send (used for test numbers / fallback)
