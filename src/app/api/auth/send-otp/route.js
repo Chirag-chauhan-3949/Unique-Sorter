@@ -52,7 +52,7 @@ export async function POST(request) {
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phoneNumber: '+91' + phone, recaptchaToken: recaptchaToken || '' }),
+        body: JSON.stringify({ phoneNumber: '+91' + phone, recaptchaToken: '' }),
       }
     );
 
