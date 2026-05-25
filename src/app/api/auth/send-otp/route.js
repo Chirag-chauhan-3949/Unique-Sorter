@@ -75,6 +75,11 @@ export async function POST(request) {
     // Store OTP
     otpStore.set(phone, { otp, expiresAt, attempts: 0 });
 
+    // DEV: log OTP to server console for testing (remove when SMS is integrated)
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`\n🔑 OTP for +91${phone}: ${otp}\n`);
+    }
+
     // Send OTP via Firebase Admin SDK
     // For Blaze plan, we use Firebase Auth to create/update user and send SMS
     try {

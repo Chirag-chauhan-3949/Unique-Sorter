@@ -3,8 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap');
@@ -126,8 +124,6 @@ export default function LoginPage() {
   const [successMsg, setSuccessMsg] = useState('');
 
   const otpRefs = useRef([]);
-  const recaptchaVerifierRef = useRef(null);
-  const confirmationResultRef = useRef(null);
 
   useEffect(() => {
     const id = '__login_styles__';
@@ -143,14 +139,6 @@ export default function LoginPage() {
     return () => clearInterval(interval);
   }, [timer]);
 
-  const initRecaptcha = () => {
-    if (recaptchaVerifierRef.current) {
-      recaptchaVerifierRef.current.clear();
-      recaptchaVerifierRef.current = null;
-    }
-    recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', { size: 'invisible' });
-  };
-
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setError('');
@@ -161,21 +149,21 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      initRecaptcha();
-      const confirmationResult = await signInWithPhoneNumber(auth, '+91' + phone, recaptchaVerifierRef.current);
-      confirmationResultRef.current = confirmationResult;
-      setSuccessMsg('OTP sent to +91 ' + phone);
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        setError(data.message || 'Failed to send OTP');
+        return;
+      }
+      setSuccessMsg(data.message);
       setStep('otp');
       setTimer(60);
-    } catch (err) {
-      if (err.code === 'auth/too-many-requests') {
-        setError('Too many requests. Please wait before trying again.');
-      } else if (err.code === 'auth/invalid-phone-number') {
-        setError('Invalid phone number format.');
-      } else {
-        setError('Failed to send OTP. Please try again.');
-        console.error('signInWithPhoneNumber error:', err.code, err.message);
-      }
+    } catch {
+      setError('Network error — please check your connection.');
     } finally {
       setLoading(false);
     }
@@ -190,18 +178,12 @@ export default function LoginPage() {
       setError('Please enter the complete 6-digit OTP');
       return;
     }
-    if (!confirmationResultRef.current) {
-      setError('Session expired. Please go back and request a new OTP.');
-      return;
-    }
     setLoading(true);
     try {
-      const result = await confirmationResultRef.current.confirm(otpCode);
-      const idToken = await result.user.getIdToken();
-      const res = await fetch('/api/auth/verify-firebase-token', {
+      const res = await fetch('/api/auth/verify-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ idToken }),
+        body: JSON.stringify({ phone, otp: otpCode }),
       });
       const data = await res.json();
       if (res.ok && data.token && data.user) {
@@ -210,17 +192,8 @@ export default function LoginPage() {
       } else {
         setError(data.message || 'Verification failed');
       }
-    } catch (err) {
-      if (err.code === 'auth/invalid-verification-code') {
-        setError('Invalid OTP. Please check and try again.');
-      } else if (err.code === 'auth/code-expired') {
-        setError('OTP has expired. Please request a new one.');
-      } else if (err.code) {
-        setError('Verification failed. Please try again.');
-        console.error('confirm error:', err.code, err.message);
-      } else {
-        setError('Network error — please try again.');
-      }
+    } catch {
+      setError('Network error — please try again.');
     } finally {
       setLoading(false);
     }
@@ -233,17 +206,20 @@ export default function LoginPage() {
     setOtp(['', '', '', '', '', '']);
     setLoading(true);
     try {
-      initRecaptcha();
-      const confirmationResult = await signInWithPhoneNumber(auth, '+91' + phone, recaptchaVerifierRef.current);
-      confirmationResultRef.current = confirmationResult;
-      setSuccessMsg('OTP resent successfully');
-      setTimer(60);
-    } catch (err) {
-      if (err.code === 'auth/too-many-requests') {
-        setError('Too many requests. Please wait before trying again.');
+      const res = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setSuccessMsg('OTP resent successfully');
+        setTimer(60);
       } else {
-        setError('Failed to resend OTP. Please try again.');
+        setError(data.message || 'Failed to resend OTP');
       }
+    } catch {
+      setError('Network error');
     } finally {
       setLoading(false);
     }
@@ -279,7 +255,6 @@ export default function LoginPage() {
 
   return (
     <div className="login-root">
-      <div id="recaptcha-container" />
       <div className="lp-card">
 
         {step === 'phone' && (
