@@ -50,29 +50,33 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Phone and OTP are required' }, { status: 400 });
     }
 
-    // Verify OTP from in-memory store
-    const stored = otpStore.get(phone);
-
-    // Also check Firestore
-    let firestoreOtp = null;
-    if (!stored) {
-      try {
-        const { adminDb } = await import('@/lib/firebase-admin');
-        if (adminDb) {
-          const otpDoc = await Promise.race([
-            adminDb.collection('otps').doc(phone).get(),
-            new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
-          ]);
-          if (otpDoc.exists) {
-            firestoreOtp = otpDoc.data();
-          }
+    // Check Firestore first (primary store — works across multiple workers)
+    let otpData = null;
+    try {
+      const { adminDb } = await import('@/lib/firebase-admin');
+      if (adminDb) {
+        const otpDoc = await Promise.race([
+          adminDb.collection('otps').doc(phone).get(),
+          new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+        ]);
+        if (otpDoc.exists) {
+          const d = otpDoc.data();
+          otpData = { otp: d.otp, expiresAt: new Date(d.expiresAt).getTime(), attempts: d.attempts || 0 };
         }
-      } catch (err) {
-        console.warn('Firestore OTP check skipped:', err.message);
       }
+    } catch (err) {
+      console.warn('Firestore OTP check skipped:', err.message);
     }
 
-    const otpData = stored || (firestoreOtp ? { otp: firestoreOtp.otp, expiresAt: new Date(firestoreOtp.expiresAt).getTime(), attempts: 0 } : null);
+    // Fallback to in-memory store
+    if (!otpData) {
+      const stored = otpStore.get(phone);
+      if (stored) otpData = stored;
+    }
+
+    if (process.env.NODE_ENV !== 'production') {
+      console.log(`[verify-otp] phone=${phone} entered=${otp} stored=${otpData?.otp} found=${!!otpData}`);
+    }
 
     if (!otpData) {
       return NextResponse.json({ message: 'OTP not found. Please request a new one.' }, { status: 400 });
@@ -92,18 +96,20 @@ export async function POST(request) {
 
     // Verify OTP
     if (otpData.otp !== otp) {
-      otpData.attempts = (otpData.attempts || 0) + 1;
-      otpStore.set(phone, otpData);
+      // Update attempt count in Firestore
+      try {
+        const { adminDb } = await import('@/lib/firebase-admin');
+        if (adminDb) await adminDb.collection('otps').doc(phone).update({ attempts: (otpData.attempts || 0) + 1 });
+      } catch {}
+      otpStore.set(phone, { ...otpData, attempts: (otpData.attempts || 0) + 1 });
       return NextResponse.json({ message: 'Invalid OTP. Please try again.' }, { status: 401 });
     }
 
-    // OTP is valid - delete it
+    // OTP is valid - delete it from both stores
     otpStore.delete(phone);
     try {
       const { adminDb } = await import('@/lib/firebase-admin');
-      if (adminDb) {
-        await adminDb.collection('otps').doc(phone).delete();
-      }
+      if (adminDb) await adminDb.collection('otps').doc(phone).delete();
     } catch {}
 
     // Fetch user
