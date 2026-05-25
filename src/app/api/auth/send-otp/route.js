@@ -80,10 +80,11 @@ export async function POST(request) {
       return NextResponse.json({ success: true, message: 'User verified', userName: user.name });
     }
 
-    // Verify reCAPTCHA Enterprise token (score < 0.5 = likely bot)
+    // Verify reCAPTCHA Enterprise token — only block confirmed bots (valid token, score < 0.5)
+    // If token is invalid or assessment fails, fail open (don't block legitimate users)
     if (recaptchaToken) {
       const captcha = await verifyRecaptchaToken(recaptchaToken);
-      if (!captcha.valid || captcha.score < 0.5) {
+      if (captcha.valid && captcha.score < 0.5) {
         return NextResponse.json({ message: 'Request blocked. Please try again.' }, { status: 403 });
       }
     }
