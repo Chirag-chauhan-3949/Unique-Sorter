@@ -28,7 +28,7 @@ export async function POST(request) {
 
     if (!phone) return NextResponse.json({ message: 'Phone number is required' }, { status: 400 });
 
-    const phoneRegex = /^[6-9]d{9}$/;
+    const phoneRegex = /^[6-9]\d{9}$/;
     if (!phoneRegex.test(phone)) return NextResponse.json({ message: 'Invalid phone number format' }, { status: 400 });
 
     if (!rateLimit('otp:' + phone, 5, 60 * 60 * 1000)) {
