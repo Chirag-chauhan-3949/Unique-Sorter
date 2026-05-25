@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 
 const MAX_BODY_SIZE = 1 * 1024 * 1024; // 1MB
 
-export function middleware(request) {
+export function proxy(request) {
   const { pathname } = request.nextUrl;
 
   // Reject oversized request bodies
