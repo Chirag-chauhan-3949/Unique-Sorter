@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { useAuth } from "@/contexts/AuthContext";
 
 /* ─── Helpers ─────────────────────────────────────────────────── */
 const fmtINR = (n) =>
@@ -613,6 +614,7 @@ export function mapEnquiryToForm2(enq) {
 
 /* ════════════════════════════════════════════════════════════════ */
 export default function QuotationForm2({ enquiryId = null, quotationType = null }) {
+  const { getAuthHeaders } = useAuth();
   const router = useRouter();
   const [f, setF] = useState(INIT());
   const [showPreview, setShowPreview] = useState(false);
@@ -664,7 +666,7 @@ export default function QuotationForm2({ enquiryId = null, quotationType = null 
       try {
         const res = await fetch("/api/quotations", {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
+          headers: { "Content-Type": "application/json", ...getAuthHeaders() },
           body: JSON.stringify(payload),
         });
         const data = await res.json();
@@ -679,7 +681,7 @@ export default function QuotationForm2({ enquiryId = null, quotationType = null 
   useEffect(() => {
     if (!enquiryId || savedRef.current) return;
     savedRef.current = true;
-    fetch(`/api/enquiry/${enquiryId}`)
+    fetch(`/api/enquiry/${enquiryId}`, { headers: { ...getAuthHeaders() } })
       .then((r) => r.json())
       .then(async (d) => {
         if (d.success && d.data) {

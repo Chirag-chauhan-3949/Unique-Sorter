@@ -227,7 +227,7 @@ function Hl({ text, query }) {
 
 export default function QuotationsPage() {
   const router = useRouter();
-  const { userRole } = useAuth();
+  const { userRole, getAuthHeaders } = useAuth();
   const isAdminUser = isAdmin(userRole);
 
   const [rows, setRows]             = useState([]);
@@ -247,7 +247,7 @@ export default function QuotationsPage() {
   ];
 
   useEffect(() => {
-    fetch('/api/quotations')
+    fetch('/api/quotations', { headers: { ...getAuthHeaders() } })
       .then(r => r.json())
       .then(d => {
         if (d.success && d.data?.length > 0) setRows(d.data);

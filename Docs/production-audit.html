@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unique Sorter - Production Readiness Audit & Tests</title>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Segoe UI',Tahoma,sans-serif;background:#0a0e1a;color:#e2e8f0;line-height:1.7}
+        .container{max-width:1000px;margin:0 auto;padding:40px 20px}
+        h1{font-size:2.2rem;text-align:center;margin-bottom:6px}
+        .subtitle{text-align:center;color:#94a3b8;margin-bottom:40px;font-size:1rem}
+        h2{font-size:1.4rem;color:#38bdf8;margin:35px 0 15px;border-bottom:2px solid #1e293b;padding-bottom:8px}
+        h3{font-size:1.1rem;color:#7dd3fc;margin:18px 0 8px}
+        p,li{color:#cbd5e1;margin-bottom:8px;font-size:0.92rem}
+        ul,ol{padding-left:22px;margin-bottom:12px}
+        strong{color:#f1f5f9}
+        code{background:#0f172a;color:#fbbf24;padding:1px 5px;border-radius:3px;font-size:0.82rem}
+        pre{background:#0f172a;border:1px solid #334155;border-radius:8px;padding:14px;margin:10px 0;overflow-x:auto;font-size:0.82rem;color:#7dd3fc;line-height:1.5}
+
+        .stats{display:flex;gap:12px;flex-wrap:wrap;margin:20px 0}
+        .stat{flex:1;min-width:120px;background:#1e293b;border-radius:10px;padding:18px;text-align:center;border:1px solid #334155}
+        .stat .n{font-size:2rem;font-weight:800}
+        .stat .l{font-size:0.8rem;color:#94a3b8;margin-top:4px}
+        .stat.cr .n{color:#ef4444} .stat.hi .n{color:#f59e0b} .stat.me .n{color:#3b82f6} .stat.lo .n{color:#10b981}
+
+        .card{background:#1e293b;border-radius:10px;padding:20px;margin:14px 0;border:1px solid #334155}
+        .p{background:#1e293b;border-radius:9px;padding:16px 20px;margin:10px 0;border-left:4px solid #ef4444}
+        .p.cr{border-left-color:#ef4444} .p.hi{border-left-color:#f59e0b} .p.me{border-left-color:#3b82f6} .p.lo{border-left-color:#10b981}
+        .sev{display:inline-block;padding:2px 9px;border-radius:4px;font-size:0.7rem;font-weight:700;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+        .sev.cr{background:#7f1d1d;color:#fca5a5} .sev.hi{background:#78350f;color:#fde68a} .sev.me{background:#1e3a5f;color:#93c5fd} .sev.lo{background:#064e3b;color:#6ee7b7}
+        .file{font-family:monospace;background:#0f172a;color:#f472b6;padding:1px 6px;border-radius:3px;font-size:0.8rem}
+
+        .divider{border:none;border-top:2px dashed #334155;margin:40px 0}
+
+        .test{background:#1e293b;border-radius:9px;padding:16px 20px;margin:10px 0;border-left:4px solid #8b5cf6}
+        .test-id{display:inline-block;background:#5b21b6;color:#e9d5ff;padding:2px 8px;border-radius:4px;font-size:0.7rem;font-weight:700;margin-right:6px}
+        .test-cat{display:inline-block;background:#334155;color:#94a3b8;padding:2px 8px;border-radius:4px;font-size:0.7rem;margin-right:6px}
+        .test h4{color:#c4b5fd;margin:4px 0 6px;font-size:0.95rem}
+        .test p{font-size:0.85rem;color:#94a3b8}
+        .test pre{font-size:0.8rem;margin:6px 0}
+        .expect{color:#6ee7b7;font-weight:600;font-size:0.85rem}
+
+        .phase{background:#0f172a;border:1px solid #334155;border-radius:10px;padding:18px;margin:12px 0}
+        .phase h3{color:#38bdf8;margin-top:0}
+        .cl{list-style:none;padding:0}
+        .cl li{padding:6px 0;border-bottom:1px solid #1e293b;font-size:0.88rem}
+        .cl li::before{content:"[ ] ";font-family:monospace;color:#f87171}
+
+        table{width:100%;border-collapse:collapse;margin:12px 0;font-size:0.85rem}
+        th{background:#334155;color:#38bdf8;padding:10px;text-align:left}
+        td{padding:8px 10px;border-bottom:1px solid #1e293b}
+        tr:hover td{background:#1e293b}
+    </style>
+</head>
+<body>
+<div class="container">
+
+<h1 style="color:#ef4444">Production Readiness Audit</h1>
+<p class="subtitle">Every problem that must be fixed before deploying Unique Sorter to production</p>
+
+<!-- STATS -->
+<div class="stats">
+    <div class="stat cr"><div class="n">12</div><div class="l">Critical</div></div>
+    <div class="stat hi"><div class="n">14</div><div class="l">High</div></div>
+    <div class="stat me"><div class="n">15</div><div class="l">Medium</div></div>
+    <div class="stat lo"><div class="n">10</div><div class="l">Low</div></div>
+</div>
+
+<!-- ========================================= -->
+<!-- SECTION 1: CRITICAL -->
+<!-- ========================================= -->
+<h2 style="color:#ef4444">Critical Problems (Fix Before Anything Else)</h2>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P1. Passwords Stored as Plain Text</h3>
+    <p><span class="file">src/app/api/auth/register/route.js</span> <span class="file">src/lib/db.js</span></p>
+    <p>User passwords are saved without hashing in both local DB and Firestore. <code>bcryptjs</code> is installed but never used.</p>
+    <pre>// Current (INSECURE):
+password: user.password  // plain text in Firestore
+
+// Should be:
+const hashed = await bcrypt.hash(password, 12);
+// Store hashed, compare with bcrypt.compare()</pre>
+</div>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P2. No Authentication on ANY Data API Route</h3>
+    <p><span class="file">src/app/api/enquiry/route.js</span> <span class="file">src/app/api/quotations/route.js</span> <span class="file">src/app/api/inquiries/route.js</span></p>
+    <p>ALL data endpoints (enquiry, quotations, inquiries) have <strong>zero authentication</strong>. Anyone can GET, POST, PATCH, DELETE all business data without logging in.</p>
+    <pre>// Every route looks like this:
+export async function GET(request) {
+  // NO token check, NO auth header validation
+  const data = await adminDb.collection('enquiry').get();
+  return Response.json(data);  // Returns everything to anyone
+}</pre>
+</div>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P3. No Server-Side Middleware</h3>
+    <p><span class="file">src/middleware.js</span> — FILE DOES NOT EXIST</p>
+    <p>No Next.js middleware to protect routes. Anyone can access <code>/dashboard</code>, <code>/api/*</code> directly. Auth is only checked client-side in React (easily bypassed).</p>
+</div>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P4. JWT Token Never Validated on Backend</h3>
+    <p>JWT is generated on login but <strong>no API route ever checks it</strong>. The <code>Authorization</code> header is never read. Any request is treated as authenticated.</p>
+</div>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P5. IDOR — Users Can Access Any Record by ID</h3>
+    <p><span class="file">src/app/api/enquiry/[id]/route.js</span> <span class="file">src/app/api/quotations/[id]/route.js</span></p>
+    <p>No ownership check. User A can read/edit/delete User B's enquiries and quotations by guessing the document ID.</p>
+</div>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P6. Firebase Admin Private Key in .env.local</h3>
+    <p>The full RSA private key for the Firebase service account is in <code>.env.local</code>. If this file is committed to git or exposed, the entire Firebase project is compromised.</p>
+</div>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P7. Weak JWT Secret</h3>
+    <p><span class="file">src/app/api/auth/verify-otp/route.js:5</span></p>
+    <p>Secret is <code>unique-sorter-jwt-secret-change-in-production</code> — a predictable string. With this, anyone can forge JWT tokens and login as any user/admin.</p>
+</div>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P8. Client-Side Only Auth — Easily Bypassed</h3>
+    <p><span class="file">src/contexts/AuthContext.js</span></p>
+    <p>All auth state is in localStorage. User role can be changed by modifying localStorage. No server-side session validation.</p>
+</div>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P9. No Input Validation on Data Endpoints</h3>
+    <p><span class="file">src/app/api/enquiry/route.js</span> — Uses <code>...body</code> directly</p>
+    <p>POST endpoints accept any JSON body and store it in Firestore. No schema validation, no field whitelist. Risk of NoSQL injection and data corruption.</p>
+</div>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P10. OTP Sent in API Response (Dev Mode)</h3>
+    <p><span class="file">src/app/api/auth/send-otp/route.js:104</span></p>
+    <p>OTP is returned in the API response body as <code>devOtp</code>. The check <code>process.env.NODE_ENV === 'development'</code> can be unreliable in production builds.</p>
+</div>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P11. No SMS Delivery — OTP Only in Console</h3>
+    <p>OTP is generated but never sent to the user's phone. Only printed to server console. Login requires physically checking the terminal.</p>
+</div>
+
+<div class="p cr">
+    <span class="sev cr">Critical</span>
+    <h3>P12. Role Escalation Possible via JWT</h3>
+    <p>Role is stored in JWT but never re-verified from the database on subsequent requests. If JWT is forged or role changes in DB, old JWT still works with old role.</p>
+</div>
+
+<!-- ========================================= -->
+<!-- SECTION 2: HIGH -->
+<!-- ========================================= -->
+<h2 style="color:#f59e0b">High Priority Problems</h2>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P13. No Rate Limiting on Any Endpoint</h3><p>No limit on login attempts, OTP requests, registration, or data API calls. Vulnerable to brute force, spam, and DoS.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P14. No CSRF Protection</h3><p>No CSRF tokens on POST/PATCH/DELETE requests. Attacker can create a page that submits forms on behalf of logged-in users.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P15. In-Memory OTP Store — Lost on Restart</h3><p><span class="file">src/app/api/auth/send-otp/route.js:5</span> — <code>global.__otpStore = new Map()</code></p><p>OTPs stored in memory. Server restart = all pending OTPs gone. Won't work with multiple server instances.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P16. In-Memory User DB — Lost on Restart</h3><p><span class="file">src/lib/db.js</span> — All local users gone when server restarts. Only Firestore copy survives.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P17. No Security Headers</h3><p>Missing: Content-Security-Policy, X-Frame-Options, X-Content-Type-Options, Strict-Transport-Security, X-XSS-Protection.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P18. Hardcoded Price Table in Frontend</h3><p><span class="file">src/app/enquiry/page.js:12-15</span> <span class="file">src/app/dashboard/enquiry/[id]/page.js:16-19</span></p><p>Business pricing exposed in client JavaScript. Competitors can view all prices. Should be fetched from a protected API.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P19. Audit Log Endpoint Unprotected</h3><p><span class="file">src/app/api/enquiry/[id]/auditLog/route.js</span> — No auth check. Anyone can read who changed what and when.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P20. XSS Risk — User Input Not Sanitized</h3><p>User-provided data from enquiries/quotations rendered directly in JSX without sanitization. If an attacker stores <code>&lt;script&gt;</code> tags in a form field, they execute in other users' browsers.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P21. OTP Logged to Console in Production</h3><p><span class="file">src/app/api/auth/send-otp/route.js:95-97</span> — <code>console.log(OTP)</code> runs in ALL environments. Server logs expose every OTP.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P22. No Token Expiry Check on Frontend</h3><p><span class="file">src/contexts/AuthContext.js</span> — JWT stored in localStorage but expiry never checked. Expired tokens used until page refresh.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P23. Hardcoded Dev IPs in next.config</h3><p><span class="file">next.config.mjs</span> — <code>allowedDevOrigins: ['http://192.168.1.2:3000']</code> — Private IP committed to source.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P24. No .env.example File</h3><p>New developers can't set up the project without copying credentials. Should have <code>.env.example</code> with placeholder values.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P25. Firebase Sync is Fire-and-Forget</h3><p><span class="file">src/app/api/auth/register/route.js:71-84</span> — Registration returns success even if Firestore write fails. User may exist locally but not in Firebase.</p></div>
+
+<div class="p hi"><span class="sev hi">High</span><h3>P26. Quotations-2 Stores Data Only in localStorage</h3><p><span class="file">src/app/dashboard/quotations/quotations-2/page.js</span> — No server sync. Data lost on browser clear.</p></div>
+
+<!-- ========================================= -->
+<!-- SECTION 3: MEDIUM -->
+<!-- ========================================= -->
+<h2 style="color:#3b82f6">Medium Priority Problems</h2>
+
+<div class="p me"><span class="sev me">Medium</span><h3>P27. Admin Option Shown in Registration Form</h3><p>Frontend shows "Admin" in role dropdown even though backend blocks it. Confusing UX.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P28. ID Collision Risk — Date.now()</h3><p><span class="file">src/lib/db.js:18,54</span> — IDs use <code>Date.now()</code>. Two users registering in same millisecond get same ID.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P29. No Request Size Limits</h3><p>API endpoints accept unlimited request body size. Risk of memory exhaustion attacks.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P30. Silent Firebase Failures</h3><p>Firebase errors caught with <code>console.warn</code> and ignored. User gets success response even when data didn't save.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P31. No Pagination on List Endpoints</h3><p>GET endpoints return ALL records at once. Will be extremely slow with thousands of records.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P32. Sensitive Data Unencrypted in Firestore</h3><p>Phone numbers, emails, GST details, addresses stored as plain text in Firestore. No field-level encryption.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P33. No Error Boundaries in React</h3><p>Component errors crash the entire page. No error boundary to show fallback UI.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P34. Inconsistent Error Messages</h3><p>Some endpoints return raw error messages (<code>error.message</code>) which expose internal details.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P35. No Health Check Endpoint</h3><p>No <code>/api/health</code> endpoint for load balancers and monitoring services.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P36. No API Versioning</h3><p>No <code>/api/v1/</code> prefix. Breaking API changes affect all clients.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P37. Delete Without Confirmation (Quotations-2)</h3><p>One-click delete with no confirm dialog. Accidental data loss.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P38. Edit Link Missing Record ID (Quotations-2)</h3><p><span class="file">src/app/dashboard/quotations/quotations-2/page.js:95</span> — Edit always opens blank form.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P39. PDF Download Fails Silently</h3><p><span class="file">src/app/dashboard/quotations/[id]/page.js:564</span> — Fetches <code>stamp.png</code> without error handling.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P40. No Audit Logging for Admin Actions</h3><p>No record of who deleted records, changed roles, or modified quotations.</p></div>
+<div class="p me"><span class="sev me">Medium</span><h3>P41. Duplicate OTP Storage (Memory + Firestore)</h3><p>OTP stored in two places that can get out of sync, causing verification failures.</p></div>
+
+<!-- ========================================= -->
+<!-- SECTION 4: LOW -->
+<!-- ========================================= -->
+<h2 style="color:#10b981">Low Priority Problems</h2>
+
+<div class="p lo"><span class="sev lo">Low</span><h3>P42. Duplicate Phone Regex Across Files</h3><p>Same regex <code>/^[6-9]\d{9}$/</code> copy-pasted in 4+ files instead of shared utility.</p></div>
+<div class="p lo"><span class="sev lo">Low</span><h3>P43. Inconsistent HTTP Client (Axios vs Fetch)</h3><p><code>inquiry/page.js</code> uses Axios, everything else uses fetch.</p></div>
+<div class="p lo"><span class="sev lo">Low</span><h3>P44. alert() Used for Errors</h3><p><span class="file">src/app/inquiry/page.js:54</span> — Browser alert instead of UI toast.</p></div>
+<div class="p lo"><span class="sev lo">Low</span><h3>P45. Hardcoded Company Name in Quotation Share</h3><p>Not configurable. Would need code change to rebrand.</p></div>
+<div class="p lo"><span class="sev lo">Low</span><h3>P46. Unused Variable: isFirestoreAvailable</h3><p><span class="file">src/lib/firebase.js:24</span> — Defined but never set to true.</p></div>
+<div class="p lo"><span class="sev lo">Low</span><h3>P47. Missing Loading States</h3><p>Some API calls don't show spinners or disable buttons, allowing double-submission.</p></div>
+<div class="p lo"><span class="sev lo">Low</span><h3>P48. No Accessibility (a11y)</h3><p>Missing aria-labels, keyboard navigation, screen reader support on most components.</p></div>
+<div class="p lo"><span class="sev lo">Low</span><h3>P49. Hardcoded Dummy/Fallback Data</h3><p>Enquiry and quotation pages show fake data from 2026-04 when API fails.</p></div>
+<div class="p lo"><span class="sev lo">Low</span><h3>P50. Date Formatting Duplicated</h3><p>Same date formatter function defined in multiple files instead of shared utility.</p></div>
+<div class="p lo"><span class="sev lo">Low</span><h3>P51. No Offline Detection</h3><p>App doesn't detect network disconnection or show offline state.</p></div>
+
+<!-- ========================================= -->
+<!-- TESTS -->
+<!-- ========================================= -->
+<hr class="divider">
+<h1 style="color:#8b5cf6">Security & Production Tests</h1>
+<p class="subtitle">Run these tests to verify each problem. If any test passes, the vulnerability exists.</p>
+
+<h2>Authentication Tests</h2>
+
+<div class="test">
+    <span class="test-id">T01</span><span class="test-cat">AUTH</span>
+    <h4>Unauthenticated API Access — Enquiries</h4>
+    <p>Call the enquiry API without any auth token. If it returns data, P2 is confirmed.</p>
+    <pre>curl -s http://localhost:3000/api/enquiry</pre>
+    <p class="expect">Expected (secure): 401 Unauthorized</p>
+    <p class="expect">Current (vulnerable): 200 with all enquiry data</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T02</span><span class="test-cat">AUTH</span>
+    <h4>Unauthenticated API Access — Quotations</h4>
+    <pre>curl -s http://localhost:3000/api/quotations</pre>
+    <p class="expect">Expected: 401 | Current: 200 with all quotation data</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T03</span><span class="test-cat">AUTH</span>
+    <h4>Unauthenticated API Access — Inquiries</h4>
+    <pre>curl -s http://localhost:3000/api/inquiries</pre>
+    <p class="expect">Expected: 401 | Current: 200 with all inquiry data</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T04</span><span class="test-cat">AUTH</span>
+    <h4>Create Enquiry Without Auth</h4>
+    <pre>curl -s -X POST http://localhost:3000/api/enquiry \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Hacker","phone":"9999999999"}'</pre>
+    <p class="expect">Expected: 401 | Current: 200 (record created)</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T05</span><span class="test-cat">AUTH</span>
+    <h4>Delete Enquiry Without Auth (IDOR)</h4>
+    <pre>curl -s -X DELETE http://localhost:3000/api/enquiry/SOME_ID</pre>
+    <p class="expect">Expected: 401 | Current: Record deleted</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T06</span><span class="test-cat">AUTH</span>
+    <h4>Access Dashboard Without Login</h4>
+    <p>Open <code>http://localhost:3000/dashboard</code> in incognito. Check if page content flashes before redirect.</p>
+    <p class="expect">Expected: Server-side redirect to /login | Current: Client-side redirect (content visible briefly)</p>
+</div>
+
+<h2>Password & OTP Tests</h2>
+
+<div class="test">
+    <span class="test-id">T07</span><span class="test-cat">CRYPTO</span>
+    <h4>Password Stored as Plain Text</h4>
+    <pre># Register a user, then check Firestore directly:
+curl -s -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test","phone":"9876543210","password":"MySecret123"}'
+
+# Then query Firestore — password should be hashed, not "MySecret123"</pre>
+    <p class="expect">Expected: Hashed password (e.g., $2b$12$...) | Current: "MySecret123" in plain text</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T08</span><span class="test-cat">OTP</span>
+    <h4>OTP Returned in API Response</h4>
+    <pre>curl -s -X POST http://localhost:3000/api/auth/send-otp \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"7999952226"}'
+# Check if response contains "devOtp" field</pre>
+    <p class="expect">Expected: No OTP in response | Current: OTP visible in response body</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T09</span><span class="test-cat">OTP</span>
+    <h4>OTP Brute Force — No Rate Limit</h4>
+    <pre># Send 100 OTP requests in a loop:
+for i in $(seq 1 100); do
+  curl -s -X POST http://localhost:3000/api/auth/send-otp \
+    -H "Content-Type: application/json" \
+    -d '{"phone":"7999952226"}' &
+done</pre>
+    <p class="expect">Expected: Rate limited after 5 requests | Current: All 100 succeed</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T10</span><span class="test-cat">OTP</span>
+    <h4>OTP Survives Server Restart</h4>
+    <pre># 1. Send OTP
+curl -s -X POST http://localhost:3000/api/auth/send-otp \
+  -H "Content-Type: application/json" -d '{"phone":"7999952226"}'
+# 2. Restart server (kill & npm run dev)
+# 3. Try to verify the OTP</pre>
+    <p class="expect">Expected: OTP still valid (stored in Firestore) | Current: OTP lost from memory, may fail</p>
+</div>
+
+<h2>JWT & Token Tests</h2>
+
+<div class="test">
+    <span class="test-id">T11</span><span class="test-cat">JWT</span>
+    <h4>Forge JWT with Known Secret</h4>
+    <pre># The JWT secret is "unique-sorter-jwt-secret-change-in-production"
+# Use jwt.io or node to create a token:
+node -e "
+  const jwt = require('jsonwebtoken');
+  const token = jwt.sign(
+    { userId: 'admin', phone: '0000000000', role: 'ADMIN' },
+    'unique-sorter-jwt-secret-change-in-production',
+    { expiresIn: '24h' }
+  );
+  console.log(token);
+"
+# Use this forged token to access admin features</pre>
+    <p class="expect">Expected: Token rejected | Current: No endpoint validates tokens anyway</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T12</span><span class="test-cat">JWT</span>
+    <h4>Modify Role in localStorage</h4>
+    <pre># In browser console:
+const user = JSON.parse(localStorage.getItem('user'));
+user.role = 'ADMIN';
+localStorage.setItem('user', JSON.stringify(user));
+location.reload();
+# Check if user now has admin access</pre>
+    <p class="expect">Expected: Server rejects, redirects to login | Current: Full admin access granted</p>
+</div>
+
+<h2>Input Validation Tests</h2>
+
+<div class="test">
+    <span class="test-id">T13</span><span class="test-cat">INPUT</span>
+    <h4>XSS via Enquiry Name</h4>
+    <pre>curl -s -X POST http://localhost:3000/api/enquiry \
+  -H "Content-Type: application/json" \
+  -d '{"name":"&lt;script&gt;alert(1)&lt;/script&gt;","phone":"9876543210"}'
+# Then view the enquiry list — does the script execute?</pre>
+    <p class="expect">Expected: Sanitized, no script execution | Current: Stored as-is, potential XSS</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T14</span><span class="test-cat">INPUT</span>
+    <h4>NoSQL Injection via Body</h4>
+    <pre>curl -s -X POST http://localhost:3000/api/enquiry \
+  -H "Content-Type: application/json" \
+  -d '{"$set":{"admin":true},"name":"test"}'</pre>
+    <p class="expect">Expected: 400 Bad Request | Current: Stored in Firestore</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T15</span><span class="test-cat">INPUT</span>
+    <h4>Oversized Request Body</h4>
+    <pre># Send a 10MB JSON body:
+python3 -c "print('{\"data\":\"' + 'A'*10000000 + '\"}')" | \
+  curl -s -X POST http://localhost:3000/api/enquiry \
+    -H "Content-Type: application/json" -d @-</pre>
+    <p class="expect">Expected: 413 Payload Too Large | Current: Server processes it (memory risk)</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T16</span><span class="test-cat">INPUT</span>
+    <h4>Register with Admin Role</h4>
+    <pre>curl -s -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Hacker","phone":"9123456789","password":"test123","role":"admin"}'</pre>
+    <p class="expect">Expected: 403 Forbidden (correct — this one is blocked)</p>
+</div>
+
+<h2>CSRF & Cross-Origin Tests</h2>
+
+<div class="test">
+    <span class="test-id">T17</span><span class="test-cat">CSRF</span>
+    <h4>Cross-Origin POST Request</h4>
+    <pre># Create an HTML file with this and open in browser:
+&lt;form action="http://localhost:3000/api/enquiry" method="POST"&gt;
+  &lt;input name="name" value="CSRF Attack"&gt;
+  &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;</pre>
+    <p class="expect">Expected: Blocked by CSRF token | Current: Request succeeds</p>
+</div>
+
+<h2>Data Privacy Tests</h2>
+
+<div class="test">
+    <span class="test-id">T18</span><span class="test-cat">PRIVACY</span>
+    <h4>Enumerate Registered Phone Numbers</h4>
+    <pre># Try different numbers — response tells you if they're registered:
+curl -s -X POST http://localhost:3000/api/auth/send-otp \
+  -H "Content-Type: application/json" \
+  -d '{"phone":"9876543210"}'
+# 404 = not registered, 200 = registered (information leak)</pre>
+    <p class="expect">Expected: Same response for both | Current: Different responses reveal user existence</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T19</span><span class="test-cat">PRIVACY</span>
+    <h4>Access Audit Logs Without Auth</h4>
+    <pre>curl -s http://localhost:3000/api/enquiry/SOME_ID/auditLog</pre>
+    <p class="expect">Expected: 401 | Current: Returns who changed what and when</p>
+</div>
+
+<h2>Performance & Reliability Tests</h2>
+
+<div class="test">
+    <span class="test-id">T20</span><span class="test-cat">PERF</span>
+    <h4>Load All Records (No Pagination)</h4>
+    <pre># If there are 10,000 enquiries:
+curl -s http://localhost:3000/api/enquiry
+# How long does it take? Does it return ALL 10,000?</pre>
+    <p class="expect">Expected: Paginated (max 50 per page) | Current: Returns everything</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T21</span><span class="test-cat">RELIABILITY</span>
+    <h4>Firebase Timeout Handling</h4>
+    <pre># Disable internet, then try to register:
+curl -s -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"Test","phone":"9876543210","password":"test"}'
+# Does it hang forever or timeout gracefully?</pre>
+    <p class="expect">Expected: 5s timeout, graceful fallback | Current: Returns success but Firebase sync may fail silently</p>
+</div>
+
+<div class="test">
+    <span class="test-id">T22</span><span class="test-cat">RELIABILITY</span>
+    <h4>Concurrent Registration Race Condition</h4>
+    <pre># Register same phone simultaneously:
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"User1","phone":"9876543210","password":"a"}' &
+curl -X POST http://localhost:3000/api/auth/register \
+  -H "Content-Type: application/json" \
+  -d '{"name":"User2","phone":"9876543210","password":"b"}' &</pre>
+    <p class="expect">Expected: Only one succeeds | Current: Both may succeed (duplicate users)</p>
+</div>
+
+<!-- ========================================= -->
+<!-- FIX PHASES -->
+<!-- ========================================= -->
+<hr class="divider">
+<h1 style="color:#38bdf8">Fix Order (Phased Approach)</h1>
+<p class="subtitle">Follow this order — each phase builds on the previous</p>
+
+<div class="phase">
+    <h3>Phase 1: Security Foundation (Do First)</h3>
+    <ul class="cl">
+        <li>P1 — Hash passwords with bcryptjs</li>
+        <li>P7 — Generate strong random JWT secret</li>
+        <li>P6 — Ensure .env.local is in .gitignore, rotate Firebase keys</li>
+        <li>P3 — Create middleware.js for route protection</li>
+        <li>P4 — Add JWT validation helper for API routes</li>
+        <li>P2 — Add auth checks to all data API routes</li>
+        <li>P5 — Add ownership checks on record access</li>
+        <li>P10 — Remove devOtp from API response</li>
+        <li>P21 — Remove console.log of OTP</li>
+    </ul>
+</div>
+
+<div class="phase">
+    <h3>Phase 2: Auth Hardening</h3>
+    <ul class="cl">
+        <li>P8 — Validate JWT on server for every request, not just localStorage</li>
+        <li>P12 — Re-fetch role from DB on each request, don't trust JWT role alone</li>
+        <li>P13 — Add rate limiting (5 OTP/hour, 10 login attempts/hour)</li>
+        <li>P14 — Add CSRF protection on mutation endpoints</li>
+        <li>P15 — Move OTP storage to Firestore only (remove in-memory)</li>
+        <li>P22 — Check JWT expiry on frontend before API calls</li>
+        <li>P11 — Integrate SMS provider (Fast2SMS/MSG91) for real OTP delivery</li>
+    </ul>
+</div>
+
+<div class="phase">
+    <h3>Phase 3: Input & Data Safety</h3>
+    <ul class="cl">
+        <li>P9 — Add Zod/Joi schema validation on all API inputs</li>
+        <li>P20 — Sanitize user input (DOMPurify for rendering)</li>
+        <li>P29 — Add request body size limits</li>
+        <li>P17 — Add security headers via middleware</li>
+        <li>P19 — Add auth to audit log endpoint</li>
+        <li>P18 — Move price table to protected backend API</li>
+        <li>P32 — Encrypt sensitive PII fields in Firestore</li>
+    </ul>
+</div>
+
+<div class="phase">
+    <h3>Phase 4: Reliability & Performance</h3>
+    <ul class="cl">
+        <li>P16 — Remove in-memory DB, use Firestore only</li>
+        <li>P25 — Make Firebase sync reliable (await with timeout + error response)</li>
+        <li>P30 — Handle Firebase failures with proper error responses</li>
+        <li>P31 — Add pagination to list endpoints</li>
+        <li>P28 — Use crypto.randomUUID() for IDs</li>
+        <li>P33 — Add React error boundaries</li>
+        <li>P35 — Add /api/health endpoint</li>
+        <li>P40 — Add audit logging for admin actions</li>
+    </ul>
+</div>
+
+<div class="phase">
+    <h3>Phase 5: Polish & Best Practices</h3>
+    <ul class="cl">
+        <li>P23 — Remove hardcoded IPs from next.config</li>
+        <li>P24 — Create .env.example file</li>
+        <li>P26 — Sync quotations-2 to backend</li>
+        <li>P27 — Remove Admin option from register form</li>
+        <li>P34 — Standardize error messages (no internal details)</li>
+        <li>P36 — Add API versioning (/api/v1/)</li>
+        <li>P37-P39 — Fix UI bugs (delete confirm, edit link, PDF handling)</li>
+        <li>P41-P51 — Fix remaining low priority issues</li>
+    </ul>
+</div>
+
+<hr class="divider">
+<div style="text-align:center;padding:30px 0">
+    <p style="color:#94a3b8;font-size:0.9rem"><strong>Total: 51 problems | 22 tests</strong></p>
+    <p style="color:#64748b;font-size:0.8rem">Generated from full codebase audit of Unique Sorter</p>
+</div>
+
+</div>
+</body>
+</html>

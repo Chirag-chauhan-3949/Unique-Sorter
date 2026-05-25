@@ -1,5 +1,7 @@
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { NextResponse } from 'next/server';
+import { verifyAuth, verifyAdmin } from '@/lib/auth';
 
 const FIELD_LABELS = {
   customerName:   'Customer Name',
@@ -38,6 +40,10 @@ function diffFields(oldData, newData) {
 
 export async function GET(request, { params }) {
   try {
+    const auth = verifyAuth(request);
+    if (auth.error) {
+      return NextResponse.json({ message: auth.error }, { status: auth.status });
+    }
     if (!adminDb) return Response.json({ success: false, error: 'Database not configured' }, { status: 503 });
     const { id } = await params;
     const doc = await adminDb.collection('enquiry').doc(id).get();
@@ -48,12 +54,16 @@ export async function GET(request, { params }) {
       data: { id: doc.id, ...data, createdAt: data.createdAt?.toDate?.()?.toISOString() ?? null },
     });
   } catch (error) {
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return Response.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function PATCH(request, { params }) {
   try {
+    const auth = verifyAuth(request);
+    if (auth.error) {
+      return NextResponse.json({ message: auth.error }, { status: auth.status });
+    }
     if (!adminDb) return Response.json({ success: false, error: 'Database not configured. Changes saved locally only.' }, { status: 503 });
     const { id } = await params;
     const body = await request.json();
@@ -84,17 +94,21 @@ export async function PATCH(request, { params }) {
     return Response.json({ success: true, changesCount: changes.length });
   } catch (error) {
     console.error('Error updating enquiry:', error);
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return Response.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function DELETE(request, { params }) {
   try {
+    const auth = verifyAdmin(request);
+    if (auth.error) {
+      return NextResponse.json({ message: auth.error }, { status: auth.status });
+    }
     if (!adminDb) return Response.json({ success: false, error: 'Database not configured' }, { status: 503 });
     const { id } = await params;
     await adminDb.collection('enquiry').doc(id).delete();
     return Response.json({ success: true });
   } catch (error) {
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return Response.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

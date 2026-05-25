@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 import { buildHTML as buildHTML1 } from '@/components/QuotationForm';
 import { buildHTML as buildHTML2 } from '@/components/QuotationForm2';
 
@@ -420,6 +421,7 @@ const CSS = `
 export default function QuotationViewPage() {
   const { id } = useParams();
   const router  = useRouter();
+  const { getAuthHeaders } = useAuth();
   const [record, setRecord]     = useState(null);
   const [notFound, setNotFound] = useState(false);
   const [showShare, setShowShare] = useState(false);
@@ -472,7 +474,7 @@ export default function QuotationViewPage() {
     const enquiryId = id.includes('_') ? id.split('_').slice(0, -1).join('_') : null;
     if (enquiryId) {
       setAuditLoading(true);
-      fetch(`/api/enquiry/${enquiryId}/auditLog`)
+      fetch(`/api/enquiry/${enquiryId}/auditLog`, { headers: { ...getAuthHeaders() } })
         .then(r => r.json())
         .then(d => { if (d.success) setAuditLog(d.data || []); })
         .catch(() => {})
@@ -481,7 +483,7 @@ export default function QuotationViewPage() {
   }, [id]);
 
   useEffect(() => {
-    fetch(`/api/quotations/${id}`)
+    fetch(`/api/quotations/${id}`, { headers: { ...getAuthHeaders() } })
       .then(r => r.json())
       .then(d => {
         if (d.success && d.data) setRecord(d.data);

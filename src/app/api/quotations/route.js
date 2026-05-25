@@ -1,12 +1,24 @@
 import { adminDb } from '@/lib/firebase-admin';
 import { FieldValue } from 'firebase-admin/firestore';
+import { NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth';
+import { validateQuotationBody } from '@/lib/validate';
 
-export async function GET() {
+export async function GET(request) {
   try {
+    const auth = verifyAuth(request);
+    if (auth.error) {
+      return NextResponse.json({ message: auth.error }, { status: auth.status });
+    }
     if (!adminDb) return Response.json({ success: false, error: 'Database not configured' }, { status: 503 });
+
+    const url = new URL(request.url);
+    const limit = Math.min(parseInt(url.searchParams.get('limit')) || 50, 100);
+
     const snapshot = await adminDb
       .collection('quotations')
       .orderBy('createdAt', 'desc')
+      .limit(limit)
       .get();
 
     const quotations = snapshot.docs.map(doc => {
@@ -18,20 +30,25 @@ export async function GET() {
       };
     });
 
-    return Response.json({ success: true, data: quotations });
+    return Response.json({ success: true, data: quotations, limit });
   } catch (error) {
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return Response.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }
 
 export async function POST(request) {
   try {
+    const auth = verifyAuth(request);
+    if (auth.error) {
+      return NextResponse.json({ message: auth.error }, { status: auth.status });
+    }
     if (!adminDb) return Response.json({ success: false, error: 'Database not configured' }, { status: 503 });
     const body = await request.json();
+    const cleanBody = validateQuotationBody(body);
 
     // Use deterministic doc ID when coming from an enquiry to prevent duplicates
-    if (body.enquiryId && body.quotationType) {
-      const docId = `${body.enquiryId}_${body.quotationType}`;
+    if (cleanBody.enquiryId && cleanBody.quotationType) {
+      const docId = `${cleanBody.enquiryId}_${cleanBody.quotationType}`;
       const docRef = adminDb.collection('quotations').doc(docId);
       const existing = await docRef.get();
 
@@ -41,7 +58,7 @@ export async function POST(request) {
       }
 
       await docRef.set({
-        ...body,
+        ...cleanBody,
         createdAt: FieldValue.serverTimestamp(),
       });
 
@@ -50,12 +67,12 @@ export async function POST(request) {
 
     // Manual quotation — use auto-generated ID
     const docRef = await adminDb.collection('quotations').add({
-      ...body,
+      ...cleanBody,
       createdAt: FieldValue.serverTimestamp(),
     });
 
     return Response.json({ success: true, id: docRef.id }, { status: 201 });
   } catch (error) {
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return Response.json({ success: false, error: 'Internal server error' }, { status: 500 });
   }
 }

@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unique Sorter - Project Explanation & Problems</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.7; }
+        .container { max-width: 1000px; margin: 0 auto; padding: 40px 20px; }
+        h1 { font-size: 2.5rem; text-align: center; margin-bottom: 10px; color: #38bdf8; }
+        .subtitle { text-align: center; color: #94a3b8; margin-bottom: 40px; font-size: 1.1rem; }
+        h2 { font-size: 1.5rem; color: #38bdf8; margin: 30px 0 15px; border-bottom: 2px solid #1e293b; padding-bottom: 8px; }
+        h3 { font-size: 1.15rem; color: #7dd3fc; margin: 20px 0 10px; }
+        p, li { color: #cbd5e1; margin-bottom: 10px; }
+        ul, ol { padding-left: 25px; margin-bottom: 15px; }
+        .card { background: #1e293b; border-radius: 12px; padding: 25px; margin: 20px 0; border: 1px solid #334155; }
+        .flow-box { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 15px; margin: 10px 0; font-family: monospace; font-size: 0.9rem; color: #7dd3fc; white-space: pre-line; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th { background: #334155; color: #38bdf8; padding: 12px; text-align: left; }
+        td { padding: 10px 12px; border-bottom: 1px solid #1e293b; }
+        tr:hover td { background: #1e293b; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 5px; font-size: 0.8rem; font-weight: 600; }
+        .badge-get { background: #065f46; color: #6ee7b7; }
+        .badge-post { background: #713f12; color: #fde68a; }
+        .badge-put { background: #1e3a5f; color: #7dd3fc; }
+        .badge-delete { background: #7f1d1d; color: #fca5a5; }
+        .tech-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+        .tech-tag { background: #334155; color: #38bdf8; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; }
+        .divider { border: none; border-top: 2px dashed #334155; margin: 40px 0; }
+
+        /* Problem Section Styles */
+        .problem-section h2 { color: #f87171; border-color: #7f1d1d; }
+        .severity { display: inline-block; padding: 4px 12px; border-radius: 5px; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
+        .sev-critical { background: #7f1d1d; color: #fca5a5; }
+        .sev-high { background: #78350f; color: #fde68a; }
+        .sev-medium { background: #1e3a5f; color: #93c5fd; }
+        .sev-low { background: #064e3b; color: #6ee7b7; }
+        .problem-card { background: #1e293b; border-radius: 10px; padding: 20px 25px; margin: 15px 0; border-left: 4px solid #f87171; }
+        .problem-card.critical { border-left-color: #ef4444; }
+        .problem-card.high { border-left-color: #f59e0b; }
+        .problem-card.medium { border-left-color: #3b82f6; }
+        .problem-card.low { border-left-color: #10b981; }
+        .problem-card h3 { margin-top: 5px; }
+        .file-ref { font-family: monospace; background: #0f172a; color: #f472b6; padding: 2px 8px; border-radius: 4px; font-size: 0.85rem; }
+        code { background: #0f172a; color: #fbbf24; padding: 2px 6px; border-radius: 3px; font-size: 0.85rem; }
+        pre { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 15px; margin: 10px 0; overflow-x: auto; font-size: 0.85rem; color: #fbbf24; }
+        .status-box { display: flex; gap: 20px; flex-wrap: wrap; margin: 20px 0; }
+        .stat { background: #1e293b; border-radius: 10px; padding: 20px; flex: 1; min-width: 150px; text-align: center; border: 1px solid #334155; }
+        .stat .num { font-size: 2rem; font-weight: 700; }
+        .stat .label { font-size: 0.85rem; color: #94a3b8; margin-top: 5px; }
+        .stat.critical .num { color: #ef4444; }
+        .stat.high .num { color: #f59e0b; }
+        .stat.medium .num { color: #3b82f6; }
+        .stat.low .num { color: #10b981; }
+        .checklist { list-style: none; padding: 0; }
+        .checklist li { padding: 8px 0; border-bottom: 1px solid #1e293b; }
+        .checklist li::before { content: "[ ] "; font-family: monospace; color: #f87171; }
+        .todo-note { background: #1a1a2e; border: 1px dashed #f87171; border-radius: 8px; padding: 15px; margin: 20px 0; text-align: center; color: #fca5a5; font-weight: 600; }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <!-- ================================== -->
+        <!-- PART 1: PROJECT EXPLANATION        -->
+        <!-- ================================== -->
+
+        <h1>Unique Sorter</h1>
+        <p class="subtitle">A business management web app for a sorting machine company</p>
+
+        <div class="card">
+            <h2 style="margin-top:0;">What is this project?</h2>
+            <p><strong>Unique Sorter</strong> is a web application built for a company that sells sorting machines (like color sorters). It helps the company manage:</p>
+            <ul>
+                <li><strong>Customer Inquiries</strong> - People interested in buying machines fill out a form</li>
+                <li><strong>Quotations</strong> - The company creates price quotes for customers</li>
+                <li><strong>Clients</strong> - Keep track of all customers</li>
+                <li><strong>Orders</strong> - Manage machine orders</li>
+                <li><strong>Inventory</strong> - Track products in stock</li>
+                <li><strong>Reports</strong> - View business data</li>
+            </ul>
+        </div>
+
+        <h2>Tech Stack</h2>
+        <div class="tech-list">
+            <span class="tech-tag">Next.js 16</span>
+            <span class="tech-tag">React</span>
+            <span class="tech-tag">Firebase / Firestore</span>
+            <span class="tech-tag">Tailwind CSS</span>
+            <span class="tech-tag">ShadCN UI</span>
+            <span class="tech-tag">Axios</span>
+        </div>
+
+        <h2>How Does It Work?</h2>
+
+        <div class="card">
+            <h3>1. Login</h3>
+            <div class="flow-box">User opens /login
+-> Enters phone number + password
+-> Server checks if user exists in Firebase
+-> If valid, server generates a 6-digit OTP
+-> User enters OTP
+-> Server verifies OTP, creates a token
+-> User is logged in and sent to Dashboard</div>
+        </div>
+
+        <div class="card">
+            <h3>2. Public Inquiry Form</h3>
+            <div class="flow-box">Customer visits /enquiry (public page)
+-> Fills in: name, phone, email, company, product interest, message
+-> Clicks Submit
+-> Data goes to Backend API -> saved to Firebase
+-> Customer sees success message</div>
+        </div>
+
+        <div class="card">
+            <h3>3. Dashboard (Admin)</h3>
+            <div class="flow-box">Admin logs in -> sees Dashboard at /dashboard
+-> Can view: Enquiries, Clients, Quotations, Orders, Inventory, Reports, Settings
+-> Can create quotations for customers
+-> Can manage everything from one place</div>
+        </div>
+
+        <h2>API Endpoints</h2>
+        <table>
+            <thead>
+                <tr><th>Method</th><th>Endpoint</th><th>What it does</th></tr>
+            </thead>
+            <tbody>
+                <tr><td><span class="badge badge-post">POST</span></td><td>/api/auth/register</td><td>Create a new user</td></tr>
+                <tr><td><span class="badge badge-post">POST</span></td><td>/api/auth/verify-credentials</td><td>Check phone + password, send OTP</td></tr>
+                <tr><td><span class="badge badge-post">POST</span></td><td>/api/auth/verify-otp</td><td>Verify OTP, log user in</td></tr>
+                <tr><td><span class="badge badge-get">GET</span></td><td>/api/inquiries</td><td>Get all inquiries</td></tr>
+                <tr><td><span class="badge badge-post">POST</span></td><td>/api/inquiries</td><td>Submit new inquiry</td></tr>
+                <tr><td><span class="badge badge-put">PUT</span></td><td>/api/inquiries</td><td>Update an inquiry</td></tr>
+                <tr><td><span class="badge badge-delete">DELETE</span></td><td>/api/inquiries?id=xxx</td><td>Delete an inquiry</td></tr>
+            </tbody>
+        </table>
+
+        <!-- ================================== -->
+        <!-- PART 2: PROBLEMS FOUND             -->
+        <!-- ================================== -->
+
+        <hr class="divider">
+
+        <div class="problem-section">
+            <h1 style="color: #f87171;">Problems Found in This Website</h1>
+            <p class="subtitle">All bugs, security issues, and broken features - to be fixed one by one</p>
+
+            <!-- Summary Stats -->
+            <div class="status-box">
+                <div class="stat critical"><div class="num">6</div><div class="label">Critical</div></div>
+                <div class="stat high"><div class="num">8</div><div class="label">High</div></div>
+                <div class="stat medium"><div class="num">12</div><div class="label">Medium</div></div>
+                <div class="stat low"><div class="num">7</div><div class="label">Low</div></div>
+            </div>
+
+            <div class="todo-note">DO NOT SOLVE THESE NOW. This is a reference list. We will fix them one by one.</div>
+
+            <!-- ===================== -->
+            <!-- CRITICAL PROBLEMS     -->
+            <!-- ===================== -->
+            <h2>Critical Problems</h2>
+
+            <div class="problem-card critical">
+                <span class="severity sev-critical">Critical</span>
+                <h3>1. Passwords Stored as Plain Text</h3>
+                <p>User passwords are saved without any hashing. Anyone with database access can read all passwords.</p>
+                <p><span class="file-ref">src/app/api/auth/register/route.js</span> - stores password directly</p>
+                <p><span class="file-ref">src/app/api/auth/verify-credentials/route.js</span> - compares plain text</p>
+                <p><span class="file-ref">src/lib/db.js</span> - plain text comparison</p>
+                <pre>// Current (INSECURE):
+if (user.password !== password) return null;
+
+// Should be:
+const match = await bcrypt.compare(password, user.hashedPassword);</pre>
+                <p><strong>Note:</strong> <code>bcryptjs</code> is already installed in package.json but never used!</p>
+            </div>
+
+            <div class="problem-card critical">
+                <span class="severity sev-critical">Critical</span>
+                <h3>2. Fake Token - No JWT Signing</h3>
+                <p>The auth token is just base64-encoded JSON. Anyone can forge it - no signature, no secret key.</p>
+                <p><span class="file-ref">src/app/api/auth/verify-credentials/route.js:6-15</span></p>
+                <pre>// Current (INSECURE):
+return Buffer.from(JSON.stringify(payload)).toString('base64');
+
+// Should use jsonwebtoken:
+return jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '24h' });</pre>
+            </div>
+
+            <div class="problem-card critical">
+                <span class="severity sev-critical">Critical</span>
+                <h3>3. No Middleware - Routes Are Unprotected</h3>
+                <p>There is no <code>middleware.js</code> file. Any user can directly access <code>/dashboard</code>, <code>/api/enquiry</code>, <code>/api/quotations</code> without being logged in.</p>
+                <p>Auth is only checked on the client side (JavaScript) which can be easily bypassed.</p>
+                <p><strong>Missing file:</strong> <span class="file-ref">src/middleware.js</span> does not exist</p>
+            </div>
+
+            <div class="problem-card critical">
+                <span class="severity sev-critical">Critical</span>
+                <h3>4. API Routes Have No Auth Checks</h3>
+                <p>None of the API endpoints verify the user's token before responding:</p>
+                <ul>
+                    <li><span class="file-ref">/api/enquiry</span> - anyone can read/write enquiries</li>
+                    <li><span class="file-ref">/api/quotations</span> - anyone can read/write quotations</li>
+                    <li><span class="file-ref">/api/inquiries</span> - anyone can CRUD all inquiries</li>
+                </ul>
+            </div>
+
+            <div class="problem-card critical">
+                <span class="severity sev-critical">Critical</span>
+                <h3>5. Missing .env.local File - Firebase Won't Connect</h3>
+                <p>No environment file exists. The app needs these variables to connect to Firebase:</p>
+                <pre>NEXT_PUBLIC_FIREBASE_API_KEY=
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=
+NEXT_PUBLIC_FIREBASE_APP_ID=
+FIREBASE_ADMIN_PROJECT_ID=
+FIREBASE_ADMIN_CLIENT_EMAIL=
+FIREBASE_ADMIN_PRIVATE_KEY=</pre>
+                <p>Without this file, the entire database layer silently fails.</p>
+            </div>
+
+            <div class="problem-card critical">
+                <span class="severity sev-critical">Critical</span>
+                <h3>6. No Role Validation on Registration</h3>
+                <p>Anyone can register as <code>admin</code> by sending <code>"role": "admin"</code> in the request body. There is no server-side check.</p>
+                <p><span class="file-ref">src/app/api/auth/register/route.js:7</span></p>
+                <pre>// Current - accepts any role:
+const { name, phone, password, role = 'user' } = await request.json();
+// No validation that role is actually "user"!</pre>
+            </div>
+
+            <!-- ===================== -->
+            <!-- HIGH PROBLEMS         -->
+            <!-- ===================== -->
+            <h2>High Priority Problems</h2>
+
+            <div class="problem-card high">
+                <span class="severity sev-high">High</span>
+                <h3>7. Inconsistent Role Format</h3>
+                <p>Roles are stored differently across the codebase:</p>
+                <ul>
+                    <li><code>register/route.js</code> - stores as <code>'user'</code> (lowercase)</li>
+                    <li><code>verify-credentials/route.js</code> - converts to <code>'USER'</code> (uppercase)</li>
+                    <li><code>firebaseSync.js</code> - stores as-is (no normalization)</li>
+                </ul>
+                <p>This causes role checks to fail randomly.</p>
+            </div>
+
+            <div class="problem-card high">
+                <span class="severity sev-high">High</span>
+                <h3>8. Login Page - No Check If Already Logged In</h3>
+                <p>If a user is already logged in and visits <code>/login</code>, the page shows the login form instead of redirecting to dashboard.</p>
+                <p><span class="file-ref">src/app/login/page.js</span></p>
+            </div>
+
+            <div class="problem-card high">
+                <span class="severity sev-high">High</span>
+                <h3>9. Register Page - No Redirect After Success</h3>
+                <p>After successful registration, the page only shows a success state. It does not redirect to the login page automatically.</p>
+                <p><span class="file-ref">src/app/register/page.js</span></p>
+            </div>
+
+            <div class="problem-card high">
+                <span class="severity sev-high">High</span>
+                <h3>10. No Rate Limiting on Auth Endpoints</h3>
+                <p>Login and register endpoints can be called unlimited times. An attacker can brute-force passwords or spam registrations.</p>
+            </div>
+
+            <div class="problem-card high">
+                <span class="severity sev-high">High</span>
+                <h3>11. No Token Expiration Handling</h3>
+                <p>Auth token stored in localStorage has no expiration check on the frontend. Once logged in, the session never expires even if the token is stale.</p>
+                <p><span class="file-ref">src/contexts/AuthContext.js</span></p>
+            </div>
+
+            <div class="problem-card high">
+                <span class="severity sev-high">High</span>
+                <h3>12. Quotations-2 Uses Only localStorage</h3>
+                <p>The entire quotations-2 feature stores data only in browser localStorage. No server sync at all. Data is lost if the user clears browser data or switches devices.</p>
+                <p><span class="file-ref">src/app/dashboard/quotations/quotations-2/page.js</span></p>
+            </div>
+
+            <div class="problem-card high">
+                <span class="severity sev-high">High</span>
+                <h3>13. Delete Without Confirmation</h3>
+                <p>Quotations-2 delete button has no confirmation dialog. One click permanently deletes the record.</p>
+                <p><span class="file-ref">src/app/dashboard/quotations/quotations-2/page.js:97-99</span></p>
+            </div>
+
+            <div class="problem-card high">
+                <span class="severity sev-high">High</span>
+                <h3>14. Hardcoded Dummy/Fallback Data</h3>
+                <p>Multiple pages show hardcoded fake data when API calls fail, with dates like "2026-04". Users see stale data and think it's real.</p>
+                <ul>
+                    <li><span class="file-ref">dashboard/enquiry/page.js:895-920</span></li>
+                    <li><span class="file-ref">dashboard/quotations/page.js:243-258</span></li>
+                </ul>
+            </div>
+
+            <!-- ===================== -->
+            <!-- MEDIUM PROBLEMS       -->
+            <!-- ===================== -->
+            <h2>Medium Priority Problems</h2>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>15. Inconsistent HTTP Client</h3>
+                <p><code>inquiry/page.js</code> uses <strong>Axios</strong> while all other pages use <strong>fetch()</strong>. Pick one and use it everywhere.</p>
+            </div>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>16. alert() Used for Errors</h3>
+                <p><code>inquiry/page.js</code> uses browser <code>alert()</code> for error messages instead of proper UI toast/notification.</p>
+                <p><span class="file-ref">src/app/inquiry/page.js:54</span></p>
+            </div>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>17. No Input Sanitization</h3>
+                <p>User input (name, company, message) is stored directly without sanitizing. Risk of XSS attacks when data is displayed later.</p>
+            </div>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>18. ID Collision Risk</h3>
+                <p>IDs are generated using <code>Date.now().toString()</code>. If two users register in the same millisecond, they get the same ID.</p>
+                <p><span class="file-ref">src/lib/db.js:18,54</span></p>
+                <pre>// Current:
+id: Date.now().toString()
+
+// Should use:
+id: crypto.randomUUID()</pre>
+            </div>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>19. Phone Validation Missing on Inquiry Page</h3>
+                <p><code>/inquiry/page.js</code> phone input accepts any value without the regex validation that login/register pages have.</p>
+            </div>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>20. Enquiry Price Table Hardcoded in Frontend</h3>
+                <p>Product pricing is hardcoded in the enquiry page JavaScript. Should be fetched from backend so prices can be updated without code changes.</p>
+                <p><span class="file-ref">src/app/enquiry/page.js:12-15</span></p>
+            </div>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>21. PDF Download Fails Silently</h3>
+                <p>Quotation PDF download fetches <code>stamp.png</code> with no error handling. If the image is missing, the entire download silently breaks.</p>
+                <p><span class="file-ref">src/app/dashboard/quotations/[id]/page.js:564</span></p>
+            </div>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>22. Quotation Filename Can Be null</h3>
+                <p>PDF filename uses <code>quotNo</code> which can be null, creating an invalid file like <code>null.pdf</code>.</p>
+                <p><span class="file-ref">src/app/dashboard/quotations/[id]/page.js:577</span></p>
+            </div>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>23. Edit Quotation-2 Doesn't Pass Record ID</h3>
+                <p>Clicking "Edit" on a quotation-2 record navigates to the form but doesn't pass the record ID, so it always opens a blank form.</p>
+                <p><span class="file-ref">src/app/dashboard/quotations/quotations-2/page.js:95</span></p>
+            </div>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>24. Firebase Sync Fails Silently</h3>
+                <p>When registering a user, if Firebase sync fails, the error is only logged to console. The user gets a success response even though their data didn't save to the database.</p>
+                <p><span class="file-ref">src/app/api/auth/register/route.js:43-76</span></p>
+            </div>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>25. Hardcoded Dev Origins in next.config</h3>
+                <p>Development IP <code>192.168.1.2</code> is hardcoded in config. Should use environment variables.</p>
+                <p><span class="file-ref">next.config.mjs</span></p>
+            </div>
+
+            <div class="problem-card medium">
+                <span class="severity sev-medium">Medium</span>
+                <h3>26. No CSRF Protection on Forms</h3>
+                <p>Form submissions have no CSRF tokens. An attacker could create a fake page that submits inquiries or quotations on behalf of a logged-in user.</p>
+            </div>
+
+            <!-- ===================== -->
+            <!-- LOW PROBLEMS          -->
+            <!-- ===================== -->
+            <h2>Low Priority Problems</h2>
+
+            <div class="problem-card low">
+                <span class="severity sev-low">Low</span>
+                <h3>27. Unused Variable: isFirestoreAvailable</h3>
+                <p>Defined but never set to <code>true</code>. Always evaluates to <code>false</code>.</p>
+                <p><span class="file-ref">src/lib/firebase.js:24</span></p>
+            </div>
+
+            <div class="problem-card low">
+                <span class="severity sev-low">Low</span>
+                <h3>28. Duplicate Phone Regex</h3>
+                <p>The same phone validation regex <code>/^[6-9]\d{9}$/</code> is copied in multiple files instead of being in a shared utility.</p>
+            </div>
+
+            <div class="problem-card low">
+                <span class="severity sev-low">Low</span>
+                <h3>29. Dynamic Imports in Register Route</h3>
+                <p>Firebase modules are dynamically imported inside try-catch blocks on every request instead of at module level.</p>
+                <p><span class="file-ref">src/app/api/auth/register/route.js:46,52</span></p>
+            </div>
+
+            <div class="problem-card low">
+                <span class="severity sev-low">Low</span>
+                <h3>30. No Loading States on Some API Calls</h3>
+                <p>Several pages don't show loading spinners or disable buttons while API calls are in progress, allowing double-submissions.</p>
+            </div>
+
+            <div class="problem-card low">
+                <span class="severity sev-low">Low</span>
+                <h3>31. Generic Error Messages</h3>
+                <p>Most API failures show "Something went wrong" without telling the user what actually happened.</p>
+            </div>
+
+            <div class="problem-card low">
+                <span class="severity sev-low">Low</span>
+                <h3>32. No Pagination on Data Lists</h3>
+                <p>Enquiry and quotation list pages load all records at once. Will become slow as data grows.</p>
+            </div>
+
+            <div class="problem-card low">
+                <span class="severity sev-low">Low</span>
+                <h3>33. Hardcoded Company Name in Share</h3>
+                <p>Quotation share functionality has "Unique Sorter & Equipments Pvt. Ltd." hardcoded. Should be configurable.</p>
+                <p><span class="file-ref">src/app/dashboard/quotations/[id]/page.js:540</span></p>
+            </div>
+
+            <!-- ===================== -->
+            <!-- FIX ORDER CHECKLIST   -->
+            <!-- ===================== -->
+            <hr class="divider">
+
+            <h2>Suggested Fix Order (Checklist)</h2>
+            <p>Start from the top - each fix builds on the previous one:</p>
+
+            <div class="card">
+                <h3>Phase 1: Foundation (Do First)</h3>
+                <ul class="checklist">
+                    <li>Create .env.local file with Firebase credentials (#5)</li>
+                    <li>Hash passwords with bcryptjs (#1)</li>
+                    <li>Implement proper JWT token generation (#2)</li>
+                    <li>Add middleware.js for route protection (#3)</li>
+                    <li>Add auth checks to all API routes (#4)</li>
+                    <li>Block admin role in registration (#6)</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>Phase 2: Auth & Security Fixes</h3>
+                <ul class="checklist">
+                    <li>Normalize role format everywhere (#7)</li>
+                    <li>Redirect logged-in users away from /login (#8)</li>
+                    <li>Auto-redirect after registration (#9)</li>
+                    <li>Add rate limiting to auth endpoints (#10)</li>
+                    <li>Handle token expiration on frontend (#11)</li>
+                    <li>Add CSRF protection (#26)</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>Phase 3: Data & API Fixes</h3>
+                <ul class="checklist">
+                    <li>Sync quotations-2 to backend (#12)</li>
+                    <li>Add delete confirmation dialogs (#13)</li>
+                    <li>Remove hardcoded dummy data (#14)</li>
+                    <li>Fix Firebase sync silent failures (#24)</li>
+                    <li>Use crypto.randomUUID() for IDs (#18)</li>
+                    <li>Add input sanitization (#17)</li>
+                </ul>
+            </div>
+
+            <div class="card">
+                <h3>Phase 4: UI & Polish</h3>
+                <ul class="checklist">
+                    <li>Use consistent HTTP client (#15)</li>
+                    <li>Replace alert() with toast notifications (#16)</li>
+                    <li>Add phone validation to inquiry page (#19)</li>
+                    <li>Fetch prices from backend (#20)</li>
+                    <li>Fix PDF download error handling (#21, #22)</li>
+                    <li>Fix edit quotation-2 link (#23)</li>
+                    <li>Add loading states (#30)</li>
+                    <li>Show specific error messages (#31)</li>
+                    <li>Add pagination (#32)</li>
+                </ul>
+            </div>
+
+            <div class="todo-note">
+                Total: 33 problems found across the codebase.<br>
+                We will fix these one by one starting from Phase 1.
+            </div>
+        </div>
+    </div>
+</body>
+</html>

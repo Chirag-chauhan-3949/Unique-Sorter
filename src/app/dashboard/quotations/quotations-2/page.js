@@ -3,22 +3,35 @@
 import { useEffect, useState } from 'react';
 import TopBar from '@/components/TopBar';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
 
 const fmtINR = n => n ? '₹ ' + new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(+n) : '—';
 const fmtDate = iso => { if (!iso) return '—'; const d = new Date(iso); return d.toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' }); };
 
 export default function Quotations2Page() {
+  const { getAuthHeaders } = useAuth();
   const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const data = JSON.parse(localStorage.getItem('usepl_quotations2') || '[]');
-    setRows(data);
-  }, []);
+    fetch('/api/quotations?limit=100', { headers: { ...getAuthHeaders() } })
+      .then(r => r.json())
+      .then(d => {
+        if (d.success) {
+          const filtered = (d.data || []).filter(q => q.quotationType === 'detailed');
+          setRows(filtered);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  }, []); // eslint-disable-line
 
   const handleDelete = (id) => {
-    const updated = rows.filter(r => r.id !== id);
-    setRows(updated);
-    localStorage.setItem('usepl_quotations2', JSON.stringify(updated));
+    if (!confirm('Delete this quotation? This cannot be undone.')) return;
+    fetch(`/api/quotations/${id}`, {
+      method: 'DELETE',
+      headers: { ...getAuthHeaders() },
+    }).then(() => setRows(prev => prev.filter(r => r.id !== id)));
   };
 
   return (
@@ -30,7 +43,7 @@ export default function Quotations2Page() {
           <div className="card-header">
             <div>
               <h2 className="card-title">All Quotations — 6 Page Format</h2>
-              <p className="card-subtitle">{rows.length} record{rows.length !== 1 ? 's' : ''} saved locally</p>
+              <p className="card-subtitle">{loading ? 'Loading…' : `${rows.length} record${rows.length !== 1 ? 's' : ''}`}</p>
             </div>
             <div className="card-actions">
               <Link href="/dashboard/quotations/quotations-2/new" className="btn-primary">
@@ -58,7 +71,11 @@ export default function Quotations2Page() {
                 </tr>
               </thead>
               <tbody>
-                {rows.length === 0 ? (
+                {loading ? (
+                  <tr>
+                    <td colSpan={9} style={{ textAlign: 'center', padding: '40px 0', color: '#8898aa' }}>Loading…</td>
+                  </tr>
+                ) : rows.length === 0 ? (
                   <tr>
                     <td colSpan={9} style={{ textAlign: 'center', padding: '56px 0' }}>
                       <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 12 }}>
@@ -89,10 +106,10 @@ export default function Quotations2Page() {
                       <td style={{ fontSize: 12.5, color: '#556' }}>{r.mobile || '—'}</td>
                       <td style={{ fontSize: 12, color: '#556', fontFamily: 'monospace' }}>{r.gstin || '—'}</td>
                       <td style={{ fontWeight: 700, fontSize: 13, color: '#1a2a1a' }}>{fmtINR(r.total)}</td>
-                      <td style={{ fontSize: 12.5, color: '#556' }}>{fmtDate(r.refDate || r.savedAt)}</td>
+                      <td style={{ fontSize: 12.5, color: '#556' }}>{fmtDate(r.refDate || r.createdAt)}</td>
                       <td>
                         <div style={{ display: 'flex', gap: 6 }}>
-                          <Link href="/dashboard/quotations/quotations-2/new" style={{ fontSize: 12, color: '#1A37AA', textDecoration: 'none', fontWeight: 500 }}>Edit</Link>
+                          <Link href={`/dashboard/quotations/quotations-2/new?id=${r.id}`} style={{ fontSize: 12, color: '#1A37AA', textDecoration: 'none', fontWeight: 500 }}>Edit</Link>
                           <button
                             onClick={() => handleDelete(r.id)}
                             style={{ fontSize: 12, color: '#e05555', background: 'none', border: 'none', cursor: 'pointer', fontWeight: 500, padding: 0 }}

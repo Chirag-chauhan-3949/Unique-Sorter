@@ -15,6 +15,7 @@ const fmtDate = iso => {
 /* ── Drawer ────────────────────────────────────────────────────── */
 function EnquiryDrawer({ row, onClose, onUpdated, onDeleted, userRole }) {
   const router = useRouter();
+  const { getAuthHeaders } = useAuth();
   const [visible, setVisible] = useState(false);
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState({});
@@ -46,7 +47,7 @@ function EnquiryDrawer({ row, onClose, onUpdated, onDeleted, userRole }) {
       };
       const res  = await fetch('/api/quotations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify(payload),
       });
       const data = await res.json();
@@ -84,7 +85,7 @@ function EnquiryDrawer({ row, onClose, onUpdated, onDeleted, userRole }) {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res = await fetch(`/api/enquiry/${row.id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/enquiry/${row.id}`, { method: 'DELETE', headers: { ...getAuthHeaders() } });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Delete failed');
       handleClose();
@@ -98,7 +99,7 @@ function EnquiryDrawer({ row, onClose, onUpdated, onDeleted, userRole }) {
     try {
       const res = await fetch(`/api/enquiry/${row.id}`, {
         method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify(draft),
       });
       const data = await res.json();
@@ -834,9 +835,9 @@ function EnquiryDrawer({ row, onClose, onUpdated, onDeleted, userRole }) {
 /* ── Page ──────────────────────────────────────────────────────── */
 export default function EnquiryPage() {
   const router = useRouter();
-  const { userRole } = useAuth();
+  const { userRole, getAuthHeaders } = useAuth();
   const isAdminUser = isAdmin(userRole);
-  
+
   const [rows, setRows]       = useState([]);
   const [loading, setLoading] = useState(true);
   const [navigatingId, setNavigatingId] = useState(null);
@@ -892,7 +893,7 @@ export default function EnquiryPage() {
   }, [open, closePanel]);
 
   useEffect(() => {
-    fetch('/api/enquiry')
+    fetch('/api/enquiry', { headers: { ...getAuthHeaders() } })
       .then(r => r.json())
       .then(data => {
         if (data.success) setRows(data.data);

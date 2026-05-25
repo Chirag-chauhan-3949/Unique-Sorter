@@ -1,7 +1,13 @@
 import { adminDb } from '@/lib/firebase-admin';
+import { NextResponse } from 'next/server';
+import { verifyAuth } from '@/lib/auth';
 
 export async function GET(request, { params }) {
   try {
+    const auth = verifyAuth(request);
+    if (auth.error) {
+      return NextResponse.json({ message: auth.error }, { status: auth.status });
+    }
     if (!adminDb) return Response.json({ success: true, data: [] });
     const { id } = await params;
     const snapshot = await adminDb
@@ -22,6 +28,6 @@ export async function GET(request, { params }) {
 
     return Response.json({ success: true, data: logs });
   } catch (error) {
-    return Response.json({ success: false, error: error.message }, { status: 500 });
+    return Response.json({ success: false, error: 'Failed to fetch audit log' }, { status: 500 });
   }
 }

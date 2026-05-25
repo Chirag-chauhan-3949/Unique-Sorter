@@ -1,10 +1,15 @@
 import { NextResponse } from 'next/server';
 import { isFirebaseConfigured, checkFirestoreAccess } from '@/lib/firebase';
 import backendDb from '@/lib/db';
+import { verifyAuth, verifyAdmin } from '@/lib/auth';
 
 // GET all inquiries
-export async function GET() {
+export async function GET(request) {
   try {
+    const auth = verifyAuth(request);
+    if (auth.error) {
+      return NextResponse.json({ message: auth.error }, { status: auth.status });
+    }
     // Try Firebase first if configured and accessible
     if (isFirebaseConfigured) {
       try {
@@ -115,6 +120,10 @@ export async function POST(request) {
 // PUT update inquiry
 export async function PUT(request) {
   try {
+    const auth = verifyAuth(request);
+    if (auth.error) {
+      return NextResponse.json({ message: auth.error }, { status: auth.status });
+    }
     const { id, ...updates } = await request.json();
 
     if (!id) {
@@ -166,6 +175,10 @@ export async function PUT(request) {
 // DELETE inquiry
 export async function DELETE(request) {
   try {
+    const auth = verifyAdmin(request);
+    if (auth.error) {
+      return NextResponse.json({ message: auth.error }, { status: auth.status });
+    }
     const { searchParams } = new URL(request.url);
     const id = searchParams.get('id');
 

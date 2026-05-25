@@ -1,67 +1,40 @@
 import { NextResponse } from 'next/server';
 import db from '@/lib/db';
-import { isFirebaseConfigured, db as firebaseDb } from '@/lib/firebase';
-import { doc, getDoc } from 'firebase/firestore';
 
-const generateToken = (user) => {
-  const payload = {
-    userId: user.id,
-    phone: user.phone,
-    role: (user.role || 'USER').toUpperCase(),
-    iat: Date.now(),
-    exp: Date.now() + 24 * 60 * 60 * 1000,
-  };
-  return Buffer.from(JSON.stringify(payload)).toString('base64');
-};
-
-async function fetchUserFromFirebase(phone) {
-  if (!isFirebaseConfigured || !firebaseDb) return null;
-
+async function findUserByPhone(phone) {
   try {
-    const userDocRef = doc(firebaseDb, 'userdata', phone);
-    const userDoc = await getDoc(userDocRef);
+    const { adminDb } = await import('@/lib/firebase-admin');
+    if (!adminDb) return null;
 
-    if (userDoc.exists()) {
-      const userData = userDoc.data();
+    const userDoc = await Promise.race([
+      adminDb.collection('userdata').doc(phone).get(),
+      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+    ]);
+
+    if (userDoc.exists) {
+      const data = userDoc.data();
       return {
-        id: userData.id || phone,
-        name: userData.name || '',
-        phone: userData.phone || phone,
-        password: userData.password,
-        role: (userData.role || 'USER').toUpperCase(),
-        createdAt: userData.createdAt,
-      };
-    }
-
-    const usersDocRef = doc(firebaseDb, 'users', phone);
-    const usersDoc = await getDoc(usersDocRef);
-
-    if (usersDoc.exists()) {
-      const userData = usersDoc.data();
-      return {
-        id: userData.id || phone,
-        name: userData.name || '',
-        phone: userData.phone || phone,
-        password: userData.password,
-        role: (userData.role || 'USER').toUpperCase(),
-        createdAt: userData.createdAt,
+        id: data.id || phone,
+        name: data.name || '',
+        phone: data.phone || phone,
+        role: (data.role || 'USER').toUpperCase(),
       };
     }
 
     return null;
   } catch (error) {
-    console.error('Error fetching user from Firebase:', error.message);
+    console.warn('Firebase fetch skipped:', error.message);
     return null;
   }
 }
 
 export async function POST(request) {
   try {
-    const { phone, password, role } = await request.json();
+    const { phone } = await request.json();
 
-    if (!phone || !password || !role) {
+    if (!phone) {
       return NextResponse.json(
-        { message: 'Phone, password, and role are required' },
+        { message: 'Phone number is required' },
         { status: 400 }
       );
     }
@@ -74,58 +47,42 @@ export async function POST(request) {
       );
     }
 
-    const validRoles = ['ADMIN', 'USER'];
-    if (!validRoles.includes(role.toUpperCase())) {
-      return NextResponse.json(
-        { message: 'Invalid role selected' },
-        { status: 400 }
-      );
-    }
+    // Check if user exists in Firebase
+    let user = await findUserByPhone(phone);
 
-    let user = await fetchUserFromFirebase(phone);
+    // Fallback to local DB
+    if (!user) {
+      const localUser = db.findUserByPhone(phone);
+      if (localUser) {
+        user = {
+          id: localUser.id,
+          name: localUser.name,
+          phone: localUser.phone,
+          role: (localUser.role || 'USER').toUpperCase(),
+        };
+      }
+    }
 
     if (!user) {
-      user = db.findUserByPhone(phone);
-    }
-
-    if (!user) {
       return NextResponse.json(
-        { message: 'Invalid phone number or password' },
-        { status: 401 }
+        { message: 'This phone number is not registered. Please register first.' },
+        { status: 404 }
       );
     }
-
-    if (user.password !== password) {
-      return NextResponse.json(
-        { message: 'Invalid phone number or password' },
-        { status: 401 }
-      );
-    }
-
-    const userRole = (user.role || 'USER').toUpperCase();
-    if (userRole !== role.toUpperCase()) {
-      return NextResponse.json(
-        { message: 'You are not assigned this role' },
-        { status: 403 }
-      );
-    }
-
-    const token = generateToken(user);
 
     return NextResponse.json({
       success: true,
-      message: 'Login successful',
-      token,
+      message: 'Phone number verified. OTP will be sent.',
+      verified: true,
       user: {
-        id: user.id,
         name: user.name,
         phone: user.phone,
-        role: userRole,
+        role: user.role,
       },
     });
 
   } catch (error) {
-    console.error('Login error:', error);
+    console.error('Verify error:', error);
     return NextResponse.json(
       { message: 'Internal server error' },
       { status: 500 }

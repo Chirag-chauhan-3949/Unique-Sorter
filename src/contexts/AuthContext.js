@@ -26,14 +26,31 @@ export function AuthProvider({ children }) {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
+  // Check if a JWT token is expired
+  const isTokenExpired = useCallback((token) => {
+    try {
+      const payload = JSON.parse(atob(token.split('.')[1]));
+      if (payload.exp && Date.now() >= payload.exp * 1000) {
+        return true;
+      }
+      return false;
+    } catch {
+      return true;
+    }
+  }, []);
+
   // Initialize auth state from localStorage on mount
   useEffect(() => {
     const initAuth = () => {
       try {
         const token = localStorage.getItem('authToken');
         const storedUser = localStorage.getItem('user');
-        
+
         if (token && storedUser) {
+          if (isTokenExpired(token)) {
+            clearAuth();
+            return;
+          }
           const parsedUser = JSON.parse(storedUser);
           setUser(parsedUser);
           setUserRole(parsedUser.role?.toUpperCase() || ROLES.USER);
@@ -54,6 +71,7 @@ export function AuthProvider({ children }) {
   const clearAuth = useCallback(() => {
     localStorage.removeItem('authToken');
     localStorage.removeItem('user');
+    document.cookie = 'authToken=; path=/; max-age=0; SameSite=Strict';
     setUser(null);
     setUserRole(null);
     setIsAuthenticated(false);
@@ -64,6 +82,7 @@ export function AuthProvider({ children }) {
     const normalizedRole = userData.role?.toUpperCase() || ROLES.USER;
     
     localStorage.setItem('authToken', token);
+    document.cookie = 'authToken=' + token + '; path=/; max-age=86400; SameSite=Strict';
     localStorage.setItem('user', JSON.stringify({
       ...userData,
       role: normalizedRole,
@@ -75,6 +94,19 @@ export function AuthProvider({ children }) {
     
     return normalizedRole;
   }, []);
+
+  // Get auth headers for API requests
+  const getAuthHeaders = useCallback(() => {
+    const token = localStorage.getItem('authToken');
+    if (token) {
+      if (isTokenExpired(token)) {
+        logout();
+        return {};
+      }
+      return { Authorization: 'Bearer ' + token };
+    }
+    return {};
+  }, [isTokenExpired]);
 
   // Logout function
   const logout = useCallback(() => {
@@ -126,6 +158,7 @@ export function AuthProvider({ children }) {
     isLoading,
     login,
     logout,
+    getAuthHeaders,
   };
 
   return (

@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unique Sorter - Auth Flow Documentation</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #e2e8f0; line-height: 1.7; }
+        .container { max-width: 960px; margin: 0 auto; padding: 40px 20px; }
+        h1 { font-size: 2.4rem; text-align: center; margin-bottom: 8px; color: #38bdf8; }
+        .subtitle { text-align: center; color: #94a3b8; margin-bottom: 40px; font-size: 1.05rem; }
+        h2 { font-size: 1.5rem; color: #38bdf8; margin: 35px 0 15px; border-bottom: 2px solid #1e293b; padding-bottom: 8px; }
+        h3 { font-size: 1.15rem; color: #7dd3fc; margin: 20px 0 10px; }
+        p, li { color: #cbd5e1; margin-bottom: 10px; }
+        ul, ol { padding-left: 25px; margin-bottom: 15px; }
+        strong { color: #f1f5f9; }
+        .card { background: #1e293b; border-radius: 12px; padding: 25px; margin: 20px 0; border: 1px solid #334155; }
+        .card-green { border-left: 4px solid #22c55e; }
+        .card-blue { border-left: 4px solid #3b82f6; }
+        .card-yellow { border-left: 4px solid #eab308; }
+        .card-red { border-left: 4px solid #ef4444; }
+        code { background: #0f172a; color: #fbbf24; padding: 2px 6px; border-radius: 3px; font-size: 0.85rem; }
+        pre { background: #0f172a; border: 1px solid #334155; border-radius: 8px; padding: 18px; margin: 12px 0; overflow-x: auto; font-size: 0.85rem; color: #7dd3fc; line-height: 1.6; }
+        .flow { display: flex; flex-direction: column; gap: 0; margin: 20px 0; }
+        .flow-step { background: #1e293b; border: 1px solid #334155; border-radius: 10px; padding: 18px 20px; position: relative; }
+        .flow-step:not(:last-child) { margin-bottom: 0; border-bottom-left-radius: 0; border-bottom-right-radius: 0; }
+        .flow-step:not(:first-child) { border-top-left-radius: 0; border-top-right-radius: 0; border-top: none; }
+        .flow-num { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; background: #3b82f6; color: #fff; border-radius: 50%; font-size: 0.8rem; font-weight: 700; margin-right: 10px; flex-shrink: 0; }
+        .flow-num.green { background: #22c55e; }
+        .flow-num.yellow { background: #eab308; color: #0f172a; }
+        .flow-num.red { background: #ef4444; }
+        .flow-step-title { font-weight: 700; color: #f1f5f9; display: inline; }
+        .flow-step-detail { color: #94a3b8; font-size: 0.9rem; margin-top: 6px; }
+        .arrow { text-align: center; color: #475569; font-size: 1.2rem; padding: 4px 0; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th { background: #334155; color: #38bdf8; padding: 12px; text-align: left; font-size: 0.9rem; }
+        td { padding: 10px 12px; border-bottom: 1px solid #1e293b; font-size: 0.9rem; }
+        tr:hover td { background: #1e293b; }
+        .badge { display: inline-block; padding: 3px 10px; border-radius: 5px; font-size: 0.75rem; font-weight: 700; }
+        .badge-post { background: #713f12; color: #fde68a; }
+        .badge-file { background: #1e3a5f; color: #93c5fd; }
+        .tech-list { display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0; }
+        .tech-tag { background: #334155; color: #38bdf8; padding: 6px 14px; border-radius: 20px; font-size: 0.85rem; }
+        .divider { border: none; border-top: 2px dashed #334155; margin: 40px 0; }
+        .diagram { background: #0f172a; border: 1px solid #334155; border-radius: 10px; padding: 25px; margin: 20px 0; font-family: 'Courier New', monospace; font-size: 0.85rem; color: #7dd3fc; line-height: 1.8; white-space: pre; overflow-x: auto; }
+        .highlight { background: #1e3a5f; border: 1px solid #3b82f6; border-radius: 8px; padding: 15px 18px; margin: 15px 0; }
+        .highlight p { color: #93c5fd; margin: 0; }
+        .status { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; }
+        .status-done { background: #065f46; color: #6ee7b7; }
+        .status-pending { background: #78350f; color: #fde68a; }
+    </style>
+</head>
+<body>
+    <div class="container">
+
+        <h1>Authentication Flow</h1>
+        <p class="subtitle">How Registration and Login work in Unique Sorter</p>
+
+        <!-- TECH STACK -->
+        <h2>Technologies Used</h2>
+        <div class="tech-list">
+            <span class="tech-tag">Next.js 16 (API Routes)</span>
+            <span class="tech-tag">Firebase Admin SDK (Server)</span>
+            <span class="tech-tag">Cloud Firestore (Database)</span>
+            <span class="tech-tag">JWT (jsonwebtoken)</span>
+            <span class="tech-tag">In-Memory DB (Fallback)</span>
+            <span class="tech-tag">React (Frontend)</span>
+        </div>
+
+        <div class="card card-blue">
+            <h3 style="margin-top:0;">Key Point</h3>
+            <p>All database operations use the <strong>Firebase Admin SDK</strong> (server-side), NOT the Firebase Client SDK. This means:</p>
+            <ul>
+                <li>No reCAPTCHA needed</li>
+                <li>No client-side Firebase Auth</li>
+                <li>All Firestore reads/writes happen on the server via API routes</li>
+                <li>5-second timeouts on all Firebase calls to prevent hanging</li>
+            </ul>
+        </div>
+
+        <!-- ======================== -->
+        <!-- REGISTRATION             -->
+        <!-- ======================== -->
+        <hr class="divider">
+        <h1 style="color:#22c55e;">Registration</h1>
+        <p class="subtitle">User creates an account with name, phone, password</p>
+
+        <h2>Visual Flow</h2>
+        <div class="diagram">
+  User (Browser)                    Server                         Firebase
+  ============                    ======                         ========
+
+  /register page
+  Fill: Name, Phone,
+  Password, Confirm Password
+        |
+        |--- POST /api/auth/register ----->|
+        |    { name, phone, password }     |
+        |                                  |--- Check: is role "admin"?
+        |                                  |    YES -> Return 403 (blocked)
+        |                                  |
+        |                                  |--- adminDb.collection('userdata')
+        |                                  |    .doc(phone).get() ------------>| Firestore
+        |                                  |                                   | Check if
+        |                                  |<--- exists? ----------------------| phone exists
+        |                                  |    YES -> Return 409 (duplicate)
+        |                                  |
+        |                                  |--- db.createUser() (local memory)
+        |                                  |
+        |                                  |--- adminDb.collection('userdata')
+        |                                  |    .doc(phone).set({...}) ------->| Firestore
+        |                                  |    (fire & forget, don't wait)    | Save user
+        |                                  |
+        |<--- 200 { success, user } -------|
+        |
+  Show "Registration Successful!"
+  Button: "Go to Login"</div>
+
+        <h2>Step by Step</h2>
+        <div class="flow">
+            <div class="flow-step">
+                <span class="flow-num green">1</span>
+                <span class="flow-step-title">User fills the registration form</span>
+                <div class="flow-step-detail">Fields: Full Name, Phone Number (+91), Password, Confirm Password<br>Role dropdown exists but <strong>admin is blocked server-side</strong> — always registers as "user"</div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num green">2</span>
+                <span class="flow-step-title">Frontend sends POST /api/auth/register</span>
+                <div class="flow-step-detail">Sends: <code>{ name, phone, password, role }</code><br>File: <code>src/app/register/page.js</code> line 52</div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num green">3</span>
+                <span class="flow-step-title">Server validates input</span>
+                <div class="flow-step-detail">
+                    Checks:<br>
+                    - Name, phone, password are present<br>
+                    - Phone matches regex <code>/^[6-9]\d{9}$/</code> (Indian 10-digit)<br>
+                    - Role is NOT "admin" (returns 403 if it is)
+                </div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num green">4</span>
+                <span class="flow-step-title">Check if phone already exists in Firestore</span>
+                <div class="flow-step-detail">Uses <strong>Firebase Admin SDK</strong> to query <code>userdata</code> collection<br>Has a <strong>5-second timeout</strong> — if Firestore is slow, it skips the check<br>If phone exists → returns 409 "already exists"</div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num green">5</span>
+                <span class="flow-step-title">Create user in local in-memory DB</span>
+                <div class="flow-step-detail">Creates user object with <code>Date.now()</code> as ID<br>Stored in <code>src/lib/db.js</code> — lost on server restart</div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num green">6</span>
+                <span class="flow-step-title">Sync to Firebase Firestore (fire and forget)</span>
+                <div class="flow-step-detail">Writes to <code>userdata/{phone}</code> collection in Firestore<br><strong>Does NOT wait</strong> for Firestore response — returns success immediately<br>Sync happens in background</div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num green">7</span>
+                <span class="flow-step-title">Return success to frontend</span>
+                <div class="flow-step-detail">Returns: <code>{ success: true, user: { id, name, phone, role } }</code><br>Frontend shows success screen with "Go to Login" button</div>
+            </div>
+        </div>
+
+        <h2>Files Involved (Registration)</h2>
+        <table>
+            <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>src/app/register/page.js</code></td><td>Registration form UI (React)</td></tr>
+                <tr><td><code>src/app/api/auth/register/route.js</code></td><td>API route — validates, saves to DB + Firestore</td></tr>
+                <tr><td><code>src/lib/db.js</code></td><td>In-memory database (fallback)</td></tr>
+                <tr><td><code>src/lib/firebase-admin.js</code></td><td>Firebase Admin SDK — server-side Firestore access</td></tr>
+            </tbody>
+        </table>
+
+        <h2>Firestore Document (what gets saved)</h2>
+        <pre>{
+  collection: "userdata"
+  document ID: "7999952226"  (phone number)
+
+  id: "1779357598921"       (timestamp-based ID)
+  name: "Chirag Singh Chauhan"
+  phone: "7999952226"
+  password: "Chirag@123"     // plain text (needs hashing in production)
+  role: "user"
+  createdAt: "2026-05-21T09:59:58.921Z"
+  syncedAt: "2026-05-21T09:59:58.922Z"
+}</pre>
+
+        <!-- ======================== -->
+        <!-- LOGIN                    -->
+        <!-- ======================== -->
+        <hr class="divider">
+        <h1 style="color:#3b82f6;">Login</h1>
+        <p class="subtitle">User enters phone number, receives OTP, verifies it</p>
+
+        <h2>Visual Flow</h2>
+        <div class="diagram">
+  User (Browser)                    Server                         Firebase
+  ============                    ======                         ========
+
+  /login page
+  Enter phone number
+        |
+        |--- POST /api/auth/send-otp ---->|
+        |    { phone: "7999952226" }       |
+        |                                  |--- adminDb.collection('userdata')
+        |                                  |    .doc(phone).get() ------------>| Firestore
+        |                                  |                                   | Find user
+        |                                  |<--- user data -------------------|
+        |                                  |
+        |                                  |    NOT found? Return 404
+        |                                  |    "Please register first"
+        |                                  |
+        |                                  |--- Generate 6-digit OTP
+        |                                  |    Math.floor(100000 + random * 900000)
+        |                                  |
+        |                                  |--- Store OTP in memory (Map)
+        |                                  |    { otp, expiresAt: 5min, attempts: 0 }
+        |                                  |
+        |                                  |--- Store OTP in Firestore ------>| Firestore
+        |                                  |    otps/{phone}                   | Backup
+        |                                  |
+        |                                  |--- console.log(OTP)  // dev only
+        |                                  |
+        |<--- 200 { success, message } ----|
+        |
+  Show OTP input (6 boxes)
+  User enters OTP
+        |
+        |--- POST /api/auth/verify-otp -->|
+        |    { phone, otp: "123456" }      |
+        |                                  |--- Check in-memory Map
+        |                                  |    or Firestore otps/{phone}
+        |                                  |
+        |                                  |    Expired? -> 400 "OTP expired"
+        |                                  |    Wrong?   -> 401 "Invalid OTP"
+        |                                  |    3 fails? -> 429 "Too many attempts"
+        |                                  |
+        |                                  |--- OTP matches!
+        |                                  |    Delete OTP from memory + Firestore
+        |                                  |
+        |                                  |--- Fetch user from Firestore --->| Firestore
+        |                                  |<--- user data -------------------|
+        |                                  |
+        |                                  |--- Generate JWT token
+        |                                  |    jwt.sign({ userId, phone, role },
+        |                                  |             JWT_SECRET, { expiresIn: '24h' })
+        |                                  |
+        |<--- 200 { token, user } ---------|
+        |
+  Store token in localStorage
+  Redirect to /dashboard</div>
+
+        <h2>Step by Step — Send OTP</h2>
+        <div class="flow">
+            <div class="flow-step">
+                <span class="flow-num">1</span>
+                <span class="flow-step-title">User enters phone number on login page</span>
+                <div class="flow-step-detail">Just the phone number — no password, no role needed</div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num">2</span>
+                <span class="flow-step-title">Frontend sends POST /api/auth/send-otp</span>
+                <div class="flow-step-detail">Sends: <code>{ phone: "7999952226" }</code></div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num">3</span>
+                <span class="flow-step-title">Server checks if phone is registered</span>
+                <div class="flow-step-detail">Queries Firestore <code>userdata/{phone}</code> using Admin SDK (5s timeout)<br>Falls back to local in-memory DB if Firestore fails<br>If NOT found → returns 404 "Please register first"</div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num">4</span>
+                <span class="flow-step-title">Generate 6-digit OTP</span>
+                <div class="flow-step-detail"><code>Math.floor(100000 + Math.random() * 900000)</code><br>Stored in: in-memory Map + Firestore <code>otps/{phone}</code><br>Expires in: <strong>5 minutes</strong></div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num yellow">5</span>
+                <span class="flow-step-title">OTP delivery (currently: server console only)</span>
+                <div class="flow-step-detail">
+                    <span class="status status-done">WORKING</span> OTP printed in server terminal<br>
+                    <span class="status status-pending">TODO</span> Send via SMS (needs SMS provider like Fast2SMS, MSG91, or Twilio)<br>
+                    The OTP is NOT sent to the user's phone yet — this needs an SMS API integration
+                </div>
+            </div>
+        </div>
+
+        <h2>Step by Step — Verify OTP</h2>
+        <div class="flow">
+            <div class="flow-step">
+                <span class="flow-num">1</span>
+                <span class="flow-step-title">User enters 6-digit OTP</span>
+                <div class="flow-step-detail">6 individual input boxes with auto-focus, paste support, backspace navigation</div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num">2</span>
+                <span class="flow-step-title">Frontend sends POST /api/auth/verify-otp</span>
+                <div class="flow-step-detail">Sends: <code>{ phone: "7999952226", otp: "123456" }</code></div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num">3</span>
+                <span class="flow-step-title">Server verifies OTP</span>
+                <div class="flow-step-detail">
+                    Checks in-memory Map first, then Firestore <code>otps/{phone}</code><br>
+                    Validation:<br>
+                    - OTP not found → 400 "Request a new one"<br>
+                    - OTP expired (>5 min) → 400 "Expired"<br>
+                    - Wrong OTP → 401 "Invalid" (max 3 attempts)<br>
+                    - 3 failed attempts → 429 "Too many attempts"
+                </div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num">4</span>
+                <span class="flow-step-title">OTP is correct — delete it</span>
+                <div class="flow-step-detail">Removes OTP from memory Map AND Firestore <code>otps/{phone}</code><br>OTP is single-use — cannot be reused</div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num">5</span>
+                <span class="flow-step-title">Fetch user data from Firestore</span>
+                <div class="flow-step-detail">Queries <code>userdata/{phone}</code> to get name, role, etc.</div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num green">6</span>
+                <span class="flow-step-title">Generate JWT token</span>
+                <div class="flow-step-detail">
+                    Uses <code>jsonwebtoken</code> library<br>
+                    Payload: <code>{ userId, phone, role }</code><br>
+                    Secret: <code>JWT_SECRET</code> from .env.local<br>
+                    Expires in: <strong>24 hours</strong>
+                </div>
+            </div>
+            <div class="flow-step">
+                <span class="flow-num green">7</span>
+                <span class="flow-step-title">Return token + user to frontend</span>
+                <div class="flow-step-detail">
+                    Response: <code>{ token, user: { id, name, phone, role } }</code><br>
+                    Frontend stores token in <code>localStorage</code><br>
+                    Redirects to <code>/dashboard</code>
+                </div>
+            </div>
+        </div>
+
+        <h2>Files Involved (Login)</h2>
+        <table>
+            <thead><tr><th>File</th><th>Purpose</th></tr></thead>
+            <tbody>
+                <tr><td><code>src/app/login/page.js</code></td><td>Login form UI — phone input + OTP input (React)</td></tr>
+                <tr><td><code>src/app/api/auth/send-otp/route.js</code></td><td>API route — checks user exists, generates OTP, stores it</td></tr>
+                <tr><td><code>src/app/api/auth/verify-otp/route.js</code></td><td>API route — verifies OTP, returns JWT token</td></tr>
+                <tr><td><code>src/lib/firebase-admin.js</code></td><td>Firebase Admin SDK — Firestore reads/writes</td></tr>
+                <tr><td><code>src/lib/db.js</code></td><td>In-memory fallback database</td></tr>
+                <tr><td><code>src/contexts/AuthContext.js</code></td><td>React context — stores token/user, handles redirects</td></tr>
+            </tbody>
+        </table>
+
+        <!-- ======================== -->
+        <!-- API SUMMARY              -->
+        <!-- ======================== -->
+        <hr class="divider">
+        <h2>API Endpoints Summary</h2>
+        <table>
+            <thead><tr><th>Method</th><th>Endpoint</th><th>Input</th><th>Output</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td><span class="badge badge-post">POST</span></td>
+                    <td><code>/api/auth/register</code></td>
+                    <td><code>{ name, phone, password }</code></td>
+                    <td>Creates user in local DB + Firestore</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-post">POST</span></td>
+                    <td><code>/api/auth/send-otp</code></td>
+                    <td><code>{ phone }</code></td>
+                    <td>Checks user exists, generates + stores OTP</td>
+                </tr>
+                <tr>
+                    <td><span class="badge badge-post">POST</span></td>
+                    <td><code>/api/auth/verify-otp</code></td>
+                    <td><code>{ phone, otp }</code></td>
+                    <td>Verifies OTP, returns JWT token + user data</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <!-- ======================== -->
+        <!-- SECURITY                 -->
+        <!-- ======================== -->
+        <hr class="divider">
+        <h2>Security Features</h2>
+
+        <div class="card card-green">
+            <h3 style="margin-top:0; color:#22c55e;">What's Working</h3>
+            <ul>
+                <li><strong>Admin registration blocked</strong> — users cannot self-register as admin</li>
+                <li><strong>OTP expires in 5 minutes</strong> — cannot be reused</li>
+                <li><strong>Max 3 OTP attempts</strong> — brute force protection</li>
+                <li><strong>JWT tokens with 24h expiry</strong> — signed with secret key</li>
+                <li><strong>Phone format validation</strong> — Indian 10-digit numbers only</li>
+                <li><strong>5-second timeouts</strong> — Firebase calls never hang</li>
+                <li><strong>Fire-and-forget writes</strong> — registration never blocks</li>
+                <li><strong>Dual OTP storage</strong> — in-memory + Firestore backup</li>
+            </ul>
+        </div>
+
+        <div class="card card-yellow">
+            <h3 style="margin-top:0; color:#eab308;">What Needs Work (Production)</h3>
+            <ul>
+                <li><strong>SMS delivery</strong> — OTP only prints to console, needs SMS API (Fast2SMS/MSG91/Twilio)</li>
+                <li><strong>Password hashing</strong> — passwords stored as plain text, needs bcrypt</li>
+                <li><strong>Rate limiting</strong> — no limit on how many OTPs can be requested</li>
+                <li><strong>Middleware</strong> — no server-side route protection, only client-side</li>
+                <li><strong>HTTPS</strong> — required for production deployment</li>
+            </ul>
+        </div>
+
+        <!-- ======================== -->
+        <!-- FIRESTORE COLLECTIONS    -->
+        <!-- ======================== -->
+        <hr class="divider">
+        <h2>Firestore Collections</h2>
+
+        <div class="card">
+            <h3 style="margin-top:0;">userdata (permanent)</h3>
+            <pre>Document ID: phone number (e.g., "7999952226")
+{
+  id: "1779357598921",
+  name: "Chirag Singh Chauhan",
+  phone: "7999952226",
+  password: "Chirag@123",
+  role: "user",
+  createdAt: "2026-05-21T09:59:58.921Z",
+  syncedAt: "2026-05-21T09:59:58.922Z"
+}</pre>
+        </div>
+
+        <div class="card">
+            <h3 style="margin-top:0;">otps (temporary — deleted after verification)</h3>
+            <pre>Document ID: phone number (e.g., "7999952226")
+{
+  otp: "661629",
+  phone: "7999952226",
+  createdAt: "2026-05-21T10:15:00.000Z",
+  expiresAt: "2026-05-21T10:20:00.000Z",
+  verified: false
+}</pre>
+        </div>
+
+        <!-- ======================== -->
+        <!-- ENV VARIABLES            -->
+        <!-- ======================== -->
+        <hr class="divider">
+        <h2>Environment Variables (.env.local)</h2>
+        <pre># Firebase Client SDK (used by frontend)
+NEXT_PUBLIC_FIREBASE_API_KEY=AIzaSy...
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=unique-sorter-f9e70.firebaseapp.com
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=unique-sorter-f9e70
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=unique-sorter-f9e70.firebasestorage.app
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=562305145649
+NEXT_PUBLIC_FIREBASE_APP_ID=1:562305145649:web:...
+
+# Firebase Admin SDK (used by server API routes)
+FIREBASE_ADMIN_PROJECT_ID=unique-sorter-f9e70
+FIREBASE_ADMIN_CLIENT_EMAIL=firebase-adminsdk-...@...iam.gserviceaccount.com
+FIREBASE_ADMIN_PRIVATE_KEY=-----BEGIN PRIVATE KEY-----\n...
+
+# JWT Secret (used to sign login tokens)
+JWT_SECRET=unique-sorter-jwt-secret-change-in-production</pre>
+
+        <div class="highlight">
+            <p><strong>Note:</strong> The Firebase Client SDK config (NEXT_PUBLIC_*) is used by the frontend for Firestore access on public pages like the enquiry form. The Firebase Admin SDK is used by ALL auth API routes for secure server-side database access.</p>
+        </div>
+
+    </div>
+</body>
+</html>

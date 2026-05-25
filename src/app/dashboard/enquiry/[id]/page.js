@@ -631,7 +631,7 @@ function Val({ v, muted }) {
 export default function EnquiryDetailPage() {
   const { id } = useParams();
   const router  = useRouter();
-  const { userRole } = useAuth();
+  const { userRole, getAuthHeaders } = useAuth();
   const isAdminUser = isAdmin(userRole);
 
   const [row,     setRow]     = useState(null);
@@ -684,7 +684,7 @@ export default function EnquiryDetailPage() {
       setDraft(raw);
     };
 
-    fetch(`/api/enquiry/${id}`)
+    fetch(`/api/enquiry/${id}`, { headers: { ...getAuthHeaders() } })
       .then(r => r.json())
       .then(d => {
         if (d.success) {
@@ -727,7 +727,7 @@ export default function EnquiryDetailPage() {
     setSaving(true); setSaveErr('');
     try {
       const payload = { ...draft, _editedBy: 'Admin Staff' };
-      const res  = await fetch(`/api/enquiry/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      const res  = await fetch(`/api/enquiry/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json', ...getAuthHeaders() }, body: JSON.stringify(payload) });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Save failed');
       setRow({ ...draft });
@@ -739,7 +739,7 @@ export default function EnquiryDetailPage() {
   const handleDelete = async () => {
     setDeleting(true);
     try {
-      const res  = await fetch(`/api/enquiry/${id}`, { method: 'DELETE' });
+      const res  = await fetch(`/api/enquiry/${id}`, { method: 'DELETE', headers: { ...getAuthHeaders() } });
       const data = await res.json();
       if (!data.success) throw new Error(data.error || 'Delete failed');
       router.push('/dashboard/enquiry');
@@ -777,7 +777,7 @@ export default function EnquiryDetailPage() {
     // Check if any quotation already exists for this enquiry
     const types = ['1page', 'detailed'];
     const results = await Promise.all(
-      types.map(t => fetch(`/api/quotations/${id}_${t}`).then(r => r.json()).catch(() => ({ success: false })))
+      types.map(t => fetch(`/api/quotations/${id}_${t}`, { headers: { ...getAuthHeaders() } }).then(r => r.json()).catch(() => ({ success: false })))
     );
     const found = types.find((t, i) => results[i].success && results[i].data) || null;
     setExistingQuotType(found);
@@ -790,7 +790,7 @@ export default function EnquiryDetailPage() {
   const handleGenConfirm = async (router) => {
     if (existingQuotType) {
       setOverwriting(true);
-      await fetch(`/api/quotations/${id}_${existingQuotType}`, { method: 'DELETE' }).catch(() => {});
+      await fetch(`/api/quotations/${id}_${existingQuotType}`, { method: 'DELETE', headers: { ...getAuthHeaders() } }).catch(() => {});
       setOverwriting(false);
     }
     setOverwriting(true);
@@ -810,7 +810,7 @@ export default function EnquiryDetailPage() {
       };
       const res  = await fetch('/api/quotations', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify(payload),
       });
       const data = await res.json();

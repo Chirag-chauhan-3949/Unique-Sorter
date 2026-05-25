@@ -1,3 +1,5 @@
+import { randomUUID } from 'crypto';
+
 // Shared in-memory database for backend
 // Data stored here FIRST, then synced to Firebase
 
@@ -15,7 +17,7 @@ class Database {
 
   createUser(userData) {
     const user = {
-      id: Date.now().toString(),
+      id: randomUUID(),
       ...userData,
       createdAt: new Date().toISOString(),
     };
@@ -24,10 +26,9 @@ class Database {
     return user;
   }
 
-  validateUser(phone, password) {
+  validateUser(phone) {
     const user = this.findUserByPhone(phone);
     if (!user) return null;
-    if (user.password !== password) return null;
     return user;
   }
 
@@ -51,7 +52,7 @@ class Database {
   // Inquiry methods
   createInquiry(inquiryData) {
     const inquiry = {
-      id: Date.now().toString(),
+      id: randomUUID(),
       ...inquiryData,
       status: 'new',
       createdAt: new Date().toISOString(),
