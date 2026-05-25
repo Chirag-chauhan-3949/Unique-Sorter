@@ -3,6 +3,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
+import { auth } from '@/lib/firebase';
 
 const CSS = `
   @import url('https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&display=swap');
@@ -124,6 +126,8 @@ export default function LoginPage() {
   const [successMsg, setSuccessMsg] = useState('');
 
   const otpRefs = useRef([]);
+  const recaptchaVerifierRef = useRef(null);
+  const confirmationResultRef = useRef(null);
 
   useEffect(() => {
     const id = '__login_styles__';
@@ -139,6 +143,30 @@ export default function LoginPage() {
     return () => clearInterval(interval);
   }, [timer]);
 
+  // Cleanup reCAPTCHA on unmount
+  useEffect(() => {
+    return () => {
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
+        recaptchaVerifierRef.current = null;
+      }
+    };
+  }, []);
+
+  const setupRecaptcha = () => {
+    if (!recaptchaVerifierRef.current) {
+      recaptchaVerifierRef.current = new RecaptchaVerifier(auth, 'recaptcha-container', {
+        size: 'invisible',
+        callback: () => {},
+        'expired-callback': () => {
+          recaptchaVerifierRef.current?.clear();
+          recaptchaVerifierRef.current = null;
+        },
+      });
+    }
+    return recaptchaVerifierRef.current;
+  };
+
   const handleSendOtp = async (e) => {
     e.preventDefault();
     setError('');
@@ -149,21 +177,39 @@ export default function LoginPage() {
     }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/send-otp', {
+      // Step 1: Check user is registered before sending OTP
+      const checkRes = await fetch('/api/auth/send-otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
+        body: JSON.stringify({ phone, checkOnly: true }),
       });
-      const data = await res.json();
-      if (!res.ok) {
-        setError(data.message || 'Failed to send OTP');
+      const checkData = await checkRes.json();
+      if (!checkRes.ok) {
+        setError(checkData.message || 'Failed to verify phone number');
         return;
       }
-      setSuccessMsg(data.message);
+
+      // Step 2: Firebase client SDK sends the SMS
+      const verifier = setupRecaptcha();
+      confirmationResultRef.current = await signInWithPhoneNumber(auth, '+91' + phone, verifier);
+
+      setSuccessMsg('OTP sent to +91 ' + phone);
       setStep('otp');
       setTimer(60);
-    } catch {
-      setError('Network error — please check your connection.');
+    } catch (err) {
+      // Reset reCAPTCHA on failure so it can be retried
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
+        recaptchaVerifierRef.current = null;
+      }
+      const code = err?.code || '';
+      if (code === 'auth/too-many-requests') {
+        setError('Too many attempts. Please try again later.');
+      } else if (code === 'auth/invalid-phone-number') {
+        setError('Invalid phone number format.');
+      } else {
+        setError('Failed to send OTP. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -178,22 +224,42 @@ export default function LoginPage() {
       setError('Please enter the complete 6-digit OTP');
       return;
     }
+    if (!confirmationResultRef.current) {
+      setError('Session expired. Please request a new OTP.');
+      setStep('phone');
+      return;
+    }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/verify-otp', {
+      // Step 3: Verify OTP with Firebase client SDK
+      const userCredential = await confirmationResultRef.current.confirm(otpCode);
+      const idToken = await userCredential.user.getIdToken();
+      const refreshToken = userCredential.user.refreshToken;
+
+      // Step 4: Send ID token to backend to get user profile + set custom claims
+      const res = await fetch('/api/auth/verify-firebase-token', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, otp: otpCode }),
+        body: JSON.stringify({ idToken }),
       });
       const data = await res.json();
-      if (res.ok && data.idToken && data.user) {
-        login(data.idToken, data.user, data.refreshToken);
+      if (res.ok && data.user) {
+        // Get fresh token with custom claims baked in
+        const freshToken = await userCredential.user.getIdToken(true);
+        login(freshToken, data.user, refreshToken);
         router.push('/dashboard');
       } else {
         setError(data.message || 'Verification failed');
       }
-    } catch {
-      setError('Network error — please try again.');
+    } catch (err) {
+      const code = err?.code || '';
+      if (code === 'auth/invalid-verification-code') {
+        setError('Invalid OTP. Please try again.');
+      } else if (code === 'auth/code-expired') {
+        setError('OTP has expired. Please request a new one.');
+      } else {
+        setError('Verification failed. Please try again.');
+      }
     } finally {
       setLoading(false);
     }
@@ -204,22 +270,23 @@ export default function LoginPage() {
     setError('');
     setSuccessMsg('');
     setOtp(['', '', '', '', '', '']);
+    // Reset reCAPTCHA for resend
+    if (recaptchaVerifierRef.current) {
+      recaptchaVerifierRef.current.clear();
+      recaptchaVerifierRef.current = null;
+    }
     setLoading(true);
     try {
-      const res = await fetch('/api/auth/send-otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone }),
-      });
-      const data = await res.json();
-      if (res.ok) {
-        setSuccessMsg('OTP resent successfully');
-        setTimer(60);
-      } else {
-        setError(data.message || 'Failed to resend OTP');
-      }
+      const verifier = setupRecaptcha();
+      confirmationResultRef.current = await signInWithPhoneNumber(auth, '+91' + phone, verifier);
+      setSuccessMsg('OTP resent successfully');
+      setTimer(60);
     } catch {
-      setError('Network error');
+      if (recaptchaVerifierRef.current) {
+        recaptchaVerifierRef.current.clear();
+        recaptchaVerifierRef.current = null;
+      }
+      setError('Failed to resend OTP. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -251,10 +318,17 @@ export default function LoginPage() {
     setError('');
     setSuccessMsg('');
     setTimer(0);
+    confirmationResultRef.current = null;
+    if (recaptchaVerifierRef.current) {
+      recaptchaVerifierRef.current.clear();
+      recaptchaVerifierRef.current = null;
+    }
   };
 
   return (
     <div className="login-root">
+      {/* Invisible reCAPTCHA container — required by Firebase SDK */}
+      <div id="recaptcha-container" />
       <div className="lp-card">
 
         {step === 'phone' && (
