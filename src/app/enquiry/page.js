@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/navigation';
 
 /* ─── Constants ───────────────────────────────────────────────── */
 const MODELS      = ['Pinnacle', 'Nandak'];
@@ -61,7 +62,7 @@ const CSS = `
   .enqf-navbar {
     height: 56px;
     background: #111c2d;
-    display: flex; align-items: center;
+    display: flex; align-items: center; justify-content: space-between;
     padding: 0 32px;
     border-bottom: 1px solid rgba(255,255,255,0.07);
   }
@@ -70,6 +71,15 @@ const CSS = `
     color: #fff; letter-spacing: -0.2px;
   }
   .enqf-brand span { color: #4e7cff; }
+  .enqf-back-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 32px; padding: 0 12px; border-radius: 7px;
+    background: rgba(255,255,255,0.07); border: 1px solid rgba(255,255,255,0.12);
+    color: rgba(255,255,255,0.7); font-family: 'DM Sans', sans-serif;
+    font-size: 12.5px; font-weight: 500; cursor: pointer;
+    transition: background .15s, color .15s;
+  }
+  .enqf-back-btn:hover { background: rgba(255,255,255,0.13); color: #fff; }
 
   /* ── Page content ── */
   .enqf-content { max-width: 860px; margin: 0 auto; padding: 36px 32px 80px; }
@@ -821,6 +831,7 @@ const CSS = `
 
 /* ─── Component ──────────────────────────────────────────────── */
 export default function EnquiryPage() {
+  const router = useRouter();
   const [form, setForm] = useState(INIT());
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
@@ -906,9 +917,15 @@ export default function EnquiryPage() {
       <style>{CSS}</style>
       <div className="enqf-root">
 
-        {/* ── Navbar (same as dashboard) ── */}
+        {/* ── Navbar ── */}
         <nav className="enqf-navbar">
           <span className="enqf-brand">Unique<span>Sorter</span></span>
+          <button className="enqf-back-btn" onClick={() => router.back()}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            Back
+          </button>
         </nav>
 
         {/* ── Content ── */}

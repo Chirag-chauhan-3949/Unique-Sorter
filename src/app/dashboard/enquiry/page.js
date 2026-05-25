@@ -956,14 +956,18 @@ export default function EnquiryPage() {
         /* New button */
         .btn.btn-primary {
           display: inline-flex; align-items: center; gap: 6px;
-          height: 34px; padding: 0 13px; border-radius: 7px;
-          border: 1.5px solid #1A37AA; background: #fff; color: #1A37AA;
+          height: 34px; padding: 0 14px; border-radius: 7px;
+          border: none;
+          background: linear-gradient(135deg, #1A37AA 0%, #2549cc 100%);
+          color: #fff;
           font-family: var(--font-inter), Inter, sans-serif;
           font-size: 12.5px; font-weight: 600;
           cursor: pointer; white-space: nowrap; text-decoration: none;
-          transition: background .15s, color .15s;
+          box-shadow: 0 2px 8px rgba(26,55,170,0.3);
+          transition: box-shadow .15s, transform .12s;
         }
-        .btn.btn-primary:hover { background: #f0f4ff; }
+        .btn.btn-primary:hover { box-shadow: 0 4px 14px rgba(26,55,170,0.45); transform: translateY(-1px); }
+        @media (min-width: 768px) { .btn.btn-primary { height: 36px; font-size: 13px; padding: 0 16px; border-radius: 8px; } }
 
         .enq-filter-badge {
           display: inline-flex; align-items: center; justify-content: center;
@@ -1101,7 +1105,7 @@ export default function EnquiryPage() {
         @media (min-width: 768px) {
           .enq-topbar { padding: 20px 24px 14px; gap: 10px; }
           .enq-title { font-size: 20px; }
-          .enq-filter-btn, .btn.btn-primary { height: 36px; font-size: 13px; padding: 0 16px; border-radius: 8px; }
+          .enq-filter-btn { height: 36px; font-size: 13px; padding: 0 16px; border-radius: 8px; }
           .enq-filter-panel { padding: 14px 24px 16px; }
           .enq-filter-grid { grid-template-columns: repeat(4, 1fr); }
           .enq-table thead { display: table-header-group; }
