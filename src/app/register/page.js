@@ -8,6 +8,8 @@ export default function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -214,35 +216,82 @@ export default function RegisterPage() {
           </div>
 
 
+          {/* Role */}
+          <div style={styles.inputGroup}>
+            <label style={styles.label}>Role *</label>
+            <div style={{ display: 'flex', gap: '10px' }}>
+              {['USER', 'ADMIN'].map(r => (
+                <button
+                  key={r}
+                  type="button"
+                  onClick={() => setFormData(p => ({ ...p, role: r }))}
+                  style={{
+                    flex: 1, padding: '11px 16px', borderRadius: '10px',
+                    fontSize: '13.5px', fontWeight: 600, cursor: 'pointer',
+                    fontFamily: 'inherit', transition: 'all 0.18s',
+                    border: formData.role === r ? '2px solid #1A37AA' : '2px solid #e5e7eb',
+                    background: formData.role === r ? 'rgba(26,55,170,0.07)' : '#f9fafb',
+                    color: formData.role === r ? '#1A37AA' : '#6b7280',
+                  }}
+                >
+                  {r === 'USER' ? '👤 User' : '🔐 Admin'}
+                </button>
+              ))}
+            </div>
+            {formData.role === 'ADMIN' && (
+              <p style={{ fontSize: '12px', color: '#f59e0b', margin: '4px 0 0', fontWeight: 500 }}>
+                ⚠ Admin registration requires approval from an existing admin.
+              </p>
+            )}
+          </div>
+
           {/* Password */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>Password *</label>
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Create a password"
-              className="reg-input"
-              style={styles.input}
-              required
-              minLength={6}
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showPassword ? 'text' : 'password'}
+                name="password"
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Create a password"
+                className="reg-input"
+                style={{ ...styles.input, paddingRight: '44px' }}
+                required
+                minLength={6}
+              />
+              <button type="button" onClick={() => setShowPassword(v => !v)} style={styles.eyeBtn} tabIndex={-1}>
+                {showPassword ? (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8898aa" strokeWidth="2" strokeLinecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                ) : (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8898aa" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Confirm Password */}
           <div style={styles.inputGroup}>
             <label style={styles.label}>Confirm Password *</label>
-            <input
-              type="password"
-              name="confirmPassword"
-              value={formData.confirmPassword}
-              onChange={handleChange}
-              placeholder="Confirm your password"
-              className="reg-input"
-              style={styles.input}
-              required
-            />
+            <div style={{ position: 'relative' }}>
+              <input
+                type={showConfirm ? 'text' : 'password'}
+                name="confirmPassword"
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Confirm your password"
+                className="reg-input"
+                style={{ ...styles.input, paddingRight: '44px' }}
+                required
+              />
+              <button type="button" onClick={() => setShowConfirm(v => !v)} style={styles.eyeBtn} tabIndex={-1}>
+                {showConfirm ? (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8898aa" strokeWidth="2" strokeLinecap="round"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                ) : (
+                  <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#8898aa" strokeWidth="2" strokeLinecap="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                )}
+              </button>
+            </div>
           </div>
 
           {/* Submit Button */}
@@ -474,6 +523,19 @@ const styles = {
     fontSize: '12px',
     color: '#9ca3af',
     margin: 0,
+  },
+  eyeBtn: {
+    position: 'absolute',
+    right: '12px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    background: 'none',
+    border: 'none',
+    cursor: 'pointer',
+    padding: '2px',
+    display: 'flex',
+    alignItems: 'center',
+    lineHeight: 0,
   },
   // Success State
   successIcon: {
