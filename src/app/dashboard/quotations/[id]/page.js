@@ -9,8 +9,6 @@ import { buildHTML as buildHTML2 } from '@/components/QuotationForm2';
 const fmtINR = n => n ? '₹ ' + new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(+n) : '—';
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Barlow+Condensed:wght@600;700&display=swap');
-
   .qv-root { height: 100vh; background: #fff; display: flex; flex-direction: column; overflow: hidden; }
 
   /* ── Clean white top bar ── */

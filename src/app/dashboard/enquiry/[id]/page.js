@@ -30,8 +30,6 @@ const fmtDate = iso => {
 };
 
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap');
-
   .eqd-root { min-height: 100vh; background: #eef0f5; font-family: 'DM Sans', sans-serif; }
 
   .eqd-content { max-width: 860px; margin: 0 auto; padding: 36px 32px 80px; }

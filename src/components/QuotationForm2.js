@@ -453,7 +453,6 @@ export function buildHTML(f) {
 
 /* ─── Form UI styles ──────────────────────────────────────────── */
 const CSS = `
-  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Barlow+Condensed:wght@400;500;600;700;800&display=swap');
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
   .qf-root { min-height:100vh; background:var(--bg,#f8fafc); font-family:'DM Sans',sans-serif; }
   .qf-bar { position:sticky; top:0; z-index:50; height:52px; background:#fff; border-bottom:1px solid #e5e8ef; box-shadow:0 1px 4px rgba(0,0,0,.04); display:flex; align-items:center; gap:10px; padding:0 20px; flex-shrink:0; }
