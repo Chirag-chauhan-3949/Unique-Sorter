@@ -55,7 +55,7 @@ export async function POST(request) {
     return NextResponse.json({
       success: true,
       message: 'Login successful',
-      user: { id: userId, name: data.name || '', phone, role },
+      user: { id: userId, name: data.name || '', phone, role, allowedScreens: data.allowedScreens || null },
     });
 
   } catch (error) {

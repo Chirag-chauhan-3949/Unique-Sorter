@@ -195,6 +195,15 @@ export function AuthProvider({ children }) {
         router.push('/dashboard');
         return;
       }
+      // Per-user screen access check (only for non-admin users with allowedScreens set)
+      const screens = user?.allowedScreens;
+      if (screens && userRole !== ROLES.ADMIN) {
+        const pageKey = pathname.split('/')[2] || 'dashboard';
+        if (!screens.includes(pageKey) && pageKey !== 'profile') {
+          router.push('/dashboard');
+          return;
+        }
+      }
     }
   }, [isAuthenticated, userRole, pathname, router, isLoading]);
 

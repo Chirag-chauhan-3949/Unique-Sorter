@@ -10,6 +10,7 @@ import { isAdmin } from '@/lib/rbac';
 // Navigation items with role-based access
 const NAV = [
   {
+    key: 'dashboard',
     href: '/dashboard',
     label: 'Dashboard',
     exact: true,
@@ -24,10 +25,11 @@ const NAV = [
     ),
   },
   {
+    key: 'enquiry',
     href: '/dashboard/enquiry',
     label: 'Enquiry',
     exact: false,
-    allowedRoles: ['ADMIN', 'USER'], // Both can view (USER = view only)
+    allowedRoles: ['ADMIN', 'USER'],
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -35,10 +37,11 @@ const NAV = [
     ),
   },
   {
+    key: 'quotations',
     href: '/dashboard/quotations',
     label: 'Quotations',
     exact: false,
-    allowedRoles: ['ADMIN', 'USER'], // Both can view (USER = view only)
+    allowedRoles: ['ADMIN', 'USER'],
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -49,10 +52,11 @@ const NAV = [
     ),
   },
   {
+    key: 'settings',
     href: '/dashboard/settings',
     label: 'Settings',
     exact: false,
-    allowedRoles: ['ADMIN'], // Only Admin can access
+    allowedRoles: ['ADMIN'],
     icon: (
       <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
         <circle cx="12" cy="12" r="3" />
@@ -77,7 +81,7 @@ function useIsMobile() {
 export default function Sidebar() {
   const pathname = usePathname();
   const isMobile = useIsMobile();
-  const { userRole, isLoading } = useAuth();
+  const { user, userRole, isLoading } = useAuth();
   const [collapsed, setCollapsed] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
@@ -115,11 +119,17 @@ export default function Sidebar() {
     return () => window.removeEventListener('sidebar-open', handler);
   }, []);
 
-  // Filter navigation items based on user role
+  // Filter navigation items based on user role + per-user screen access
   const filteredNav = NAV.filter(item => {
     if (isLoading) return false;
     if (!userRole) return false;
-    return item.allowedRoles.includes(userRole.toUpperCase());
+    if (!item.allowedRoles.includes(userRole.toUpperCase())) return false;
+    // Admins always see everything
+    if (isAdmin(userRole)) return true;
+    // If user has allowedScreens set, filter by it
+    const screens = user?.allowedScreens;
+    if (!screens) return true; // no restriction = show all
+    return screens.includes(item.key);
   });
 
   // Show loading state or minimal sidebar while loading

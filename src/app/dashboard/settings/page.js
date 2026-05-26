@@ -183,14 +183,28 @@ function IconCheck() {
 }
 
 /* ─── User Form Modal ─── */
+const ALL_SCREENS = [
+  { key: 'dashboard', label: 'Dashboard', locked: true },
+  { key: 'enquiry', label: 'Enquiry' },
+  { key: 'quotations', label: 'Quotations' },
+  { key: 'profile', label: 'Profile', locked: true },
+  { key: 'reports', label: 'Reports' },
+  { key: 'products', label: 'Products' },
+  { key: 'orders', label: 'Orders' },
+  { key: 'inventory', label: 'Inventory' },
+  { key: 'clients', label: 'Clients' },
+];
+
 function UserModal({ user, onSave, onClose }) {
   const isEdit = !!user?.id;
+  const defaultScreens = ALL_SCREENS.map(s => s.key);
   const [form, setForm] = useState({
     name:     user?.name     || '',
     phone:    user?.phone    || '',
     password: '',
     role:     user?.role     || 'User',
     active:   user?.active   ?? true,
+    allowedScreens: user?.allowedScreens || defaultScreens,
   });
   const [showPass, setShowPass] = useState(false);
   const [errors, setErrors]     = useState({});
@@ -298,6 +312,59 @@ function UserModal({ user, onSave, onClose }) {
                 ))}
               </div>
             </Field>
+
+            {form.role === 'User' && (
+              <Field label="Screen Access">
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                  {ALL_SCREENS.map(s => {
+                    const checked = form.allowedScreens.includes(s.key);
+                    return (
+                      <button
+                        key={s.key}
+                        type="button"
+                        disabled={s.locked}
+                        onClick={() => {
+                          if (s.locked) return;
+                          setForm(f => ({
+                            ...f,
+                            allowedScreens: checked
+                              ? f.allowedScreens.filter(k => k !== s.key)
+                              : [...f.allowedScreens, s.key],
+                          }));
+                        }}
+                        style={{
+                          display: 'inline-flex', alignItems: 'center', gap: 5,
+                          padding: '5px 11px', borderRadius: 7,
+                          border: `1.5px solid ${checked ? '#1A37AA' : '#e8ecf4'}`,
+                          background: checked ? 'rgba(26,55,170,0.08)' : '#f8f9fc',
+                          color: checked ? '#1A37AA' : s.locked ? '#b0b8c8' : '#5a6a7e',
+                          fontSize: 12, fontWeight: 600, cursor: s.locked ? 'default' : 'pointer',
+                          fontFamily: "'DM Sans', sans-serif",
+                          opacity: s.locked ? 0.7 : 1,
+                          transition: 'all 0.15s',
+                        }}
+                      >
+                        <span style={{
+                          width: 14, height: 14, borderRadius: 3,
+                          border: `1.5px solid ${checked ? '#1A37AA' : '#cbd5e1'}`,
+                          background: checked ? '#1A37AA' : '#fff',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          flexShrink: 0,
+                        }}>
+                          {checked && (
+                            <svg width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="20 6 9 17 4 12"/>
+                            </svg>
+                          )}
+                        </span>
+                        {s.label}
+                        {s.locked && <span style={{ fontSize: 9, color: '#94a3b8' }}>(always on)</span>}
+                      </button>
+                    );
+                  })}
+                </div>
+              </Field>
+            )}
           </div>
         </div>
 
@@ -393,6 +460,7 @@ export default function SettingsPage() {
               phone: data.phone || d.id,
               role: data.role ? (data.role.charAt(0).toUpperCase() + data.role.slice(1).toLowerCase()) : 'User',
               active: data.active !== undefined ? data.active : true,
+              allowedScreens: data.allowedScreens || null,
               avatar: name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U',
             };
           });
@@ -428,6 +496,7 @@ export default function SettingsPage() {
             name: data.name,
             role: data.role.toLowerCase(),
             active: data.active,
+            allowedScreens: data.allowedScreens || null,
             syncedAt: serverTimestamp(),
           };
           if (data.password) updatePayload.password = data.password;

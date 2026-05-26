@@ -860,6 +860,23 @@ export default function EnquiryPage() {
     });
   }, [rows, fName, fMobile, fSource, fDate]);
 
+  const downloadCSV = useCallback(() => {
+    const headers = ['Customer Name','Mill/Company','Mobile','Email','GST No.','City','State','Address','Has Requirement','Lead Source','Items','Commodity','Remarks','Date'];
+    const esc = v => { const s = String(v ?? ''); return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const csvRows = rows.map(r => {
+      const items = (r.items || []).map(i => `${i.modelNo || ''} ${i.size || ''}ch x${i.qty || ''}`).join(' | ');
+      return [r.customerName, r.millName, r.mobile, r.email, r.gst, r.location, r.state, r.address, r.hasRequirement ? 'Yes' : 'No', r.source, items, r.commodity, r.remarks, r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN') : ''].map(esc).join(',');
+    });
+    const csv = [headers.join(','), ...csvRows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `enquiries-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [rows]);
+
   const chips = [
     fName   && { key: 'name',   label: fName,   clear: () => setFName('') },
     fMobile && { key: 'mobile', label: fMobile, clear: () => setFMobile('') },
@@ -915,6 +932,20 @@ export default function EnquiryPage() {
         .enq-topbar-right { display: flex; align-items: center; gap: 8px; flex-shrink: 0; }
         .enq-title { font-family: var(--font-poppins), Poppins, sans-serif; font-size: 18px; font-weight: 700; color: var(--text-primary); white-space: nowrap; }
         .enq-count { font-size: 12px; color: var(--text-muted); white-space: nowrap; }
+
+        /* CSV button */
+        .enq-csv-btn {
+          display: inline-flex; align-items: center; gap: 5px;
+          height: 34px; padding: 0 12px;
+          border-radius: 7px;
+          border: 1.5px solid #e2e8f2;
+          background: #fff; color: #64748b;
+          font-family: var(--font-inter), Inter, sans-serif;
+          font-size: 12.5px; font-weight: 600;
+          cursor: pointer; white-space: nowrap;
+          transition: border-color .15s, color .15s, background .15s;
+        }
+        .enq-csv-btn:hover { border-color: #059669; color: #059669; background: #ecfdf5; }
 
         /* Filter button */
         .enq-filter-btn {
@@ -1148,6 +1179,16 @@ export default function EnquiryPage() {
             </span>
           </div>
           <div className="enq-topbar-right">
+            {isAdminUser && rows.length > 0 && (
+              <button className="enq-csv-btn" onClick={downloadCSV}>
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                  <polyline points="7 10 12 15 17 10"/>
+                  <line x1="12" y1="15" x2="12" y2="3"/>
+                </svg>
+                CSV
+              </button>
+            )}
             <Link href="/enquiry" className="btn btn-primary">
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
                 <line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>
