@@ -28,8 +28,9 @@ export function proxy(request) {
     return NextResponse.next();
   }
 
-  // For dashboard pages - check if auth token exists in cookie or redirect
-  if (pathname.startsWith('/dashboard')) {
+  // For protected pages - check if auth token exists in cookie or redirect
+  const protectedPages = ['/dashboard', '/enquiry', '/inquiry'];
+  if (protectedPages.some(p => pathname.startsWith(p))) {
     const token = request.cookies.get('authToken')?.value;
     if (!token) {
       return NextResponse.redirect(new URL('/login', request.url));

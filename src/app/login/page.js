@@ -244,8 +244,9 @@ export default function LoginPage() {
       if (res.ok && data.user) {
         // Get fresh token with custom claims baked in
         const freshToken = await userCredential.user.getIdToken(true);
-        login(freshToken, data.user, refreshToken);
-        router.push('/dashboard');
+        const role = login(freshToken, data.user, refreshToken);
+        // Use window.location to ensure cookie is sent with the new request
+        window.location.href = '/dashboard';
       } else {
         setError(data.message || 'Verification failed');
       }
