@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Unique Sorter CRM - Documentation</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --navy: #0c1a3a;
+      --ink: #111827;
+      --body: #374151;
+      --muted: #6b7280;
+      --faint: #9ca3af;
+      --border: #e5e7eb;
+      --surface: #f9fafb;
+      --card: #ffffff;
+      --accent: #1A37AA;
+      --accent-light: #eef2ff;
+      --accent-glow: rgba(26, 55, 170, 0.08);
+      --green: #059669;
+      --green-bg: #ecfdf5;
+      --amber: #d97706;
+      --amber-bg: #fffbeb;
+      --red: #dc2626;
+      --red-bg: #fef2f2;
+      --radius: 10px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      color: var(--body);
+      background: var(--surface);
+      line-height: 1.7;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── SIDEBAR NAV ── */
+    .doc-sidebar {
+      position: fixed; top: 0; left: 0; bottom: 0;
+      width: 280px; background: var(--card);
+      border-right: 1px solid var(--border);
+      overflow-y: auto; z-index: 100;
+      padding: 28px 0;
+      transition: transform 0.3s ease;
+    }
+    .doc-sidebar-brand {
+      padding: 0 24px 24px;
+      border-bottom: 1px solid var(--border);
+      margin-bottom: 16px;
+    }
+    .doc-sidebar-logo {
+      font-family: 'DM Serif Display', serif;
+      font-size: 18px; color: var(--navy);
+      letter-spacing: -0.3px;
+    }
+    .doc-sidebar-logo span { color: var(--accent); }
+    .doc-sidebar-tag {
+      font-size: 10.5px; font-weight: 600;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--faint); margin-top: 4px;
+    }
+
+    .doc-nav-group { padding: 8px 16px; }
+    .doc-nav-group-label {
+      font-size: 10px; font-weight: 700;
+      letter-spacing: 1.2px; text-transform: uppercase;
+      color: var(--faint); padding: 0 8px; margin-bottom: 6px;
+    }
+    .doc-nav-link {
+      display: block; padding: 7px 12px; border-radius: 6px;
+      font-size: 13.5px; font-weight: 500;
+      color: var(--muted); text-decoration: none;
+      transition: all 0.15s;
+      margin-bottom: 1px;
+    }
+    .doc-nav-link:hover { color: var(--ink); background: var(--surface); }
+    .doc-nav-link.active { color: var(--accent); background: var(--accent-light); font-weight: 600; }
+
+    /* mobile hamburger */
+    .doc-hamburger {
+      display: none; position: fixed; top: 14px; left: 14px; z-index: 200;
+      width: 40px; height: 40px; border-radius: 8px;
+      background: var(--card); border: 1px solid var(--border);
+      cursor: pointer; align-items: center; justify-content: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .doc-hamburger svg { color: var(--ink); }
+    .doc-overlay {
+      display: none; position: fixed; inset: 0; z-index: 99;
+      background: rgba(0,0,0,0.3); backdrop-filter: blur(2px);
+    }
+
+    /* ── MAIN CONTENT ── */
+    .doc-main {
+      margin-left: 280px;
+      max-width: 820px;
+      padding: 48px 48px 120px;
+    }
+
+    /* ── HERO ── */
+    .doc-hero {
+      background: linear-gradient(135deg, #0c1a3a 0%, #1A37AA 70%, #2e4fd0 100%);
+      border-radius: 16px;
+      padding: 56px 48px;
+      margin-bottom: 48px;
+      position: relative; overflow: hidden;
+    }
+    .doc-hero::before {
+      content: ''; position: absolute; inset: 0;
+      background: radial-gradient(circle at 80% 20%, rgba(255,255,255,0.07), transparent 60%),
+                  radial-gradient(circle at 10% 90%, rgba(255,255,255,0.04), transparent 50%);
+      pointer-events: none;
+    }
+    .doc-hero-badge {
+      display: inline-block; font-size: 11px; font-weight: 700;
+      letter-spacing: 1.5px; text-transform: uppercase;
+      color: rgba(255,255,255,0.65); background: rgba(255,255,255,0.1);
+      padding: 5px 14px; border-radius: 20px;
+      margin-bottom: 20px; position: relative;
+    }
+    .doc-hero h1 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 36px; color: #fff;
+      line-height: 1.2; margin-bottom: 14px;
+      position: relative;
+    }
+    .doc-hero p {
+      font-size: 16px; color: rgba(255,255,255,0.72);
+      max-width: 560px; line-height: 1.7;
+      position: relative;
+    }
+
+    /* ── SECTIONS ── */
+    .doc-section { margin-bottom: 56px; }
+    .doc-section-anchor { display: block; position: relative; top: -80px; visibility: hidden; }
+
+    .doc-section > h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 26px; color: var(--navy);
+      margin-bottom: 8px; line-height: 1.3;
+    }
+    .doc-section > .doc-section-sub {
+      font-size: 14px; color: var(--muted);
+      margin-bottom: 28px;
+    }
+
+    h3 {
+      font-family: 'DM Sans', sans-serif;
+      font-size: 17px; font-weight: 700;
+      color: var(--ink); margin: 32px 0 12px;
+    }
+    h3:first-child { margin-top: 0; }
+
+    p { margin-bottom: 14px; }
+
+    /* ── STEP CARDS ── */
+    .doc-steps { display: flex; flex-direction: column; gap: 16px; }
+    .doc-step {
+      display: flex; gap: 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .doc-step:hover {
+      border-color: #c7d2fe;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    .doc-step-num {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: var(--accent); color: #fff;
+      font-family: 'DM Serif Display', serif;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      flex-shrink: 0;
+    }
+    .doc-step-body { flex: 1; min-width: 0; }
+    .doc-step-title {
+      font-size: 15px; font-weight: 700;
+      color: var(--ink); margin-bottom: 4px;
+    }
+    .doc-step-text {
+      font-size: 13.5px; color: var(--muted); line-height: 1.65;
+    }
+
+    /* ── INFO CARDS ── */
+    .doc-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin: 16px 0; }
+    .doc-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 18px;
+      transition: box-shadow 0.2s, border-color 0.2s;
+    }
+    .doc-card:hover {
+      border-color: #c7d2fe;
+      box-shadow: 0 4px 16px var(--accent-glow);
+    }
+    .doc-card-icon {
+      width: 38px; height: 38px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 12px;
+    }
+    .doc-card-icon.blue   { background: var(--accent-light); color: var(--accent); }
+    .doc-card-icon.green  { background: var(--green-bg); color: var(--green); }
+    .doc-card-icon.amber  { background: var(--amber-bg); color: var(--amber); }
+    .doc-card-icon.red    { background: var(--red-bg); color: var(--red); }
+    .doc-card-title { font-size: 14px; font-weight: 700; color: var(--ink); margin-bottom: 4px; }
+    .doc-card-text  { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+
+    /* ── TABLE ── */
+    .doc-table-wrap {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); overflow: hidden;
+      margin: 16px 0;
+    }
+    .doc-table {
+      width: 100%; border-collapse: collapse;
+      font-size: 13.5px;
+    }
+    .doc-table th {
+      text-align: left; padding: 10px 16px;
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 0.8px; text-transform: uppercase;
+      color: var(--faint); background: var(--surface);
+      border-bottom: 1px solid var(--border);
+    }
+    .doc-table td {
+      padding: 10px 16px; border-bottom: 1px solid #f3f4f6;
+      color: var(--body);
+    }
+    .doc-table tr:last-child td { border-bottom: none; }
+
+    /* ── BADGES ── */
+    .doc-badge {
+      display: inline-block; font-size: 11px; font-weight: 600;
+      padding: 2px 10px; border-radius: 12px;
+      letter-spacing: 0.3px;
+    }
+    .doc-badge.blue  { background: var(--accent-light); color: var(--accent); }
+    .doc-badge.green { background: var(--green-bg); color: var(--green); }
+    .doc-badge.amber { background: var(--amber-bg); color: var(--amber); }
+
+    /* ── CALLOUT ── */
+    .doc-callout {
+      display: flex; gap: 14px;
+      background: var(--accent-light);
+      border: 1px solid #c7d2fe;
+      border-radius: var(--radius);
+      padding: 16px 18px;
+      margin: 16px 0;
+    }
+    .doc-callout.warn {
+      background: var(--amber-bg);
+      border-color: #fde68a;
+    }
+    .doc-callout-icon {
+      font-size: 18px; flex-shrink: 0; margin-top: 1px;
+    }
+    .doc-callout-body { font-size: 13.5px; color: var(--ink); line-height: 1.65; }
+    .doc-callout-body strong { font-weight: 700; }
+
+    /* ── FLOW DIAGRAM ── */
+    .doc-flow {
+      display: flex; align-items: center; gap: 0;
+      flex-wrap: wrap; margin: 20px 0;
+      justify-content: center;
+    }
+    .doc-flow-node {
+      background: var(--card); border: 1.5px solid var(--border);
+      border-radius: 8px; padding: 10px 16px;
+      font-size: 12.5px; font-weight: 600; color: var(--ink);
+      text-align: center; white-space: nowrap;
+    }
+    .doc-flow-node.highlight {
+      border-color: var(--accent); background: var(--accent-light); color: var(--accent);
+    }
+    .doc-flow-arrow {
+      color: var(--faint); font-size: 18px; padding: 0 6px;
+      flex-shrink: 0;
+    }
+
+    /* ── FIELD LIST ── */
+    .doc-fields {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 8px;
+      margin: 12px 0;
+    }
+    .doc-field-item {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 13px; color: var(--body);
+      padding: 6px 0;
+    }
+    .doc-field-dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: var(--accent); flex-shrink: 0;
+    }
+    .doc-field-dot.opt { background: var(--faint); }
+
+    /* ── FOOTER ── */
+    .doc-footer {
+      margin-top: 64px; padding-top: 24px;
+      border-top: 1px solid var(--border);
+      font-size: 12.5px; color: var(--faint);
+      text-align: center;
+    }
+
+    /* ── DIVIDER ── */
+    .doc-divider {
+      height: 1px; background: var(--border);
+      margin: 40px 0;
+    }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      .doc-sidebar { transform: translateX(-100%); }
+      .doc-sidebar.open { transform: translateX(0); }
+      .doc-hamburger { display: flex; }
+      .doc-overlay.open { display: block; }
+      .doc-main { margin-left: 0; padding: 24px 18px 100px; }
+      .doc-hero { padding: 36px 24px; border-radius: 12px; }
+      .doc-hero h1 { font-size: 26px; }
+      .doc-cards { grid-template-columns: 1fr; }
+      .doc-fields { grid-template-columns: 1fr; }
+      .doc-flow { gap: 4px; }
+      .doc-flow-node { font-size: 11px; padding: 8px 10px; }
+    }
+
+    /* ── CODE BLOCK ── */
+    .doc-code {
+      background: #1e1e2e; color: #cdd6f4;
+      border-radius: 8px; padding: 18px 20px;
+      margin: 14px 0; overflow-x: auto;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12.5px; line-height: 1.75;
+      border: 1px solid #313244;
+    }
+    .doc-code .cm { color: #6c7086; }
+    .doc-code .kw { color: #cba6f7; }
+    .doc-code .str { color: #a6e3a1; }
+    .doc-code .fn { color: #89b4fa; }
+    .doc-code .prop { color: #f9e2af; }
+    .doc-code .num { color: #fab387; }
+
+    /* ── PLANNED BADGE ── */
+    .doc-planned-badge {
+      display: inline-flex; align-items: center; gap: 6px;
+      font-size: 10.5px; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--amber); background: var(--amber-bg);
+      border: 1px solid #fde68a;
+      padding: 4px 12px; border-radius: 6px;
+      margin-bottom: 16px;
+    }
+
+    /* scroll-to-top */
+    .doc-top-btn {
+      position: fixed; bottom: 24px; right: 24px;
+      width: 40px; height: 40px; border-radius: 50%;
+      background: var(--accent); color: #fff; border: none;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 16px rgba(26,55,170,0.25);
+      opacity: 0; transform: translateY(12px);
+      transition: opacity 0.3s, transform 0.3s;
+      z-index: 50;
+    }
+    .doc-top-btn.visible { opacity: 1; transform: translateY(0); }
+  </style>
+</head>
+<body>
+
+  <!-- Mobile hamburger -->
+  <button class="doc-hamburger" onclick="toggleSidebar()" aria-label="Menu">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+  </button>
+  <div class="doc-overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="doc-sidebar" id="sidebar">
+    <div class="doc-sidebar-brand">
+      <div class="doc-sidebar-logo">Unique <span>Sorter</span></div>
+      <div class="doc-sidebar-tag">CRM Documentation</div>
+    </div>
+
+    <nav>
+      <div class="doc-nav-group">
+        <div class="doc-nav-group-label">Getting Started</div>
+        <a href="#overview" class="doc-nav-link active">Overview</a>
+        <a href="#how-it-works" class="doc-nav-link">How It Works</a>
+      </div>
+      <div class="doc-nav-group">
+        <div class="doc-nav-group-label">For Field Engineers</div>
+        <a href="#public-enquiry" class="doc-nav-link">Submitting an Enquiry</a>
+      </div>
+      <div class="doc-nav-group">
+        <div class="doc-nav-group-label">For Team Members</div>
+        <a href="#registration" class="doc-nav-link">Registration</a>
+        <a href="#login" class="doc-nav-link">Login (OTP)</a>
+        <a href="#dashboard" class="doc-nav-link">Dashboard</a>
+        <a href="#enquiry-mgmt" class="doc-nav-link">Managing Enquiries</a>
+        <a href="#quotations" class="doc-nav-link">Quotations &amp; PDF</a>
+        <a href="#profile" class="doc-nav-link">Your Profile</a>
+      </div>
+      <div class="doc-nav-group">
+        <div class="doc-nav-group-label">Roles &amp; Access</div>
+        <a href="#roles" class="doc-nav-link">User vs Admin</a>
+        <a href="#settings" class="doc-nav-link">Admin Settings</a>
+      </div>
+      <div class="doc-nav-group">
+        <div class="doc-nav-group-label">Planned Features</div>
+        <a href="#planned-screen-access" class="doc-nav-link">Per-User Screen Access</a>
+        <a href="#planned-csv-export" class="doc-nav-link">CSV Export</a>
+      </div>
+      <div class="doc-nav-group">
+        <div class="doc-nav-group-label">Reference</div>
+        <a href="#pages-map" class="doc-nav-link">All Pages</a>
+        <a href="#data-stored" class="doc-nav-link">Data &amp; Storage</a>
+        <a href="#faq" class="doc-nav-link">FAQ</a>
+      </div>
+    </nav>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="doc-main">
+
+    <!-- HERO -->
+    <div class="doc-hero">
+      <div class="doc-hero-badge">Documentation Guide</div>
+      <h1>Unique Sorter CRM</h1>
+      <p>A complete guide to using the CRM platform built for <strong>Unique Sorter &amp; Equipment Pvt. Ltd.</strong> &mdash; from field engineer enquiry submissions to generating professional quotations.</p>
+    </div>
+
+    <!-- ═══════ OVERVIEW ═══════ -->
+    <section class="doc-section" id="overview-section">
+      <span class="doc-section-anchor" id="overview"></span>
+      <h2>Overview</h2>
+      <p class="doc-section-sub">What this platform does and who it is for.</p>
+
+      <p>The Unique Sorter CRM is a web-based platform that helps the team at <strong>Unique Sorter And Equipment Pvt. Ltd.</strong> manage their entire sales workflow in one place. Field engineers on site collect customer requirements and enter them into the system. The back-office team then reviews enquiries, generates quotations, and shares professional PDFs with clients.</p>
+
+      <div class="doc-cards">
+        <div class="doc-card">
+          <div class="doc-card-icon blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          </div>
+          <div class="doc-card-title">Enquiry Management</div>
+          <div class="doc-card-text">Field engineers capture customer requirements on site through a structured form. Track each enquiry with full details, items, pricing, and follow-up dates.</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-card-icon green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="doc-card-title">Quotation Generation</div>
+          <div class="doc-card-text">Convert enquiries into professional, GST-compliant PDF quotations with one click. Share via WhatsApp or email instantly.</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-card-icon amber">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          </div>
+          <div class="doc-card-title">Team Collaboration</div>
+          <div class="doc-card-text">All team members can view enquiries, edit details, and generate quotations. Admins get additional settings control.</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-card-icon red">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="doc-card-title">Secure Access</div>
+          <div class="doc-card-text">Phone-based OTP login ensures only verified team members can access the dashboard. No passwords to remember.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ HOW IT WORKS ═══════ -->
+    <section class="doc-section" id="how-it-works-section">
+      <span class="doc-section-anchor" id="how-it-works"></span>
+      <h2>How It Works</h2>
+      <p class="doc-section-sub">The complete flow from site visit to quotation delivery.</p>
+
+      <div class="doc-flow">
+        <div class="doc-flow-node">Engineer visits client</div>
+        <span class="doc-flow-arrow">&rarr;</span>
+        <div class="doc-flow-node highlight">Enters enquiry in CRM</div>
+        <span class="doc-flow-arrow">&rarr;</span>
+        <div class="doc-flow-node">Saved to database</div>
+        <span class="doc-flow-arrow">&rarr;</span>
+        <div class="doc-flow-node highlight">Team reviews enquiry</div>
+        <span class="doc-flow-arrow">&rarr;</span>
+        <div class="doc-flow-node">Generates quotation</div>
+        <span class="doc-flow-arrow">&rarr;</span>
+        <div class="doc-flow-node highlight">PDF shared with customer</div>
+      </div>
+
+      <div class="doc-steps" style="margin-top: 28px;">
+        <div class="doc-step">
+          <div class="doc-step-num">1</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Field Engineer Submits an Enquiry</div>
+            <div class="doc-step-text">A field engineer visits the client site, collects their requirements, and enters the details into the CRM through the enquiry form. The form captures company details, location, machine requirements, and pricing.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">2</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Team Reviews the Enquiry</div>
+            <div class="doc-step-text">Back-office team members log into the CRM dashboard and see all submitted enquiries in a searchable table. They can view full details, edit information, and add notes.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">3</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Generate a Quotation</div>
+            <div class="doc-step-text">From any enquiry, the team can generate a professional quotation with one click. The system auto-fills customer details, product info, pricing, and GST calculations.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">4</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Download &amp; Share the PDF</div>
+            <div class="doc-step-text">The quotation can be previewed, downloaded as a PDF, or shared directly via WhatsApp or Gmail &mdash; all from within the platform.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ PUBLIC ENQUIRY ═══════ -->
+    <section class="doc-section" id="public-enquiry-section">
+      <span class="doc-section-anchor" id="public-enquiry"></span>
+      <h2>Submitting an Enquiry</h2>
+      <p class="doc-section-sub">For field engineers &mdash; how to enter a customer's requirement after a site visit.</p>
+
+      <p>After visiting a client, open the CRM and navigate to the enquiry form. You can access it from the <strong>"+ New Enquiry"</strong> button on the dashboard, or directly via the <code>/enquiry</code> page (no login required for quick entry).</p>
+
+      <h3>What the form asks for</h3>
+
+      <p><strong>Section 1 &mdash; Customer Information</strong></p>
+      <div class="doc-fields">
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Customer Name (required)</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Mill / Company Name (required)</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Mobile Number (required)</div>
+        <div class="doc-field-item"><span class="doc-field-dot opt"></span> Email Address (optional)</div>
+        <div class="doc-field-item"><span class="doc-field-dot opt"></span> GST Number (optional)</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Lead Source (dropdown)</div>
+      </div>
+
+      <p><strong>Section 2 &mdash; Location Details</strong></p>
+      <div class="doc-fields">
+        <div class="doc-field-item"><span class="doc-field-dot"></span> City / Location (required)</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> State (required)</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Full Address (required)</div>
+      </div>
+
+      <p><strong>Section 3 &mdash; Requirement</strong></p>
+      <p>You will be asked: <em>"Do you have an immediate requirement?"</em></p>
+
+      <div class="doc-callout">
+        <span class="doc-callout-icon">&#9989;</span>
+        <div class="doc-callout-body">
+          <strong>If YES (Immediate):</strong> You can add one or more sorting machine items with Model (Pinnacle / Nandak), Size (5&ndash;10 chutes), Quantity, and Price. Prices are auto-calculated based on your state and chosen model.
+        </div>
+      </div>
+
+      <div class="doc-callout warn">
+        <span class="doc-callout-icon">&#128337;</span>
+        <div class="doc-callout-body">
+          <strong>If NO (Future):</strong> You can specify the commodity type (Rice, Pulses, etc.), expected month of order, chances of order (%), and any notes for follow-up.
+        </div>
+      </div>
+
+      <p><strong>Section 4 &mdash; Remarks</strong> (optional additional notes)</p>
+
+      <p>After filling everything, click <strong>"Save"</strong>. You will see a success confirmation. The enquiry is now stored in the system and the back-office team can review it, generate quotations, and follow up.</p>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ REGISTRATION ═══════ -->
+    <section class="doc-section" id="registration-section">
+      <span class="doc-section-anchor" id="registration"></span>
+      <h2>Registration</h2>
+      <p class="doc-section-sub">How to create your team account.</p>
+
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-num">1</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Go to the Registration Page</div>
+            <div class="doc-step-text">Click "Register here" from the login page, or navigate directly to <code>/register</code>.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">2</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Fill in Your Details</div>
+            <div class="doc-step-text">Enter your <strong>full name</strong>, <strong>phone number</strong> (10 digits, starting with 6&ndash;9), choose your <strong>role</strong> (User or Admin), and set a <strong>password</strong>. You can toggle password visibility with the eye icon.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">3</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Submit &amp; Login</div>
+            <div class="doc-step-text">After successful registration, you'll be redirected to the login page where you can sign in with your phone number and OTP.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-callout warn">
+        <span class="doc-callout-icon">&#9888;&#65039;</span>
+        <div class="doc-callout-body">
+          <strong>Note:</strong> Admin registration requires approval from an existing admin. New users should select the "User" role. Contact your administrator if you need admin access.
+        </div>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ LOGIN ═══════ -->
+    <section class="doc-section" id="login-section">
+      <span class="doc-section-anchor" id="login"></span>
+      <h2>Login (Phone OTP)</h2>
+      <p class="doc-section-sub">Secure, passwordless login with one-time codes sent to your phone.</p>
+
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-num">1</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Enter Your Phone Number</div>
+            <div class="doc-step-text">On the login page, type your 10-digit phone number (the same one used during registration). The country code +91 is added automatically.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">2</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Receive OTP via SMS</div>
+            <div class="doc-step-text">Click "Send OTP". An invisible security check runs in the background (reCAPTCHA), and a 6-digit code is sent to your phone via SMS.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">3</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Enter the 6-Digit Code</div>
+            <div class="doc-step-text">Type the code into the 6 boxes. Each box auto-advances to the next. You can also paste the full code. If the code expires, click "Resend OTP" after the 60-second timer.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">4</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">You're In!</div>
+            <div class="doc-step-text">After verification, you are automatically logged in and redirected to the dashboard. Your session stays active and refreshes automatically.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ DASHBOARD ═══════ -->
+    <section class="doc-section" id="dashboard-section">
+      <span class="doc-section-anchor" id="dashboard"></span>
+      <h2>Dashboard</h2>
+      <p class="doc-section-sub">Your home base after logging in.</p>
+
+      <p>After login, you land on the main dashboard. The left sidebar provides navigation to all sections:</p>
+
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Menu Item</th>
+              <th>What It Does</th>
+              <th>Access</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Dashboard</strong></td>
+              <td>Welcome screen with your name and role</td>
+              <td><span class="doc-badge green">Everyone</span></td>
+            </tr>
+            <tr>
+              <td><strong>Enquiry</strong></td>
+              <td>View, search, filter, and manage all customer enquiries</td>
+              <td><span class="doc-badge green">Everyone</span></td>
+            </tr>
+            <tr>
+              <td><strong>Quotations</strong></td>
+              <td>View all generated quotations, open details, download PDFs</td>
+              <td><span class="doc-badge green">Everyone</span></td>
+            </tr>
+            <tr>
+              <td><strong>Settings</strong></td>
+              <td>Platform configuration and admin controls</td>
+              <td><span class="doc-badge amber">Admin Only</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p>The <strong>top bar</strong> shows the current page name and has a profile dropdown in the top-right corner. From there you can access your profile or log out.</p>
+
+      <p>On mobile devices, the sidebar collapses into a hamburger menu at the top-left corner.</p>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ ENQUIRY MANAGEMENT ═══════ -->
+    <section class="doc-section" id="enquiry-mgmt-section">
+      <span class="doc-section-anchor" id="enquiry-mgmt"></span>
+      <h2>Managing Enquiries</h2>
+      <p class="doc-section-sub">How to view, edit, filter, and act on customer enquiries.</p>
+
+      <h3>Viewing Enquiries</h3>
+      <p>Navigate to <strong>Enquiry</strong> in the sidebar. You'll see a table listing all enquiries with columns:</p>
+
+      <div class="doc-fields">
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Customer Name</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Requirement (Immediate / Future)</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Mill / Company</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Mobile Number</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Location</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Date</div>
+      </div>
+
+      <p>While loading, animated skeleton placeholders appear instead of a spinner, so you can see the table structure taking shape.</p>
+
+      <h3>Searching &amp; Filtering</h3>
+      <p>Use the search bar and filter panel at the top to narrow down enquiries by customer name, location, requirement type, or date range.</p>
+
+      <h3>Viewing Details</h3>
+      <p>Click any row to open the full enquiry detail page. Here you can see all the information the field engineer recorded, including items, pricing, and notes.</p>
+
+      <h3>Editing an Enquiry</h3>
+      <p>On the detail page, click the <strong>three-dot menu</strong> (top-right) and select <strong>"Edit"</strong>. Make your changes and click <strong>"Save"</strong>. All edits are tracked.</p>
+
+      <h3>Creating a New Enquiry</h3>
+      <p>Click the <strong>"+ New Enquiry"</strong> button at the top of the enquiry list. This opens the enquiry form where you can enter the customer's details collected during a site visit.</p>
+
+      <h3>Deleting an Enquiry</h3>
+      <p>From the three-dot menu on the detail page, select <strong>"Delete"</strong>. You'll be asked to confirm before the enquiry is permanently removed.</p>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ QUOTATIONS ═══════ -->
+    <section class="doc-section" id="quotations-section">
+      <span class="doc-section-anchor" id="quotations"></span>
+      <h2>Quotations &amp; PDF Generation</h2>
+      <p class="doc-section-sub">How to generate, customise, and share professional quotations.</p>
+
+      <h3>Generating a Quotation from an Enquiry</h3>
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-num">1</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Open an Enquiry</div>
+            <div class="doc-step-text">Go to the enquiry list and click any enquiry to open its detail page.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">2</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Click "Generate Quotation"</div>
+            <div class="doc-step-text">At the bottom of the detail page, click the <strong>"Generate Quotation"</strong> button. The system creates a new quotation and auto-fills all customer info, product details, and pricing from the enquiry.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">3</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Review &amp; Customise</div>
+            <div class="doc-step-text">You're taken to the quotation editor where you can adjust any field &mdash; reference numbers, pricing, GST rate, terms &amp; conditions, delivery details, and more.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">4</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Preview, Save &amp; Share</div>
+            <div class="doc-step-text">Click <strong>"Preview"</strong> to see the full A4 quotation. From there, download as PDF, share via WhatsApp, or send by email.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Quotation Fields</h3>
+      <p>The quotation form has five sections:</p>
+
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Section</th>
+              <th>What It Contains</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Reference</strong></td>
+              <td>Ref Number, Ref Date, Quotation Number, Quotation Date</td>
+            </tr>
+            <tr>
+              <td><strong>Client Details</strong></td>
+              <td>Contact Person, Company, Address, City, State, Mobile, Email</td>
+            </tr>
+            <tr>
+              <td><strong>Product Details</strong></td>
+              <td>Model, Quantity, Description, HSN Code, Base Price, Exclusions</td>
+            </tr>
+            <tr>
+              <td><strong>Pricing &amp; GST</strong></td>
+              <td>GST Rate (0&ndash;28%), GST Amount (auto), Total (auto), Amount in Words</td>
+            </tr>
+            <tr>
+              <td><strong>Terms</strong></td>
+              <td>Payment Terms, Delivery Point, Lead Time, Commodity, Validity, Warranty, Bank Details</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Sharing Options</h3>
+      <div class="doc-cards">
+        <div class="doc-card">
+          <div class="doc-card-icon green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+          </div>
+          <div class="doc-card-title">WhatsApp</div>
+          <div class="doc-card-text">Share the quotation PDF directly to a WhatsApp contact or group with a pre-filled message.</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-card-icon blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+          </div>
+          <div class="doc-card-title">Gmail / Email</div>
+          <div class="doc-card-text">Opens Gmail with pre-filled subject and body. Attach the downloaded PDF to complete the email.</div>
+        </div>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ PROFILE ═══════ -->
+    <section class="doc-section" id="profile-section">
+      <span class="doc-section-anchor" id="profile"></span>
+      <h2>Your Profile</h2>
+      <p class="doc-section-sub">View and edit your account information.</p>
+
+      <p>Click your <strong>avatar</strong> (top-right corner) and select <strong>"Profile"</strong> from the dropdown menu.</p>
+
+      <p>Your profile page shows:</p>
+      <div class="doc-fields">
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Full Name (editable)</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Phone Number</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Role (User / Administrator)</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Member Since date</div>
+      </div>
+
+      <h3>Editing Your Name</h3>
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-num">1</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Click "Edit"</div>
+            <div class="doc-step-text">On the profile page, click the Edit button next to "Personal Information".</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">2</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Change Your Name</div>
+            <div class="doc-step-text">The name field becomes editable. Type your updated name. Press Enter or click "Save".</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">3</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Confirmation</div>
+            <div class="doc-step-text">A toast message confirms the update. Your new name appears across the platform.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="doc-callout">
+        <span class="doc-callout-icon">&#128274;</span>
+        <div class="doc-callout-body">
+          Phone number and role cannot be changed from the profile page. Contact an administrator if these need to be updated.
+        </div>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ ROLES ═══════ -->
+    <section class="doc-section" id="roles-section">
+      <span class="doc-section-anchor" id="roles"></span>
+      <h2>User vs Admin Roles</h2>
+      <p class="doc-section-sub">What each role can and cannot do.</p>
+
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>User</th>
+              <th>Admin</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>View enquiries</td>
+              <td><span class="doc-badge green">Yes</span></td>
+              <td><span class="doc-badge green">Yes</span></td>
+            </tr>
+            <tr>
+              <td>Create &amp; edit enquiries</td>
+              <td><span class="doc-badge green">Yes</span></td>
+              <td><span class="doc-badge green">Yes</span></td>
+            </tr>
+            <tr>
+              <td>Delete enquiries</td>
+              <td><span class="doc-badge green">Yes</span></td>
+              <td><span class="doc-badge green">Yes</span></td>
+            </tr>
+            <tr>
+              <td>Generate quotations</td>
+              <td><span class="doc-badge green">Yes</span></td>
+              <td><span class="doc-badge green">Yes</span></td>
+            </tr>
+            <tr>
+              <td>View &amp; download quotation PDFs</td>
+              <td><span class="doc-badge green">Yes</span></td>
+              <td><span class="doc-badge green">Yes</span></td>
+            </tr>
+            <tr>
+              <td>Edit profile</td>
+              <td><span class="doc-badge green">Yes</span></td>
+              <td><span class="doc-badge green">Yes</span></td>
+            </tr>
+            <tr>
+              <td>Access Settings page</td>
+              <td><span class="doc-badge amber">No</span></td>
+              <td><span class="doc-badge green">Yes</span></td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ SETTINGS ═══════ -->
+    <section class="doc-section" id="settings-section">
+      <span class="doc-section-anchor" id="settings"></span>
+      <h2>Admin Settings</h2>
+      <p class="doc-section-sub">Platform configuration available to administrators only.</p>
+
+      <p>The <strong>Settings</strong> page is accessible only to users with the Admin role. It appears in the sidebar navigation only for admins.</p>
+
+      <p>From Settings, admins can manage platform-level configuration such as Firebase database connections and system preferences.</p>
+
+      <div class="doc-callout warn">
+        <span class="doc-callout-icon">&#9888;&#65039;</span>
+        <div class="doc-callout-body">
+          If you see an "Access Denied" message when trying to open Settings, your account has the User role. Ask an administrator to upgrade your access if needed.
+        </div>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ PLANNED: PER-USER SCREEN ACCESS ═══════ -->
+    <section class="doc-section" id="planned-screen-access-section">
+      <span class="doc-section-anchor" id="planned-screen-access"></span>
+      <h2>Per-User Screen Access</h2>
+      <div class="doc-planned-badge">&#9888;&#65039; Planned Feature &mdash; Not Yet Implemented</div>
+      <p class="doc-section-sub">Allow admins to control exactly which dashboard screens each user can access.</p>
+
+      <h3>What It Will Do</h3>
+      <p>Currently, all users (with the "User" role) see the same sidebar: Dashboard, Enquiry, and Quotations. With per-user screen access, an admin will be able to grant or revoke access to specific screens for each individual user.</p>
+
+      <p>For example, a field engineer might only need access to the Enquiry page, while a sales manager might need Enquiry + Quotations + Reports.</p>
+
+      <h3>How It Should Work (User Experience)</h3>
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-num">1</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Admin Opens Settings &rarr; User Management</div>
+            <div class="doc-step-text">The admin navigates to the existing Settings page and clicks "Edit" on any user.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">2</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Screen Access Checkboxes Appear</div>
+            <div class="doc-step-text">Below the Role selector in the Edit User modal, a new "Screen Access" section shows a checkbox for each dashboard screen: Dashboard, Enquiry, Quotations, Profile, Reports, Products, Orders, Inventory, Clients.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">3</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Admin Toggles Screens On/Off</div>
+            <div class="doc-step-text">The admin checks or unchecks screens. "Dashboard" and "Profile" should always remain on (non-removable). Save writes to Firestore.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">4</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">User Sees Only Allowed Screens</div>
+            <div class="doc-step-text">When the user logs in, the sidebar shows only the screens the admin has allowed. Navigating to a blocked URL redirects to the dashboard.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Implementation Guide</h3>
+
+      <p><strong>1. Firestore Data Model</strong></p>
+      <p>Add an <code>allowedScreens</code> array to each user document in the <code>userdata</code> collection:</p>
+      <div class="doc-code">
+<span class="cm">// Firestore: userdata/{phone}</span>
+{
+  <span class="prop">"name"</span>: <span class="str">"Ashok Sharma"</span>,
+  <span class="prop">"phone"</span>: <span class="str">"9876543210"</span>,
+  <span class="prop">"role"</span>: <span class="str">"USER"</span>,
+  <span class="prop">"allowedScreens"</span>: [<span class="str">"dashboard"</span>, <span class="str">"enquiry"</span>, <span class="str">"quotations"</span>, <span class="str">"profile"</span>],
+  <span class="prop">"createdAt"</span>: <span class="str">"2026-01-15T..."</span>
+}
+      </div>
+      <p>Admins always have access to all screens regardless of this field.</p>
+
+      <p><strong>2. Backend &mdash; Return allowedScreens on Login</strong></p>
+      <p>In <code>src/app/api/auth/verify-firebase-token/route.js</code>, include the field in the response:</p>
+      <div class="doc-code">
+<span class="cm">// Inside the POST handler, after fetching userDoc.data()</span>
+<span class="kw">return</span> NextResponse.<span class="fn">json</span>({
+  <span class="prop">success</span>: <span class="kw">true</span>,
+  <span class="prop">user</span>: {
+    <span class="prop">id</span>: userId,
+    <span class="prop">name</span>: data.name,
+    <span class="prop">phone</span>,
+    <span class="prop">role</span>,
+    <span class="prop">allowedScreens</span>: data.allowedScreens || <span class="kw">null</span>,
+  },
+});
+      </div>
+
+      <p><strong>3. Frontend &mdash; AuthContext</strong></p>
+      <p>In <code>src/contexts/AuthContext.js</code>, store <code>allowedScreens</code> alongside user data. On the route guard, if the user has an <code>allowedScreens</code> array and the current page's key is not in it, redirect to <code>/dashboard</code>.</p>
+      <div class="doc-code">
+<span class="cm">// In the route guard useEffect</span>
+<span class="kw">const</span> screens = user?.allowedScreens;
+<span class="kw">if</span> (screens &amp;&amp; userRole !== <span class="str">'ADMIN'</span>) {
+  <span class="kw">const</span> pageKey = pathname.<span class="fn">split</span>(<span class="str">'/'</span>)[<span class="num">2</span>] || <span class="str">'dashboard'</span>;
+  <span class="kw">if</span> (!screens.<span class="fn">includes</span>(pageKey)) {
+    router.<span class="fn">push</span>(<span class="str">'/dashboard'</span>);
+    <span class="kw">return</span>;
+  }
+}
+      </div>
+
+      <p><strong>4. Frontend &mdash; Sidebar Filtering</strong></p>
+      <p>In <code>src/components/Sidebar.js</code>, filter the NAV array using <code>allowedScreens</code>:</p>
+      <div class="doc-code">
+<span class="cm">// Add a "key" to each NAV item: e.g. { key: 'enquiry', href: '/dashboard/enquiry', ... }</span>
+<span class="kw">const</span> filteredNav = NAV.<span class="fn">filter</span>(item =&gt; {
+  <span class="kw">if</span> (!item.allowedRoles.<span class="fn">includes</span>(userRole)) <span class="kw">return false</span>;
+  <span class="kw">if</span> (userRole === <span class="str">'ADMIN'</span>) <span class="kw">return true</span>;
+  <span class="kw">const</span> screens = user?.allowedScreens;
+  <span class="kw">if</span> (!screens) <span class="kw">return true</span>; <span class="cm">// no restriction set = show all</span>
+  <span class="kw">return</span> screens.<span class="fn">includes</span>(item.key);
+});
+      </div>
+
+      <p><strong>5. Settings Page &mdash; Screen Access Editor</strong></p>
+      <p>In the <code>UserModal</code> component within <code>src/app/dashboard/settings/page.js</code>, add a checkbox group below the Role toggle. Each checkbox maps to a screen key. On save, write <code>allowedScreens</code> to the user's Firestore document.</p>
+
+      <div class="doc-callout">
+        <span class="doc-callout-icon">&#128161;</span>
+        <div class="doc-callout-body">
+          <strong>Default behaviour:</strong> If <code>allowedScreens</code> is not set (null/undefined) for a user, they should see all screens their role allows. This maintains backward compatibility with existing users.
+        </div>
+      </div>
+
+      <h3>Files to Modify</h3>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead><tr><th>File</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td><code>src/app/api/auth/verify-firebase-token/route.js</code></td><td>Include <code>allowedScreens</code> in login response</td></tr>
+            <tr><td><code>src/contexts/AuthContext.js</code></td><td>Store <code>allowedScreens</code>, add route guard check</td></tr>
+            <tr><td><code>src/components/Sidebar.js</code></td><td>Filter nav items by <code>allowedScreens</code></td></tr>
+            <tr><td><code>src/app/dashboard/settings/page.js</code></td><td>Add screen access checkboxes to UserModal</td></tr>
+            <tr><td><code>src/lib/rbac.js</code></td><td>Add <code>canAccessScreen(user, screenKey)</code> helper</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ PLANNED: CSV EXPORT ═══════ -->
+    <section class="doc-section" id="planned-csv-export-section">
+      <span class="doc-section-anchor" id="planned-csv-export"></span>
+      <h2>CSV Export of Enquiries</h2>
+      <div class="doc-planned-badge">&#9888;&#65039; Planned Feature &mdash; Not Yet Implemented</div>
+      <p class="doc-section-sub">Allow admins to download all enquiries as a CSV file for offline filtering and analysis.</p>
+
+      <h3>What It Will Do</h3>
+      <p>Admins will see a <strong>"Download CSV"</strong> button on the Enquiry dashboard page. Clicking it will download a <code>.csv</code> file containing all enquiry records with columns matching the table fields, ready to open in Excel or Google Sheets for custom filtering and reporting.</p>
+
+      <h3>How It Should Work (User Experience)</h3>
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-num">1</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Admin Goes to Enquiry Page</div>
+            <div class="doc-step-text">Navigate to the Enquiry list in the dashboard sidebar.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">2</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Clicks "Download CSV"</div>
+            <div class="doc-step-text">A button in the top bar (next to "+ New Enquiry") triggers the export. The button is visible only to admins.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">3</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">CSV File Downloads</div>
+            <div class="doc-step-text">A file named <code>enquiries-YYYY-MM-DD.csv</code> downloads to the browser. It includes all enquiries (not just the currently filtered ones), with all relevant columns.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>CSV Columns</h3>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead><tr><th>Column</th><th>Source Field</th></tr></thead>
+          <tbody>
+            <tr><td>Customer Name</td><td><code>customerName</code></td></tr>
+            <tr><td>Mill / Company</td><td><code>millName</code></td></tr>
+            <tr><td>Mobile</td><td><code>mobile</code></td></tr>
+            <tr><td>Email</td><td><code>email</code></td></tr>
+            <tr><td>GST No.</td><td><code>gstNo</code></td></tr>
+            <tr><td>City</td><td><code>location</code></td></tr>
+            <tr><td>State</td><td><code>state</code></td></tr>
+            <tr><td>Address</td><td><code>address</code></td></tr>
+            <tr><td>Has Requirement</td><td><code>hasRequirement</code> (Yes/No)</td></tr>
+            <tr><td>Lead Source</td><td><code>leadSource</code></td></tr>
+            <tr><td>Items (Model / Size / Qty / Price)</td><td><code>items[]</code> joined as text</td></tr>
+            <tr><td>Commodity</td><td><code>commodity</code></td></tr>
+            <tr><td>Remarks</td><td><code>remarks</code></td></tr>
+            <tr><td>Date</td><td><code>createdAt</code></td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Implementation Guide</h3>
+
+      <p><strong>Approach: Client-side CSV Generation</strong></p>
+      <p>Since the enquiry page already loads all enquiries into the <code>rows</code> state array, CSV generation can be done entirely in the browser &mdash; no new API endpoint needed.</p>
+
+      <p><strong>1. Add the export function</strong> to <code>src/app/dashboard/enquiry/page.js</code>:</p>
+      <div class="doc-code">
+<span class="kw">function</span> <span class="fn">downloadCSV</span>(rows) {
+  <span class="kw">const</span> headers = [
+    <span class="str">'Customer Name'</span>, <span class="str">'Mill/Company'</span>, <span class="str">'Mobile'</span>, <span class="str">'Email'</span>,
+    <span class="str">'GST No.'</span>, <span class="str">'City'</span>, <span class="str">'State'</span>, <span class="str">'Address'</span>,
+    <span class="str">'Has Requirement'</span>, <span class="str">'Lead Source'</span>, <span class="str">'Items'</span>,
+    <span class="str">'Commodity'</span>, <span class="str">'Remarks'</span>, <span class="str">'Date'</span>
+  ];
+
+  <span class="kw">const</span> escape = v =&gt; {
+    <span class="kw">const</span> s = String(v ?? <span class="str">''</span>);
+    <span class="kw">return</span> s.<span class="fn">includes</span>(<span class="str">','</span>) || s.<span class="fn">includes</span>(<span class="str">'"'</span>) || s.<span class="fn">includes</span>(<span class="str">'\n'</span>)
+      ? <span class="str">'"'</span> + s.<span class="fn">replace</span>(<span class="str">/"/g</span>, <span class="str">'""'</span>) + <span class="str">'"'</span> : s;
+  };
+
+  <span class="kw">const</span> csvRows = rows.<span class="fn">map</span>(r =&gt; {
+    <span class="kw">const</span> items = (r.items || [])
+      .<span class="fn">map</span>(i =&gt; <span class="str">`${i.model} ${i.size}ch x${i.qty}`</span>)
+      .<span class="fn">join</span>(<span class="str">' | '</span>);
+    <span class="kw">return</span> [
+      r.customerName, r.millName, r.mobile, r.email,
+      r.gstNo, r.location, r.state, r.address,
+      r.hasRequirement ? <span class="str">'Yes'</span> : <span class="str">'No'</span>, r.leadSource, items,
+      r.commodity, r.remarks, r.createdAt
+    ].<span class="fn">map</span>(escape).<span class="fn">join</span>(<span class="str">','</span>);
+  });
+
+  <span class="kw">const</span> csv = [headers.<span class="fn">join</span>(<span class="str">','</span>), ...csvRows].<span class="fn">join</span>(<span class="str">'\n'</span>);
+  <span class="kw">const</span> blob = <span class="kw">new</span> <span class="fn">Blob</span>([csv], { <span class="prop">type</span>: <span class="str">'text/csv'</span> });
+  <span class="kw">const</span> url = URL.<span class="fn">createObjectURL</span>(blob);
+  <span class="kw">const</span> a = document.<span class="fn">createElement</span>(<span class="str">'a'</span>);
+  a.href = url;
+  a.download = <span class="str">`enquiries-${</span><span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">toISOString</span>().<span class="fn">slice</span>(<span class="num">0</span>,<span class="num">10</span>)<span class="str">}.csv`</span>;
+  a.<span class="fn">click</span>();
+  URL.<span class="fn">revokeObjectURL</span>(url);
+}
+      </div>
+
+      <p><strong>2. Add the button</strong> in the topbar area of the enquiry page (next to "+ New Enquiry"):</p>
+      <div class="doc-code">
+<span class="cm">{/* Only show to admins */}</span>
+{<span class="fn">isAdmin</span>(userRole) &amp;&amp; (
+  &lt;<span class="kw">button</span> <span class="prop">onClick</span>={() =&gt; <span class="fn">downloadCSV</span>(rows)}&gt;
+    Download CSV
+  &lt;/<span class="kw">button</span>&gt;
+)}
+      </div>
+
+      <h3>Files to Modify</h3>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead><tr><th>File</th><th>Change</th></tr></thead>
+          <tbody>
+            <tr><td><code>src/app/dashboard/enquiry/page.js</code></td><td>Add <code>downloadCSV()</code> function and "Download CSV" button (admin-only)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-callout">
+        <span class="doc-callout-icon">&#128161;</span>
+        <div class="doc-callout-body">
+          <strong>Tip:</strong> This approach exports all enquiries currently loaded in memory. For very large datasets (10,000+), consider adding a server-side API endpoint that streams the CSV directly from Firestore.
+        </div>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ ALL PAGES ═══════ -->
+    <section class="doc-section" id="pages-map-section">
+      <span class="doc-section-anchor" id="pages-map"></span>
+      <h2>All Pages</h2>
+      <p class="doc-section-sub">Complete map of every page in the platform.</p>
+
+      <h3>Public Pages (No Login Required)</h3>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead><tr><th>URL</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>/</code></td><td>Homepage &mdash; company overview, features, and login link</td></tr>
+            <tr><td><code>/login</code></td><td>Phone OTP login</td></tr>
+            <tr><td><code>/register</code></td><td>Create a new account</td></tr>
+            <tr><td><code>/enquiry</code></td><td>Enquiry submission form (used by field engineers)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Dashboard Pages (Login Required)</h3>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead><tr><th>URL</th><th>Purpose</th></tr></thead>
+          <tbody>
+            <tr><td><code>/dashboard</code></td><td>Main dashboard &mdash; welcome screen</td></tr>
+            <tr><td><code>/dashboard/enquiry</code></td><td>All enquiries &mdash; searchable table</td></tr>
+            <tr><td><code>/dashboard/enquiry/[id]</code></td><td>Single enquiry detail &amp; edit</td></tr>
+            <tr><td><code>/dashboard/quotations</code></td><td>All quotations &mdash; searchable table</td></tr>
+            <tr><td><code>/dashboard/quotations/[id]</code></td><td>Single quotation detail, preview, PDF</td></tr>
+            <tr><td><code>/dashboard/quotations/new</code></td><td>Create a new quotation from scratch</td></tr>
+            <tr><td><code>/dashboard/profile</code></td><td>Your profile &mdash; view &amp; edit name</td></tr>
+            <tr><td><code>/dashboard/settings</code></td><td>Admin settings (admin only)</td></tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h3>Coming Soon</h3>
+      <p>The following pages exist but are under development:</p>
+      <div class="doc-fields">
+        <div class="doc-field-item"><span class="doc-field-dot opt"></span> Clients</div>
+        <div class="doc-field-item"><span class="doc-field-dot opt"></span> Products</div>
+        <div class="doc-field-item"><span class="doc-field-dot opt"></span> Orders</div>
+        <div class="doc-field-item"><span class="doc-field-dot opt"></span> Inventory</div>
+        <div class="doc-field-item"><span class="doc-field-dot opt"></span> Reports</div>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ DATA ═══════ -->
+    <section class="doc-section" id="data-stored-section">
+      <span class="doc-section-anchor" id="data-stored"></span>
+      <h2>Data &amp; Storage</h2>
+      <p class="doc-section-sub">Where your data lives and how it is protected.</p>
+
+      <div class="doc-cards">
+        <div class="doc-card">
+          <div class="doc-card-icon blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+          </div>
+          <div class="doc-card-title">Firebase Firestore</div>
+          <div class="doc-card-text">All data (user accounts, enquiries, quotations) is stored in Google's Firebase Firestore &mdash; a secure, cloud-hosted database.</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-card-icon green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+          </div>
+          <div class="doc-card-title">Firebase Authentication</div>
+          <div class="doc-card-text">Login is handled by Firebase Auth with phone-based OTP. No passwords are stored in the database. Sessions are encrypted with JWT tokens.</div>
+        </div>
+      </div>
+
+      <h3>Data Collections</h3>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead><tr><th>Collection</th><th>What It Stores</th></tr></thead>
+          <tbody>
+            <tr><td><code>userdata</code></td><td>User profiles &mdash; name, phone, role, creation date</td></tr>
+            <tr><td><code>enquiries</code></td><td>All enquiries &mdash; customer info, items, pricing, notes, dates</td></tr>
+            <tr><td><code>quotations</code></td><td>All quotations &mdash; client details, product info, terms, pricing</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ FAQ ═══════ -->
+    <section class="doc-section" id="faq-section">
+      <span class="doc-section-anchor" id="faq"></span>
+      <h2>Frequently Asked Questions</h2>
+      <p class="doc-section-sub">Common questions and quick answers.</p>
+
+      <h3>I'm not receiving the OTP. What should I do?</h3>
+      <p>Wait for the full 60-second timer to expire, then click "Resend OTP". Ensure your phone number is correct and has SMS reception. If the issue persists, check if you have registered with that phone number first.</p>
+
+      <h3>Can customers see the dashboard?</h3>
+      <p>No. The dashboard is only accessible to registered and logged-in team members (field engineers, back-office staff, admins). Customers never interact with the platform directly.</p>
+
+      <h3>Can I edit a quotation after saving it?</h3>
+      <p>Yes. Open the quotation from the quotations list and modify any field. You can re-download or re-share the updated PDF.</p>
+
+      <h3>How are prices calculated?</h3>
+      <p>Prices are auto-filled based on a lookup table that uses the customer's <strong>state</strong>, <strong>machine model</strong>, and <strong>size (chutes)</strong>. These can be manually overridden in the quotation editor if needed.</p>
+
+      <h3>Who can see my data?</h3>
+      <p>All logged-in team members (both Users and Admins) can see all enquiries and quotations. There is no per-user data isolation &mdash; it's a shared team workspace.</p>
+
+      <h3>Is the platform mobile-friendly?</h3>
+      <p>Yes. Every page is fully responsive. On phones, the sidebar becomes a slide-out menu, tables adapt to show key info in a compact layout, and all forms are touch-friendly.</p>
+
+      <h3>What browsers are supported?</h3>
+      <p>Any modern browser &mdash; Chrome, Firefox, Safari, Edge. We recommend keeping your browser updated for the best experience.</p>
+    </section>
+
+    <!-- FOOTER -->
+    <div class="doc-footer">
+      <p>&copy; 2026 Unique Sorter And Equipment Pvt. Ltd. &mdash; All rights reserved.</p>
+      <p style="margin-top: 4px;">CRM Platform Documentation &middot; Last updated May 2026</p>
+    </div>
+
+  </main>
+
+  <!-- Scroll to top -->
+  <button class="doc-top-btn" id="topBtn" onclick="window.scrollTo({top:0})" aria-label="Back to top">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+  </button>
+
+  <script>
+    // Sidebar toggle (mobile)
+    function toggleSidebar() {
+      document.getElementById('sidebar').classList.toggle('open');
+      document.getElementById('overlay').classList.toggle('open');
+    }
+
+    // Close sidebar on nav click (mobile)
+    document.querySelectorAll('.doc-nav-link').forEach(link => {
+      link.addEventListener('click', () => {
+        document.getElementById('sidebar').classList.remove('open');
+        document.getElementById('overlay').classList.remove('open');
+      });
+    });
+
+    // Active nav link on scroll
+    const sections = document.querySelectorAll('.doc-section-anchor');
+    const navLinks = document.querySelectorAll('.doc-nav-link');
+    const observer = new IntersectionObserver(entries => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          const id = entry.target.id;
+          navLinks.forEach(l => {
+            l.classList.toggle('active', l.getAttribute('href') === '#' + id);
+          });
+        }
+      });
+    }, { rootMargin: '-20% 0px -70% 0px' });
+    sections.forEach(s => observer.observe(s));
+
+    // Scroll-to-top button
+    window.addEventListener('scroll', () => {
+      document.getElementById('topBtn').classList.toggle('visible', window.scrollY > 400);
+    });
+  </script>
+</body>
+</html>
