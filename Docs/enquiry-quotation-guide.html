@@ -1,0 +1,832 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Enquiry & Quotation Guide - Unique Sorter CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
+  <style>
+    *,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
+    :root{
+      --navy:#0c1a3a;--ink:#111827;--body:#374151;--muted:#6b7280;--faint:#9ca3af;
+      --border:#e5e7eb;--surface:#f9fafb;--card:#fff;
+      --accent:#1A37AA;--accent-light:#eef2ff;--accent-glow:rgba(26,55,170,0.08);
+      --green:#059669;--green-bg:#ecfdf5;--amber:#d97706;--amber-bg:#fffbeb;
+      --red:#dc2626;--red-bg:#fef2f2;--radius:10px;
+    }
+    html{scroll-behavior:smooth}
+    body{font-family:'DM Sans',sans-serif;color:var(--body);background:var(--surface);line-height:1.7;-webkit-font-smoothing:antialiased}
+
+    /* sidebar */
+    .s{position:fixed;top:0;left:0;bottom:0;width:270px;background:var(--card);border-right:1px solid var(--border);overflow-y:auto;z-index:100;padding:24px 0;transition:transform .3s}
+    .s-brand{padding:0 20px 20px;border-bottom:1px solid var(--border);margin-bottom:14px}
+    .s-logo{font-family:'DM Serif Display',serif;font-size:17px;color:var(--navy);letter-spacing:-.3px}
+    .s-logo span{color:var(--accent)}
+    .s-tag{font-size:10px;font-weight:600;letter-spacing:1px;text-transform:uppercase;color:var(--faint);margin-top:3px}
+    .s-group{padding:6px 14px}
+    .s-label{font-size:9.5px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--faint);padding:0 8px;margin-bottom:5px}
+    .s-link{display:block;padding:6px 12px;border-radius:6px;font-size:13px;font-weight:500;color:var(--muted);text-decoration:none;transition:all .15s;margin-bottom:1px}
+    .s-link:hover{color:var(--ink);background:var(--surface)}
+    .s-link.active{color:var(--accent);background:var(--accent-light);font-weight:600}
+
+    .hamburger{display:none;position:fixed;top:12px;left:12px;z-index:200;width:38px;height:38px;border-radius:8px;background:var(--card);border:1px solid var(--border);cursor:pointer;align-items:center;justify-content:center;box-shadow:0 2px 8px rgba(0,0,0,.06)}
+    .overlay{display:none;position:fixed;inset:0;z-index:99;background:rgba(0,0,0,.3)}
+
+    /* main */
+    .m{margin-left:270px;max-width:840px;padding:40px 44px 120px}
+
+    /* hero */
+    .hero{background:linear-gradient(135deg,#0c1a3a,#1A37AA 70%,#2e4fd0);border-radius:14px;padding:48px 40px;margin-bottom:44px;position:relative;overflow:hidden}
+    .hero::before{content:'';position:absolute;inset:0;background:radial-gradient(circle at 80% 20%,rgba(255,255,255,.07),transparent 60%);pointer-events:none}
+    .hero-badge{display:inline-block;font-size:10.5px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:rgba(255,255,255,.6);background:rgba(255,255,255,.1);padding:4px 13px;border-radius:20px;margin-bottom:16px;position:relative}
+    .hero h1{font-family:'DM Serif Display',serif;font-size:32px;color:#fff;line-height:1.2;margin-bottom:12px;position:relative}
+    .hero p{font-size:15px;color:rgba(255,255,255,.7);max-width:540px;line-height:1.7;position:relative}
+
+    /* sections */
+    .sec{margin-bottom:52px}
+    .anchor{display:block;position:relative;top:-70px;visibility:hidden}
+    .sec>h2{font-family:'DM Serif Display',serif;font-size:24px;color:var(--navy);margin-bottom:6px;line-height:1.3}
+    .sec>.sub{font-size:13.5px;color:var(--muted);margin-bottom:24px}
+    h3{font-size:16px;font-weight:700;color:var(--ink);margin:28px 0 10px}
+    h3:first-child{margin-top:0}
+    p{margin-bottom:12px}
+
+    .divider{height:1px;background:var(--border);margin:36px 0}
+
+    /* table */
+    .tw{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin:14px 0}
+    .tw table{width:100%;border-collapse:collapse;font-size:13px}
+    .tw th{text-align:left;padding:9px 14px;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--faint);background:var(--surface);border-bottom:1px solid var(--border)}
+    .tw td{padding:9px 14px;border-bottom:1px solid #f3f4f6;color:var(--body)}
+    .tw tr:last-child td{border-bottom:none}
+    .tw .price{font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums;white-space:nowrap}
+    .tw .hl{background:#fffde7}
+
+    /* cards */
+    .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:box-shadow .2s,border-color .2s}
+    .card:hover{border-color:#c7d2fe;box-shadow:0 4px 16px var(--accent-glow)}
+    .card-icon{width:36px;height:36px;border-radius:8px;display:flex;align-items:center;justify-content:center;margin-bottom:10px}
+    .card-icon.blue{background:var(--accent-light);color:var(--accent)}
+    .card-icon.green{background:var(--green-bg);color:var(--green)}
+    .card-icon.amber{background:var(--amber-bg);color:var(--amber)}
+    .card-icon.red{background:var(--red-bg);color:var(--red)}
+    .card-t{font-size:13.5px;font-weight:700;color:var(--ink);margin-bottom:3px}
+    .card-d{font-size:12px;color:var(--muted);line-height:1.6}
+
+    /* callout */
+    .callout{display:flex;gap:12px;border-radius:var(--radius);padding:14px 16px;margin:14px 0}
+    .callout.info{background:var(--accent-light);border:1px solid #c7d2fe}
+    .callout.warn{background:var(--amber-bg);border:1px solid #fde68a}
+    .callout.green{background:var(--green-bg);border:1px solid #a7f3d0}
+    .callout-icon{font-size:16px;flex-shrink:0;margin-top:1px}
+    .callout-body{font-size:13px;color:var(--ink);line-height:1.65}
+    .callout-body strong{font-weight:700}
+
+    /* steps */
+    .steps{display:flex;flex-direction:column;gap:14px}
+    .step{display:flex;gap:14px;background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:16px;transition:box-shadow .2s,border-color .2s}
+    .step:hover{border-color:#c7d2fe;box-shadow:0 4px 16px var(--accent-glow)}
+    .step-n{width:32px;height:32px;border-radius:50%;background:var(--accent);color:#fff;font-family:'DM Serif Display',serif;font-size:15px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+    .step-b{flex:1;min-width:0}
+    .step-t{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:3px}
+    .step-d{font-size:12.5px;color:var(--muted);line-height:1.65}
+
+    /* flow arrows */
+    .flow{display:flex;align-items:center;gap:0;flex-wrap:wrap;margin:16px 0;justify-content:center}
+    .flow-n{background:var(--card);border:1.5px solid var(--border);border-radius:8px;padding:8px 14px;font-size:12px;font-weight:600;color:var(--ink);text-align:center}
+    .flow-n.hl{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+    .flow-a{color:var(--faint);font-size:16px;padding:0 5px;flex-shrink:0}
+
+    /* badge */
+    .badge{display:inline-block;font-size:10.5px;font-weight:600;padding:2px 9px;border-radius:10px;letter-spacing:.3px}
+    .badge.blue{background:var(--accent-light);color:var(--accent)}
+    .badge.green{background:var(--green-bg);color:var(--green)}
+    .badge.amber{background:var(--amber-bg);color:var(--amber)}
+
+    /* comparison box */
+    .vs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:14px 0}
+    .vs-box{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+    .vs-head{padding:12px 16px;font-size:13px;font-weight:700;color:#fff;display:flex;align-items:center;gap:8px}
+    .vs-head.a{background:var(--accent)}
+    .vs-head.b{background:var(--green)}
+    .vs-body{padding:14px 16px;font-size:12.5px;color:var(--body);line-height:1.7}
+    .vs-body ul{margin:6px 0 0 16px}
+    .vs-body li{margin-bottom:4px}
+
+    .footer{margin-top:56px;padding-top:20px;border-top:1px solid var(--border);font-size:12px;color:var(--faint);text-align:center}
+
+    .top-btn{position:fixed;bottom:20px;right:20px;width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;box-shadow:0 4px 16px rgba(26,55,170,.25);opacity:0;transform:translateY(12px);transition:opacity .3s,transform .3s;z-index:50}
+    .top-btn.visible{opacity:1;transform:translateY(0)}
+
+    @media(max-width:900px){
+      .s{transform:translateX(-100%)}
+      .s.open{transform:translateX(0)}
+      .hamburger{display:flex}
+      .overlay.open{display:block}
+      .m{margin-left:0;padding:20px 16px 100px}
+      .hero{padding:32px 20px;border-radius:10px}
+      .hero h1{font-size:24px}
+      .cards,.vs{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<button class="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+</button>
+<div class="overlay" id="overlay" onclick="toggleSidebar()"></div>
+
+<aside class="s" id="sidebar">
+  <div class="s-brand">
+    <div class="s-logo">Unique <span>Sorter</span></div>
+    <div class="s-tag">Enquiry & Quotation Guide</div>
+  </div>
+  <nav>
+    <div class="s-group">
+      <div class="s-label">Enquiry Form</div>
+      <a href="#enquiry-overview" class="s-link active">How It Works</a>
+      <a href="#price-table" class="s-link">Price Table</a>
+      <a href="#state-changes" class="s-link">When State Changes</a>
+      <a href="#model-size" class="s-link">Model & Size Selection</a>
+      <a href="#items-section" class="s-link">Adding Items</a>
+      <a href="#immediate-vs-future" class="s-link">Immediate vs Future</a>
+    </div>
+    <div class="s-group">
+      <div class="s-label">Quotations</div>
+      <a href="#quot-overview" class="s-link">How Quotations Work</a>
+      <a href="#single-page" class="s-link">1-Page Quotation</a>
+      <a href="#detailed-page" class="s-link">6-Page Detailed Quotation</a>
+      <a href="#1p-vs-6p" class="s-link">1-Page vs 6-Page</a>
+    </div>
+    <div class="s-group">
+      <div class="s-label">Auto-Fill & Calculations</div>
+      <a href="#auto-mapping" class="s-link">Enquiry to Quotation Mapping</a>
+      <a href="#gst-calc" class="s-link">GST & Price Calculation</a>
+      <a href="#amount-words" class="s-link">Amount in Words</a>
+    </div>
+    <div class="s-group">
+      <div class="s-label">Sharing & Output</div>
+      <a href="#pdf-generation" class="s-link">PDF Generation</a>
+      <a href="#sharing" class="s-link">WhatsApp & Email</a>
+    </div>
+    <div class="s-group">
+      <div class="s-label">Reference</div>
+      <a href="#defaults" class="s-link">Default Values</a>
+      <a href="#bank-details" class="s-link">Bank Details</a>
+    </div>
+  </nav>
+</aside>
+
+<main class="m">
+
+  <div class="hero">
+    <div class="hero-badge">Detailed Guide</div>
+    <h1>Enquiry & Quotation System</h1>
+    <p>Everything about how the enquiry form works, how prices are calculated, and how 1-page and 6-page quotations are generated &mdash; explained step by step.</p>
+  </div>
+
+  <!-- ═══ ENQUIRY OVERVIEW ═══ -->
+  <section class="sec">
+    <span class="anchor" id="enquiry-overview"></span>
+    <h2>How the Enquiry Form Works</h2>
+    <p class="sub">The complete flow of entering a customer's requirements.</p>
+
+    <p>When a field engineer visits a client and collects their sorting machine requirements, they enter everything into the enquiry form. The form is <strong>smart</strong> &mdash; it automatically calculates prices based on the state, model, and size selected.</p>
+
+    <div class="flow">
+      <div class="flow-n">Select State</div>
+      <span class="flow-a">&rarr;</span>
+      <div class="flow-n hl">Choose Model</div>
+      <span class="flow-a">&rarr;</span>
+      <div class="flow-n">Pick Size</div>
+      <span class="flow-a">&rarr;</span>
+      <div class="flow-n hl">Price Auto-Fills</div>
+      <span class="flow-a">&rarr;</span>
+      <div class="flow-n">Multiply by Qty</div>
+    </div>
+
+    <p>The form has four main sections:</p>
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+        <div class="card-t">Customer Info</div>
+        <div class="card-d">Name, company, mobile, email, GST, lead source</div>
+      </div>
+      <div class="card">
+        <div class="card-icon green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg></div>
+        <div class="card-t">Location</div>
+        <div class="card-d">City, state (affects pricing), full address</div>
+      </div>
+      <div class="card">
+        <div class="card-icon amber"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg></div>
+        <div class="card-t">Requirement & Items</div>
+        <div class="card-d">Model, size, quantity, auto-calculated price</div>
+      </div>
+      <div class="card">
+        <div class="card-icon red"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
+        <div class="card-t">Remarks</div>
+        <div class="card-d">Any additional notes from the site visit</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ PRICE TABLE ═══ -->
+  <section class="sec">
+    <span class="anchor" id="price-table"></span>
+    <h2>Price Table</h2>
+    <p class="sub">The complete pricing for every state, model, and size combination.</p>
+
+    <p>Prices are <strong>pre-configured</strong> in the system. When a field engineer selects a state, model, and size, the price fills in automatically. Here is the full table:</p>
+
+    <div class="tw">
+      <table>
+        <thead>
+          <tr><th>State</th><th>Model</th><th>Size (Chutes)</th><th>Price per Unit</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>Telangana</td><td>Pinnacle</td><td>5</td><td class="price">&#8377; 30,00,000</td></tr>
+          <tr><td>Telangana</td><td>Pinnacle</td><td>6</td><td class="price">&#8377; 33,00,000</td></tr>
+          <tr><td>Telangana</td><td>Pinnacle</td><td>7</td><td class="price">&#8377; 36,00,000</td></tr>
+          <tr><td>Telangana</td><td>Pinnacle</td><td>8</td><td class="price">&#8377; 40,00,000</td></tr>
+          <tr><td>Telangana</td><td>Pinnacle</td><td>10</td><td class="price">&#8377; 47,00,000</td></tr>
+          <tr><td class="hl">Karnataka</td><td>Pinnacle</td><td>5</td><td class="price">&#8377; 30,00,000</td></tr>
+          <tr><td class="hl">Karnataka</td><td>Pinnacle</td><td>6</td><td class="price">&#8377; 33,00,000</td></tr>
+          <tr><td class="hl">Karnataka</td><td>Pinnacle</td><td>7</td><td class="price">&#8377; 36,00,000</td></tr>
+          <tr><td class="hl">Karnataka</td><td>Pinnacle</td><td>8</td><td class="price">&#8377; 40,00,000</td></tr>
+          <tr><td class="hl">Karnataka</td><td>Pinnacle</td><td>10</td><td class="price">&#8377; 47,00,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">&#128161;</span>
+      <div class="callout-body">
+        <strong>Currently, both states have identical pricing.</strong> The system supports different prices per state &mdash; if pricing differs for a new state in the future, it will automatically show different amounts.
+      </div>
+    </div>
+
+    <p>The final price is: <strong>Price per Unit x Quantity</strong>. For example, 2 units of Pinnacle 8-chute in Telangana = &#8377;40,00,000 x 2 = <strong>&#8377;80,00,000</strong>.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ STATE CHANGES ═══ -->
+  <section class="sec">
+    <span class="anchor" id="state-changes"></span>
+    <h2>When You Change the State</h2>
+    <p class="sub">What updates and what stays the same.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Field</th><th>What Happens</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Price of ALL items</strong></td><td><span class="badge green">Recalculates</span> &mdash; every item's price updates using the new state + its existing model and size</td></tr>
+          <tr><td>Customer name, company, mobile</td><td><span class="badge amber">No change</span></td></tr>
+          <tr><td>Model selection</td><td><span class="badge amber">No change</span></td></tr>
+          <tr><td>Size selection</td><td><span class="badge amber">No change</span></td></tr>
+          <tr><td>Quantity</td><td><span class="badge amber">No change</span></td></tr>
+          <tr><td>City, address</td><td><span class="badge amber">No change</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">&#9888;&#65039;</span>
+      <div class="callout-body">
+        <strong>Important:</strong> Changing the state affects ALL items at once, not just one. If you have 3 items in the list, all 3 prices will recalculate when you switch from Telangana to Karnataka (or vice versa).
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ MODEL & SIZE ═══ -->
+  <section class="sec">
+    <span class="anchor" id="model-size"></span>
+    <h2>Model & Size Selection</h2>
+    <p class="sub">How choosing a model or size affects the price.</p>
+
+    <h3>When You Change the Model</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Field</th><th>What Happens</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Price of this item</strong></td><td><span class="badge green">Recalculates</span> using new model + current state + current size</td></tr>
+          <tr><td>Size dropdown</td><td><span class="badge amber">No change</span> &mdash; all models support the same sizes (5, 6, 7, 8, 10)</td></tr>
+          <tr><td>Quantity</td><td><span class="badge amber">No change</span></td></tr>
+          <tr><td>Other items</td><td><span class="badge amber">No change</span> &mdash; only the item you edited is affected</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>When You Change the Size</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Field</th><th>What Happens</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Price of this item</strong></td><td><span class="badge green">Recalculates</span> using current model + current state + new size</td></tr>
+          <tr><td>Model</td><td><span class="badge amber">No change</span></td></tr>
+          <tr><td>Quantity</td><td><span class="badge amber">No change</span></td></tr>
+          <tr><td>Other items</td><td><span class="badge amber">No change</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Available Sizes</h3>
+    <p>All models have the same 5 size options:</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Size</th><th>Meaning</th></tr></thead>
+        <tbody>
+          <tr><td><strong>5 Chute</strong></td><td>Smallest machine &mdash; &#8377;30,00,000</td></tr>
+          <tr><td><strong>6 Chute</strong></td><td>&#8377;33,00,000</td></tr>
+          <tr><td><strong>7 Chute</strong></td><td>&#8377;36,00,000</td></tr>
+          <tr><td><strong>8 Chute</strong></td><td>&#8377;40,00,000</td></tr>
+          <tr><td><strong>10 Chute</strong></td><td>Largest machine &mdash; &#8377;47,00,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ ITEMS SECTION ═══ -->
+  <section class="sec">
+    <span class="anchor" id="items-section"></span>
+    <h2>Adding Multiple Items</h2>
+    <p class="sub">How to add, remove, and manage items in the enquiry.</p>
+
+    <p>Each enquiry can have <strong>one or more items</strong>. An item represents a single sorting machine the customer is interested in.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Rule</th><th>Detail</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Minimum items</strong></td><td>1 &mdash; the form always starts with one item, and you cannot remove the last one</td></tr>
+          <tr><td><strong>Maximum items</strong></td><td>No limit &mdash; you can add as many as needed</td></tr>
+          <tr><td><strong>"+ Add Item" button</strong></td><td>Adds a new empty row with model, size, quantity, and price fields</td></tr>
+          <tr><td><strong>Remove button</strong></td><td>Only appears when there are 2 or more items. Removes that specific item.</td></tr>
+          <tr><td><strong>Required fields per item</strong></td><td>Model (required), Quantity (required, at least 1). Size and price are optional / auto-filled.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">&#128161;</span>
+      <div class="callout-body">
+        When the state changes, <strong>all items' prices recalculate at once</strong>. When you change a model or size, only <strong>that specific item's price</strong> updates.
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ IMMEDIATE VS FUTURE ═══ -->
+  <section class="sec">
+    <span class="anchor" id="immediate-vs-future"></span>
+    <h2>Immediate vs Future Requirement</h2>
+    <p class="sub">Two different modes based on the customer's timeline.</p>
+
+    <p>The form asks: <em>"Does the customer have an immediate requirement?"</em> The answer changes what fields appear:</p>
+
+    <div class="vs">
+      <div class="vs-box">
+        <div class="vs-head a">Yes &mdash; Immediate Requirement</div>
+        <div class="vs-body">
+          The customer wants to buy now. You enter:
+          <ul>
+            <li><strong>Items</strong> &mdash; model, size, quantity, price</li>
+            <li>Can add multiple items</li>
+            <li>Prices auto-calculate</li>
+            <li>This enquiry can generate a quotation</li>
+          </ul>
+        </div>
+      </div>
+      <div class="vs-box">
+        <div class="vs-head b">No &mdash; Future Requirement</div>
+        <div class="vs-body">
+          The customer is interested but not ready. You enter:
+          <ul>
+            <li><strong>Commodity</strong> &mdash; Rice, Pulses, Multiproduct, etc.</li>
+            <li><strong>Notes</strong> for follow-up</li>
+            <li><strong>Next follow-up date</strong></li>
+            <li><strong>Probable month</strong> of order</li>
+            <li><strong>% Chances</strong> of order</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ QUOTATION OVERVIEW ═══ -->
+  <section class="sec">
+    <span class="anchor" id="quot-overview"></span>
+    <h2>How Quotations Work</h2>
+    <p class="sub">From enquiry to professional PDF in seconds.</p>
+
+    <p>A quotation is a formal price offer sent to the customer. The system can generate <strong>two types</strong>:</p>
+
+    <div class="vs">
+      <div class="vs-box">
+        <div class="vs-head a">1-Page Quotation</div>
+        <div class="vs-body">
+          A single A4 page with:
+          <ul>
+            <li>Company header + reference numbers</li>
+            <li>Customer details</li>
+            <li>Product table (model, qty, price)</li>
+            <li>GST breakdown + total</li>
+            <li>Amount in words</li>
+            <li>Terms & conditions</li>
+            <li>Bank details + signature</li>
+          </ul>
+          <strong>Best for:</strong> Quick quotes, simple orders
+        </div>
+      </div>
+      <div class="vs-box">
+        <div class="vs-head b">6-Page Detailed Quotation</div>
+        <div class="vs-body">
+          A comprehensive 6-page document with:
+          <ul>
+            <li>2-page cover letter introducing PINNACLE series</li>
+            <li>Full technical specifications table</li>
+            <li>Commercial offer + GST + terms</li>
+            <li>Detailed terms & bank details</li>
+            <li>Force majeure clause + signature</li>
+          </ul>
+          <strong>Best for:</strong> Large orders, formal tenders
+        </div>
+      </div>
+    </div>
+
+    <div class="flow" style="margin-top:20px">
+      <div class="flow-n">Open Enquiry</div>
+      <span class="flow-a">&rarr;</span>
+      <div class="flow-n hl">Click "Generate Quotation"</div>
+      <span class="flow-a">&rarr;</span>
+      <div class="flow-n">Auto-fills from enquiry</div>
+      <span class="flow-a">&rarr;</span>
+      <div class="flow-n hl">Review & adjust</div>
+      <span class="flow-a">&rarr;</span>
+      <div class="flow-n">Preview / Download / Share</div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ 1-PAGE QUOTATION ═══ -->
+  <section class="sec">
+    <span class="anchor" id="single-page"></span>
+    <h2>1-Page Quotation (Quick Quote)</h2>
+    <p class="sub">Everything about the single-page quotation format.</p>
+
+    <h3>Available Models</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Model</th><th>Auto-Filled Description</th><th>HSN Code</th></tr></thead>
+        <tbody>
+          <tr><td><strong>USEPL-4V PINNACLE</strong></td><td>Color sorting Machine (USEPL-4V) PINNACLE<br><em>With AI (Advance intelligent Algorithm)</em></td><td>84371000</td></tr>
+          <tr><td><strong>USEPL-6V PINNACLE</strong></td><td>Color sorting Machine (USEPL-6V) PINNACLE<br><em>With AI (Advance intelligent Algorithm)</em></td><td>84371000</td></tr>
+          <tr><td><strong>USEPL-8V PINNACLE</strong></td><td>Color sorting Machine (USEPL-8V) PINNACLE<br><em>With AI (Advance intelligent Algorithm)</em></td><td>84371000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>When you select a model, the <strong>description</strong>, <strong>short name</strong>, and <strong>HSN code</strong> fill in automatically. You can edit any of these manually if needed.</p>
+
+    <h3>Sections in the Form</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Section</th><th>Fields</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Reference</strong></td><td>Ref Number, Ref Date, Quotation Number, Quotation Date</td></tr>
+          <tr><td><strong>Client Details</strong></td><td>Salutation + Contact Person, Company, Address (2 lines), City, State, Mobile, Email</td></tr>
+          <tr><td><strong>Product</strong></td><td>Model (dropdown), Quantity, Description (2 lines), Short Name, HSN Code, Base Price, Exclusions/Note</td></tr>
+          <tr><td><strong>Pricing & GST</strong></td><td>GST Rate (0/5/12/18/28%), GST Amount (auto), Total (auto)</td></tr>
+          <tr><td><strong>Terms</strong></td><td>Payment Terms, Delivery Point, Lead Time, Commodity, Validity (days), Electricity, Freight, Warranty, Cancellation Policy</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>GST Rate Options</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Rate</th><th>Label</th><th>When to Use</th></tr></thead>
+        <tbody>
+          <tr><td class="price">0%</td><td>Exempt</td><td>Tax-exempt orders</td></tr>
+          <tr><td class="price">5%</td><td>5%</td><td>Reduced rate items</td></tr>
+          <tr><td class="price">12%</td><td>12%</td><td>Standard reduced</td></tr>
+          <tr><td class="price hl">18%</td><td>18% (Default)</td><td>Most sorting machines</td></tr>
+          <tr><td class="price">28%</td><td>28%</td><td>Luxury / high-rate items</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ 6-PAGE DETAILED ═══ -->
+  <section class="sec">
+    <span class="anchor" id="detailed-page"></span>
+    <h2>6-Page Detailed Quotation</h2>
+    <p class="sub">The comprehensive quotation for formal tenders and large orders.</p>
+
+    <h3>Available Products</h3>
+    <p>The detailed quotation has its own product catalogue with fixed pricing and technical specs:</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Product</th><th>Modules</th><th>Cameras</th><th>Air Requirement</th><th>Base Price</th></tr></thead>
+        <tbody>
+          <tr>
+            <td><strong>PINNACLE 6<br>(USEPL 6V)</strong></td>
+            <td>6 Modules<br>378 channels</td>
+            <td>12 Holographic<br>Trichromatic Flash</td>
+            <td>>90 CFM @ 4.2 Kg/Cm&sup2;</td>
+            <td class="price">&#8377; 24,15,254</td>
+          </tr>
+          <tr>
+            <td><strong>PINNACLE 8<br>(USEPL 8V)</strong></td>
+            <td>8 Modules<br>504 channels</td>
+            <td>16 Holographic<br>Trichromatic Flash</td>
+            <td>>120 CFM @ 4.2 Kg/Cm&sup2;</td>
+            <td class="price">&#8377; 32,20,339</td>
+          </tr>
+          <tr>
+            <td><strong>PINNACLE 10<br>(USEPL 10V)</strong></td>
+            <td>10 Modules<br>630 channels</td>
+            <td>20 Holographic<br>Trichromatic Flash</td>
+            <td>>150 CFM @ 4.2 Kg/Cm&sup2;</td>
+            <td class="price">&#8377; 40,25,424</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>What Each Page Contains</h3>
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div class="step-b"><div class="step-t">Cover Letter (Page 1)</div><div class="step-d">Formal introduction to the PINNACLE series. Highlights the AI-powered sorting technology, trichromatic cameras, and key features of the machine.</div></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-b"><div class="step-t">Cover Letter Continued (Page 2)</div><div class="step-d">Continued product introduction. Mentions 1500+ machines sold, after-sales support, and company credentials.</div></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-b"><div class="step-t">Technical Specifications (Page 3)</div><div class="step-d">Detailed specs table with 12 rows: model name, modules, channels, cameras, sorting capacity, air requirement, power consumption, dimensions, weight, and more.</div></div></div>
+      <div class="step"><div class="step-n">4</div><div class="step-b"><div class="step-t">Commercial Offer (Page 4)</div><div class="step-d">Product table with quantity, description, HSN code, and price. GST calculation (fixed at 18%). Total amount in words. First set of terms & conditions (8 items).</div></div></div>
+      <div class="step"><div class="step-n">5</div><div class="step-b"><div class="step-t">Terms & Bank Details (Page 5)</div><div class="step-d">Continued terms and conditions. Bank account details for payment. Exclusions list (6 items &mdash; things NOT included like compressor, dryer, etc.).</div></div></div>
+      <div class="step"><div class="step-n">6</div><div class="step-b"><div class="step-t">Force Majeure & Signatures (Page 6)</div><div class="step-d">Force majeure clause (pandemic, war, natural disaster). Signature block for both company and customer acceptance.</div></div></div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">&#9888;&#65039;</span>
+      <div class="callout-body">
+        <strong>GST in 6-page quotation is fixed at 18%.</strong> Unlike the 1-page quotation where you can choose 0/5/12/18/28%, the detailed quotation always uses 18% GST. This cannot be changed from the form.
+      </div>
+    </div>
+
+    <h3>Auto-Selection from Enquiry</h3>
+    <p>When generating a 6-page quotation from an enquiry, the system picks the product based on the <strong>size from the first item</strong>:</p>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Enquiry Size</th><th>Product Selected</th></tr></thead>
+        <tbody>
+          <tr><td>5 or 6 chutes</td><td>PINNACLE 6 (USEPL 6V)</td></tr>
+          <tr><td>7 or 8 chutes</td><td>PINNACLE 8 (USEPL 8V)</td></tr>
+          <tr><td>10 chutes</td><td>PINNACLE 10 (USEPL 10V)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ 1P VS 6P ═══ -->
+  <section class="sec">
+    <span class="anchor" id="1p-vs-6p"></span>
+    <h2>1-Page vs 6-Page Comparison</h2>
+    <p class="sub">Side-by-side comparison of both quotation types.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Feature</th><th>1-Page</th><th>6-Page</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Length</strong></td><td>1 page</td><td>6 pages</td></tr>
+          <tr><td><strong>Models available</strong></td><td>USEPL-4V, 6V, 8V</td><td>USEPL-6V, 8V, 10V</td></tr>
+          <tr><td><strong>GST rate</strong></td><td>Selectable (0-28%)</td><td>Fixed at 18%</td></tr>
+          <tr><td><strong>Technical specs</strong></td><td>Not included</td><td>Full page of specs</td></tr>
+          <tr><td><strong>Cover letter</strong></td><td>Not included</td><td>2 pages</td></tr>
+          <tr><td><strong>Force majeure</strong></td><td>Not included</td><td>Included</td></tr>
+          <tr><td><strong>Exclusions list</strong></td><td>Free-text note field</td><td>Structured 6-item list</td></tr>
+          <tr><td><strong>Prices</strong></td><td>Editable (any amount)</td><td>Fixed from product catalogue</td></tr>
+          <tr><td><strong>Best for</strong></td><td>Quick quotes, small orders</td><td>Formal tenders, large orders</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ AUTO MAPPING ═══ -->
+  <section class="sec">
+    <span class="anchor" id="auto-mapping"></span>
+    <h2>Enquiry to Quotation Mapping</h2>
+    <p class="sub">What auto-fills when you generate a quotation from an enquiry.</p>
+
+    <p>When you click <strong>"Generate Quotation"</strong> from an enquiry, the system copies data from the enquiry into the quotation form automatically:</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Enquiry Field</th><th>Fills Into</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Customer Name</td><td>Contact Person</td><td>Direct copy</td></tr>
+          <tr><td>Mill / Company Name</td><td>Company</td><td>Uses mill name first; falls back to customer name</td></tr>
+          <tr><td>Mobile</td><td>Mobile</td><td>Direct copy</td></tr>
+          <tr><td>Email</td><td>Email</td><td>Direct copy</td></tr>
+          <tr><td>Location</td><td>City</td><td>Direct copy</td></tr>
+          <tr><td>State</td><td>State</td><td>Direct copy</td></tr>
+          <tr><td>Address</td><td>Address Line 1</td><td>Direct copy</td></tr>
+          <tr><td>First item's model</td><td>Model + Description + HSN</td><td>Looked up from model catalogue</td></tr>
+          <tr><td>First item's quantity</td><td>Quantity</td><td>Formatted as "1 Set."</td></tr>
+          <tr><td>First item's price</td><td>Base Price</td><td>Direct copy (before GST)</td></tr>
+          <tr><td>Commodity</td><td>Commodity</td><td>Defaults to "Rice" if empty</td></tr>
+          <tr><td>Today's date</td><td>Ref Date + Quotation Date</td><td>Both set to today</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">&#128161;</span>
+      <div class="callout-body">
+        <strong>Only the first item</strong> from the enquiry is mapped to the quotation. If the enquiry has multiple items, only the first one's model, quantity, and price are copied. You can manually adjust the quotation afterwards.
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ GST CALC ═══ -->
+  <section class="sec">
+    <span class="anchor" id="gst-calc"></span>
+    <h2>GST & Price Calculation</h2>
+    <p class="sub">How the system calculates GST and the final total.</p>
+
+    <h3>Formula</h3>
+    <div class="tw">
+      <table>
+        <thead><tr><th>Calculation</th><th>Formula</th><th>Example (Base = &#8377;31,35,593)</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Base Price</strong></td><td>Entered or auto-filled</td><td class="price">&#8377; 31,35,593</td></tr>
+          <tr><td><strong>GST Amount</strong></td><td>Base Price x GST Rate</td><td class="price">&#8377; 5,64,407 (at 18%)</td></tr>
+          <tr><td><strong>Total</strong></td><td>Base Price + GST Amount</td><td class="price">&#8377; 37,00,000</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>GST Amount and Total are <strong>auto-calculated</strong> and cannot be typed manually. They update instantly when you change the base price or GST rate.</p>
+
+    <p>A <strong>pricing panel</strong> appears on the right side of the form showing the breakdown in real-time whenever the base price is greater than zero.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ AMOUNT IN WORDS ═══ -->
+  <section class="sec">
+    <span class="anchor" id="amount-words"></span>
+    <h2>Amount in Words</h2>
+    <p class="sub">How the total is converted to words for the PDF.</p>
+
+    <p>The system automatically converts the total amount into Indian-format words. For example:</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Amount</th><th>In Words</th></tr></thead>
+        <tbody>
+          <tr><td class="price">&#8377; 37,00,000</td><td>Rs. Thirty Seven Lakh Only.</td></tr>
+          <tr><td class="price">&#8377; 47,20,000</td><td>Rs. Forty Seven Lakh Twenty Thousand Only.</td></tr>
+          <tr><td class="price">&#8377; 1,25,00,000</td><td>Rs. One Crore Twenty Five Lakh Only.</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p>This appears on the quotation PDF next to the total amount. The conversion uses the Indian numbering system: <strong>Crore &rarr; Lakh &rarr; Thousand &rarr; Hundred</strong>.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ PDF GENERATION ═══ -->
+  <section class="sec">
+    <span class="anchor" id="pdf-generation"></span>
+    <h2>PDF Generation</h2>
+    <p class="sub">How the quotation becomes a downloadable PDF.</p>
+
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div class="step-b"><div class="step-t">Click "Preview"</div><div class="step-d">The system builds the quotation layout using your form data and displays it in a full-screen preview modal, exactly as it will appear on paper (A4 size).</div></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-b"><div class="step-t">Click "Download PDF"</div><div class="step-d">The system captures the preview as a high-resolution image and converts it into a PDF file. The file downloads to your device automatically.</div></div></div>
+    </div>
+
+    <p>The PDF includes the company header, stamp image, and all form data laid out professionally on A4 paper. For 6-page quotations, all 6 pages are captured and combined into a single PDF file.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ SHARING ═══ -->
+  <section class="sec">
+    <span class="anchor" id="sharing"></span>
+    <h2>Sharing via WhatsApp & Email</h2>
+    <p class="sub">How to send the quotation directly to the customer.</p>
+
+    <p>After generating a quotation, you can share it from the preview screen:</p>
+
+    <div class="cards">
+      <div class="card">
+        <div class="card-icon green"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg></div>
+        <div class="card-t">WhatsApp</div>
+        <div class="card-d">Opens WhatsApp with a pre-filled message containing the quotation details. You attach the downloaded PDF and send it to the customer's number.</div>
+      </div>
+      <div class="card">
+        <div class="card-icon blue"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg></div>
+        <div class="card-t">Gmail</div>
+        <div class="card-d">Opens Gmail with a pre-filled subject line and message body. Attach the PDF to complete the email and send.</div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ DEFAULTS ═══ -->
+  <section class="sec">
+    <span class="anchor" id="defaults"></span>
+    <h2>Default Values</h2>
+    <p class="sub">Pre-filled values that appear in every new quotation.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Field</th><th>Default Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Payment Terms</strong></td><td>50% advance with Purchase Order and balance before despatch.</td></tr>
+          <tr><td><strong>Freight</strong></td><td>At actual in your scope.</td></tr>
+          <tr><td><strong>Warranty</strong></td><td>One year.</td></tr>
+          <tr><td><strong>Cancellation Policy</strong></td><td>Order once confirmed & processed cannot be cancelled.</td></tr>
+          <tr><td><strong>Electricity Supply</strong></td><td>220 V Frequency- 50Hz.</td></tr>
+          <tr><td><strong>GST Rate</strong></td><td>18%</td></tr>
+          <tr><td><strong>HSN Code</strong></td><td>84371000</td></tr>
+          <tr><td><strong>Commodity</strong></td><td>Rice (if not specified in enquiry)</td></tr>
+          <tr><td><strong>Payment in Favour Of</strong></td><td>UNIQUE SORTER & EQUIPMENTS PVT LTD</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <p>All defaults can be edited on the quotation form before generating the PDF.</p>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ BANK DETAILS ═══ -->
+  <section class="sec">
+    <span class="anchor" id="bank-details"></span>
+    <h2>Bank Details</h2>
+    <p class="sub">Company bank information printed on every quotation.</p>
+
+    <div class="tw">
+      <table>
+        <thead><tr><th>Detail</th><th>Value</th></tr></thead>
+        <tbody>
+          <tr><td><strong>Account Number</strong></td><td>004784600001921</td></tr>
+          <tr><td><strong>IFSC Code</strong></td><td>YESB0000047</td></tr>
+          <tr><td><strong>Bank</strong></td><td>YES BANK</td></tr>
+          <tr><td><strong>Branch</strong></td><td>Civil Lines, Raipur (C.G.)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">&#9888;&#65039;</span>
+      <div class="callout-body">
+        <strong>These bank details are fixed in the system</strong> and cannot be changed from the quotation form. They appear as read-only on every quotation PDF.
+      </div>
+    </div>
+  </section>
+
+  <div class="footer">
+    <p>&copy; 2026 Unique Sorter And Equipment Pvt. Ltd. &mdash; All rights reserved.</p>
+    <p style="margin-top:4px">Enquiry & Quotation Guide &middot; Last updated May 2026</p>
+  </div>
+
+</main>
+
+<button class="top-btn" id="topBtn" onclick="window.scrollTo({top:0})" aria-label="Back to top">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"><polyline points="18 15 12 9 6 15"/></svg>
+</button>
+
+<script>
+  function toggleSidebar(){document.getElementById('sidebar').classList.toggle('open');document.getElementById('overlay').classList.toggle('open')}
+  document.querySelectorAll('.s-link').forEach(l=>l.addEventListener('click',()=>{document.getElementById('sidebar').classList.remove('open');document.getElementById('overlay').classList.remove('open')}));
+  const anchors=document.querySelectorAll('.anchor'),links=document.querySelectorAll('.s-link');
+  const obs=new IntersectionObserver(es=>{es.forEach(e=>{if(e.isIntersecting){const id=e.target.id;links.forEach(l=>l.classList.toggle('active',l.getAttribute('href')==='#'+id))}})},{rootMargin:'-20% 0px -70% 0px'});
+  anchors.forEach(a=>obs.observe(a));
+  window.addEventListener('scroll',()=>document.getElementById('topBtn').classList.toggle('visible',window.scrollY>400));
+</script>
+</body>
+</html>
