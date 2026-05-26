@@ -240,20 +240,13 @@ export default function QuotationsPage() {
   const [fDate,  setFDate]  = useState('');
   const [fNum,   setFNum]   = useState('');
 
-  const DUMMY_QUOTATIONS = [
-    { id: 'enq-001_1page', quotNo: 'USEPL/Q/2026-27/001', quotationType: '1page', company: 'Sri Balaji Rice Mill', contact: 'Rajesh Kumar', salutation: 'Mr.', mobile: '9876543210', email: 'rajesh@example.com', city: 'Nagpur', state: 'Maharashtra', model: 'USEPL-6V PINNACLE', total: '7788000', validity: 30, quotDate: '2026-04-20', createdAt: '2026-04-20T10:30:00Z' },
-    { id: 'enq-002_detailed', quotNo: 'USEPL/Q/2026-27/002', quotationType: 'detailed', company: 'Sharma Agro Industries', contact: 'Amit Sharma', salutation: 'Mr.', mobile: '8765432109', email: 'amit@sharmaagro.in', city: 'Hyderabad', state: 'Telangana', model: 'USEPL-8V PINNACLE', total: '4720000', validity: 45, quotDate: '2026-04-18', createdAt: '2026-04-18T14:15:00Z' },
-    { id: 'enq-004_1page', quotNo: 'USEPL/Q/2026-27/003', quotationType: '1page', company: 'Singh Dal Mill', contact: 'Vikram Singh', salutation: 'Mr.', mobile: '9988776655', email: '', city: 'Raipur', state: 'Chhattisgarh', model: 'USEPL-5V PINNACLE', total: '10620000', validity: 30, quotDate: '2026-04-12', createdAt: '2026-04-12T16:45:00Z' },
-  ];
-
   useEffect(() => {
     fetch('/api/quotations', { headers: { ...getAuthHeaders() } })
       .then(r => r.json())
       .then(d => {
-        if (d.success && d.data?.length > 0) setRows(d.data);
-        else setRows(DUMMY_QUOTATIONS);
+        if (d.success) setRows(d.data || []);
       })
-      .catch(() => setRows(DUMMY_QUOTATIONS))
+      .catch(() => setRows([]))
       .finally(() => setLoading(false));
   }, []);
 

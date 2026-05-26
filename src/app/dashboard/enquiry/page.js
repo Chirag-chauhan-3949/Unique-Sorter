@@ -896,28 +896,10 @@ export default function EnquiryPage() {
     fetch('/api/enquiry', { headers: { ...getAuthHeaders() } })
       .then(r => r.json())
       .then(data => {
-        if (data.success) setRows(data.data);
-        else {
-          // Fallback dummy data when API is unavailable
-          setRows([
-            { id: 'enq-001', customerName: 'Rajesh Kumar', millName: 'Sri Balaji Rice Mill', mobile: '9876543210', email: 'rajesh@example.com', location: 'Nagpur', state: 'Maharashtra', hasRequirement: true, source: 'Exhibition', followUpDate: '', createdAt: '2026-04-20T10:30:00Z', items: [{ modelNo: 'Pinnacle', size: '6', qty: '2', price: '6600000' }] },
-            { id: 'enq-002', customerName: 'Amit Sharma', millName: 'Sharma Agro Industries', mobile: '8765432109', email: 'amit@sharmaagro.in', location: 'Hyderabad', state: 'Telangana', hasRequirement: true, source: 'Reference', followUpDate: '', createdAt: '2026-04-18T14:15:00Z', items: [{ modelNo: 'Pinnacle', size: '8', qty: '1', price: '4000000' }] },
-            { id: 'enq-003', customerName: 'Priya Patel', millName: 'Patel Foods Pvt Ltd', mobile: '7654321098', email: 'priya@patelfoods.com', location: 'Bangalore', state: 'Karnataka', hasRequirement: false, source: 'Cold Call', followUpDate: '2026-05-15', createdAt: '2026-04-15T09:00:00Z', futureNote: 'Interested in Pinnacle 10 for new plant expansion in Q3', probableMonth: 'August 2026', orderChances: '60' },
-            { id: 'enq-004', customerName: 'Vikram Singh', millName: 'Singh Dal Mill', mobile: '9988776655', email: '', location: 'Raipur', state: 'Chhattisgarh', hasRequirement: true, source: 'Online / Website', followUpDate: '', createdAt: '2026-04-12T16:45:00Z', items: [{ modelNo: 'Pinnacle', size: '5', qty: '3', price: '9000000' }] },
-            { id: 'enq-005', customerName: 'Sunita Devi', millName: 'Devi Rice Processing', mobile: '8877665544', email: 'sunita@devirice.in', location: 'Warangal', state: 'Telangana', hasRequirement: false, source: 'Social Media', followUpDate: '2026-06-01', createdAt: '2026-04-10T11:20:00Z', futureNote: 'Planning to upgrade existing sorting line next year', probableMonth: 'January 2027', orderChances: '40' },
-          ]);
-        }
+        if (data.success) setRows(data.data || []);
+        else setRows([]);
       })
-      .catch(() => {
-        // Fallback dummy data when API is unavailable
-        setRows([
-          { id: 'enq-001', customerName: 'Rajesh Kumar', millName: 'Sri Balaji Rice Mill', mobile: '9876543210', email: 'rajesh@example.com', location: 'Nagpur', state: 'Maharashtra', hasRequirement: true, source: 'Exhibition', followUpDate: '', createdAt: '2026-04-20T10:30:00Z', items: [{ modelNo: 'Pinnacle', size: '6', qty: '2', price: '6600000' }] },
-          { id: 'enq-002', customerName: 'Amit Sharma', millName: 'Sharma Agro Industries', mobile: '8765432109', email: 'amit@sharmaagro.in', location: 'Hyderabad', state: 'Telangana', hasRequirement: true, source: 'Reference', followUpDate: '', createdAt: '2026-04-18T14:15:00Z', items: [{ modelNo: 'Pinnacle', size: '8', qty: '1', price: '4000000' }] },
-          { id: 'enq-003', customerName: 'Priya Patel', millName: 'Patel Foods Pvt Ltd', mobile: '7654321098', email: 'priya@patelfoods.com', location: 'Bangalore', state: 'Karnataka', hasRequirement: false, source: 'Cold Call', followUpDate: '2026-05-15', createdAt: '2026-04-15T09:00:00Z', futureNote: 'Interested in Pinnacle 10 for new plant expansion in Q3', probableMonth: 'August 2026', orderChances: '60' },
-          { id: 'enq-004', customerName: 'Vikram Singh', millName: 'Singh Dal Mill', mobile: '9988776655', email: '', location: 'Raipur', state: 'Chhattisgarh', hasRequirement: true, source: 'Online / Website', followUpDate: '', createdAt: '2026-04-12T16:45:00Z', items: [{ modelNo: 'Pinnacle', size: '5', qty: '3', price: '9000000' }] },
-          { id: 'enq-005', customerName: 'Sunita Devi', millName: 'Devi Rice Processing', mobile: '8877665544', email: 'sunita@devirice.in', location: 'Warangal', state: 'Telangana', hasRequirement: false, source: 'Social Media', followUpDate: '2026-06-01', createdAt: '2026-04-10T11:20:00Z', futureNote: 'Planning to upgrade existing sorting line next year', probableMonth: 'January 2027', orderChances: '40' },
-        ]);
-      })
+      .catch(() => setRows([]))
       .finally(() => setLoading(false));
   }, []);
 
