@@ -333,22 +333,6 @@
       .doc-flow-node { font-size: 11px; padding: 8px 10px; }
     }
 
-    /* ── CODE BLOCK ── */
-    .doc-code {
-      background: #1e1e2e; color: #cdd6f4;
-      border-radius: 8px; padding: 18px 20px;
-      margin: 14px 0; overflow-x: auto;
-      font-family: 'JetBrains Mono', monospace;
-      font-size: 12.5px; line-height: 1.75;
-      border: 1px solid #313244;
-    }
-    .doc-code .cm { color: #6c7086; }
-    .doc-code .kw { color: #cba6f7; }
-    .doc-code .str { color: #a6e3a1; }
-    .doc-code .fn { color: #89b4fa; }
-    .doc-code .prop { color: #f9e2af; }
-    .doc-code .num { color: #fab387; }
-
     /* ── PLANNED BADGE ── */
     .doc-planned-badge {
       display: inline-flex; align-items: center; gap: 6px;
@@ -987,7 +971,7 @@
 
       <p>For example, a field engineer might only need access to the Enquiry page, while a sales manager might need Enquiry + Quotations + Reports.</p>
 
-      <h3>How It Should Work (User Experience)</h3>
+      <h3>How It Will Work</h3>
       <div class="doc-steps">
         <div class="doc-step">
           <div class="doc-step-num">1</div>
@@ -1007,99 +991,23 @@
           <div class="doc-step-num">3</div>
           <div class="doc-step-body">
             <div class="doc-step-title">Admin Toggles Screens On/Off</div>
-            <div class="doc-step-text">The admin checks or unchecks screens. "Dashboard" and "Profile" should always remain on (non-removable). Save writes to Firestore.</div>
+            <div class="doc-step-text">The admin checks or unchecks screens. "Dashboard" and "Profile" always remain on and cannot be removed.</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="doc-step-num">4</div>
           <div class="doc-step-body">
             <div class="doc-step-title">User Sees Only Allowed Screens</div>
-            <div class="doc-step-text">When the user logs in, the sidebar shows only the screens the admin has allowed. Navigating to a blocked URL redirects to the dashboard.</div>
+            <div class="doc-step-text">When the user logs in, the sidebar shows only the screens the admin has allowed. If they try to visit a blocked page directly, they are redirected to the dashboard.</div>
           </div>
         </div>
       </div>
 
-      <h3>Implementation Guide</h3>
-
-      <p><strong>1. Firestore Data Model</strong></p>
-      <p>Add an <code>allowedScreens</code> array to each user document in the <code>userdata</code> collection:</p>
-      <div class="doc-code">
-<span class="cm">// Firestore: userdata/{phone}</span>
-{
-  <span class="prop">"name"</span>: <span class="str">"Ashok Sharma"</span>,
-  <span class="prop">"phone"</span>: <span class="str">"9876543210"</span>,
-  <span class="prop">"role"</span>: <span class="str">"USER"</span>,
-  <span class="prop">"allowedScreens"</span>: [<span class="str">"dashboard"</span>, <span class="str">"enquiry"</span>, <span class="str">"quotations"</span>, <span class="str">"profile"</span>],
-  <span class="prop">"createdAt"</span>: <span class="str">"2026-01-15T..."</span>
-}
-      </div>
-      <p>Admins always have access to all screens regardless of this field.</p>
-
-      <p><strong>2. Backend &mdash; Return allowedScreens on Login</strong></p>
-      <p>In <code>src/app/api/auth/verify-firebase-token/route.js</code>, include the field in the response:</p>
-      <div class="doc-code">
-<span class="cm">// Inside the POST handler, after fetching userDoc.data()</span>
-<span class="kw">return</span> NextResponse.<span class="fn">json</span>({
-  <span class="prop">success</span>: <span class="kw">true</span>,
-  <span class="prop">user</span>: {
-    <span class="prop">id</span>: userId,
-    <span class="prop">name</span>: data.name,
-    <span class="prop">phone</span>,
-    <span class="prop">role</span>,
-    <span class="prop">allowedScreens</span>: data.allowedScreens || <span class="kw">null</span>,
-  },
-});
-      </div>
-
-      <p><strong>3. Frontend &mdash; AuthContext</strong></p>
-      <p>In <code>src/contexts/AuthContext.js</code>, store <code>allowedScreens</code> alongside user data. On the route guard, if the user has an <code>allowedScreens</code> array and the current page's key is not in it, redirect to <code>/dashboard</code>.</p>
-      <div class="doc-code">
-<span class="cm">// In the route guard useEffect</span>
-<span class="kw">const</span> screens = user?.allowedScreens;
-<span class="kw">if</span> (screens &amp;&amp; userRole !== <span class="str">'ADMIN'</span>) {
-  <span class="kw">const</span> pageKey = pathname.<span class="fn">split</span>(<span class="str">'/'</span>)[<span class="num">2</span>] || <span class="str">'dashboard'</span>;
-  <span class="kw">if</span> (!screens.<span class="fn">includes</span>(pageKey)) {
-    router.<span class="fn">push</span>(<span class="str">'/dashboard'</span>);
-    <span class="kw">return</span>;
-  }
-}
-      </div>
-
-      <p><strong>4. Frontend &mdash; Sidebar Filtering</strong></p>
-      <p>In <code>src/components/Sidebar.js</code>, filter the NAV array using <code>allowedScreens</code>:</p>
-      <div class="doc-code">
-<span class="cm">// Add a "key" to each NAV item: e.g. { key: 'enquiry', href: '/dashboard/enquiry', ... }</span>
-<span class="kw">const</span> filteredNav = NAV.<span class="fn">filter</span>(item =&gt; {
-  <span class="kw">if</span> (!item.allowedRoles.<span class="fn">includes</span>(userRole)) <span class="kw">return false</span>;
-  <span class="kw">if</span> (userRole === <span class="str">'ADMIN'</span>) <span class="kw">return true</span>;
-  <span class="kw">const</span> screens = user?.allowedScreens;
-  <span class="kw">if</span> (!screens) <span class="kw">return true</span>; <span class="cm">// no restriction set = show all</span>
-  <span class="kw">return</span> screens.<span class="fn">includes</span>(item.key);
-});
-      </div>
-
-      <p><strong>5. Settings Page &mdash; Screen Access Editor</strong></p>
-      <p>In the <code>UserModal</code> component within <code>src/app/dashboard/settings/page.js</code>, add a checkbox group below the Role toggle. Each checkbox maps to a screen key. On save, write <code>allowedScreens</code> to the user's Firestore document.</p>
-
       <div class="doc-callout">
         <span class="doc-callout-icon">&#128161;</span>
         <div class="doc-callout-body">
-          <strong>Default behaviour:</strong> If <code>allowedScreens</code> is not set (null/undefined) for a user, they should see all screens their role allows. This maintains backward compatibility with existing users.
+          <strong>Default behaviour:</strong> If no screen restrictions are set for a user, they will see all screens their role allows &mdash; so existing users are unaffected until an admin explicitly configures access.
         </div>
-      </div>
-
-      <h3>Files to Modify</h3>
-      <div class="doc-table-wrap">
-        <table class="doc-table">
-          <thead><tr><th>File</th><th>Change</th></tr></thead>
-          <tbody>
-            <tr><td><code>src/app/api/auth/verify-firebase-token/route.js</code></td><td>Include <code>allowedScreens</code> in login response</td></tr>
-            <tr><td><code>src/contexts/AuthContext.js</code></td><td>Store <code>allowedScreens</code>, add route guard check</td></tr>
-            <tr><td><code>src/components/Sidebar.js</code></td><td>Filter nav items by <code>allowedScreens</code></td></tr>
-            <tr><td><code>src/app/dashboard/settings/page.js</code></td><td>Add screen access checkboxes to UserModal</td></tr>
-            <tr><td><code>src/lib/rbac.js</code></td><td>Add <code>canAccessScreen(user, screenKey)</code> helper</td></tr>
-          </tbody>
-        </table>
       </div>
     </section>
 
@@ -1113,9 +1021,41 @@
       <p class="doc-section-sub">Allow admins to download all enquiries as a CSV file for offline filtering and analysis.</p>
 
       <h3>What It Will Do</h3>
-      <p>Admins will see a <strong>"Download CSV"</strong> button on the Enquiry dashboard page. Clicking it will download a <code>.csv</code> file containing all enquiry records with columns matching the table fields, ready to open in Excel or Google Sheets for custom filtering and reporting.</p>
+      <p>Admins will see a <strong>"Download CSV"</strong> button on the Enquiry dashboard page (next to "+ New Enquiry"). Clicking it downloads a <code>.csv</code> file containing all enquiry records, ready to open in Excel or Google Sheets.</p>
 
-      <h3>How It Should Work (User Experience)</h3>
+      <h3>Why CSV?</h3>
+      <div class="doc-cards">
+        <div class="doc-card">
+          <div class="doc-card-icon blue">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+          </div>
+          <div class="doc-card-title">Custom Filtering</div>
+          <div class="doc-card-text">Excel and Google Sheets have powerful sorting, filtering, and pivot table features that let admins slice data in ways specific to their needs &mdash; by state, date range, commodity, lead source, or any combination.</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-card-icon green">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+          </div>
+          <div class="doc-card-title">Offline Access</div>
+          <div class="doc-card-text">Once downloaded, the data is available offline. Admins can review enquiries during travel or in areas without internet connectivity.</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-card-icon amber">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+          </div>
+          <div class="doc-card-title">Reporting &amp; Sharing</div>
+          <div class="doc-card-text">CSV data can be used to build custom reports, charts, and summaries. It can also be shared with stakeholders who don't have CRM access.</div>
+        </div>
+        <div class="doc-card">
+          <div class="doc-card-icon red">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          </div>
+          <div class="doc-card-title">Data Backup</div>
+          <div class="doc-card-text">Regular CSV downloads serve as a simple backup of all enquiry data, independent of the cloud database.</div>
+        </div>
+      </div>
+
+      <h3>How It Will Work</h3>
       <div class="doc-steps">
         <div class="doc-step">
           <div class="doc-step-num">1</div>
@@ -1128,109 +1068,22 @@
           <div class="doc-step-num">2</div>
           <div class="doc-step-body">
             <div class="doc-step-title">Clicks "Download CSV"</div>
-            <div class="doc-step-text">A button in the top bar (next to "+ New Enquiry") triggers the export. The button is visible only to admins.</div>
+            <div class="doc-step-text">A button in the top bar triggers the export. Only admins can see this button.</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="doc-step-num">3</div>
           <div class="doc-step-body">
             <div class="doc-step-title">CSV File Downloads</div>
-            <div class="doc-step-text">A file named <code>enquiries-YYYY-MM-DD.csv</code> downloads to the browser. It includes all enquiries (not just the currently filtered ones), with all relevant columns.</div>
+            <div class="doc-step-text">A file named <code>enquiries-YYYY-MM-DD.csv</code> downloads to the browser with all enquiry records and all relevant columns (customer name, company, mobile, location, state, requirement type, items, commodity, remarks, date).</div>
           </div>
         </div>
-      </div>
-
-      <h3>CSV Columns</h3>
-      <div class="doc-table-wrap">
-        <table class="doc-table">
-          <thead><tr><th>Column</th><th>Source Field</th></tr></thead>
-          <tbody>
-            <tr><td>Customer Name</td><td><code>customerName</code></td></tr>
-            <tr><td>Mill / Company</td><td><code>millName</code></td></tr>
-            <tr><td>Mobile</td><td><code>mobile</code></td></tr>
-            <tr><td>Email</td><td><code>email</code></td></tr>
-            <tr><td>GST No.</td><td><code>gstNo</code></td></tr>
-            <tr><td>City</td><td><code>location</code></td></tr>
-            <tr><td>State</td><td><code>state</code></td></tr>
-            <tr><td>Address</td><td><code>address</code></td></tr>
-            <tr><td>Has Requirement</td><td><code>hasRequirement</code> (Yes/No)</td></tr>
-            <tr><td>Lead Source</td><td><code>leadSource</code></td></tr>
-            <tr><td>Items (Model / Size / Qty / Price)</td><td><code>items[]</code> joined as text</td></tr>
-            <tr><td>Commodity</td><td><code>commodity</code></td></tr>
-            <tr><td>Remarks</td><td><code>remarks</code></td></tr>
-            <tr><td>Date</td><td><code>createdAt</code></td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <h3>Implementation Guide</h3>
-
-      <p><strong>Approach: Client-side CSV Generation</strong></p>
-      <p>Since the enquiry page already loads all enquiries into the <code>rows</code> state array, CSV generation can be done entirely in the browser &mdash; no new API endpoint needed.</p>
-
-      <p><strong>1. Add the export function</strong> to <code>src/app/dashboard/enquiry/page.js</code>:</p>
-      <div class="doc-code">
-<span class="kw">function</span> <span class="fn">downloadCSV</span>(rows) {
-  <span class="kw">const</span> headers = [
-    <span class="str">'Customer Name'</span>, <span class="str">'Mill/Company'</span>, <span class="str">'Mobile'</span>, <span class="str">'Email'</span>,
-    <span class="str">'GST No.'</span>, <span class="str">'City'</span>, <span class="str">'State'</span>, <span class="str">'Address'</span>,
-    <span class="str">'Has Requirement'</span>, <span class="str">'Lead Source'</span>, <span class="str">'Items'</span>,
-    <span class="str">'Commodity'</span>, <span class="str">'Remarks'</span>, <span class="str">'Date'</span>
-  ];
-
-  <span class="kw">const</span> escape = v =&gt; {
-    <span class="kw">const</span> s = String(v ?? <span class="str">''</span>);
-    <span class="kw">return</span> s.<span class="fn">includes</span>(<span class="str">','</span>) || s.<span class="fn">includes</span>(<span class="str">'"'</span>) || s.<span class="fn">includes</span>(<span class="str">'\n'</span>)
-      ? <span class="str">'"'</span> + s.<span class="fn">replace</span>(<span class="str">/"/g</span>, <span class="str">'""'</span>) + <span class="str">'"'</span> : s;
-  };
-
-  <span class="kw">const</span> csvRows = rows.<span class="fn">map</span>(r =&gt; {
-    <span class="kw">const</span> items = (r.items || [])
-      .<span class="fn">map</span>(i =&gt; <span class="str">`${i.model} ${i.size}ch x${i.qty}`</span>)
-      .<span class="fn">join</span>(<span class="str">' | '</span>);
-    <span class="kw">return</span> [
-      r.customerName, r.millName, r.mobile, r.email,
-      r.gstNo, r.location, r.state, r.address,
-      r.hasRequirement ? <span class="str">'Yes'</span> : <span class="str">'No'</span>, r.leadSource, items,
-      r.commodity, r.remarks, r.createdAt
-    ].<span class="fn">map</span>(escape).<span class="fn">join</span>(<span class="str">','</span>);
-  });
-
-  <span class="kw">const</span> csv = [headers.<span class="fn">join</span>(<span class="str">','</span>), ...csvRows].<span class="fn">join</span>(<span class="str">'\n'</span>);
-  <span class="kw">const</span> blob = <span class="kw">new</span> <span class="fn">Blob</span>([csv], { <span class="prop">type</span>: <span class="str">'text/csv'</span> });
-  <span class="kw">const</span> url = URL.<span class="fn">createObjectURL</span>(blob);
-  <span class="kw">const</span> a = document.<span class="fn">createElement</span>(<span class="str">'a'</span>);
-  a.href = url;
-  a.download = <span class="str">`enquiries-${</span><span class="kw">new</span> <span class="fn">Date</span>().<span class="fn">toISOString</span>().<span class="fn">slice</span>(<span class="num">0</span>,<span class="num">10</span>)<span class="str">}.csv`</span>;
-  a.<span class="fn">click</span>();
-  URL.<span class="fn">revokeObjectURL</span>(url);
-}
-      </div>
-
-      <p><strong>2. Add the button</strong> in the topbar area of the enquiry page (next to "+ New Enquiry"):</p>
-      <div class="doc-code">
-<span class="cm">{/* Only show to admins */}</span>
-{<span class="fn">isAdmin</span>(userRole) &amp;&amp; (
-  &lt;<span class="kw">button</span> <span class="prop">onClick</span>={() =&gt; <span class="fn">downloadCSV</span>(rows)}&gt;
-    Download CSV
-  &lt;/<span class="kw">button</span>&gt;
-)}
-      </div>
-
-      <h3>Files to Modify</h3>
-      <div class="doc-table-wrap">
-        <table class="doc-table">
-          <thead><tr><th>File</th><th>Change</th></tr></thead>
-          <tbody>
-            <tr><td><code>src/app/dashboard/enquiry/page.js</code></td><td>Add <code>downloadCSV()</code> function and "Download CSV" button (admin-only)</td></tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="doc-callout">
-        <span class="doc-callout-icon">&#128161;</span>
-        <div class="doc-callout-body">
-          <strong>Tip:</strong> This approach exports all enquiries currently loaded in memory. For very large datasets (10,000+), consider adding a server-side API endpoint that streams the CSV directly from Firestore.
+        <div class="doc-step">
+          <div class="doc-step-num">4</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Open in Excel / Google Sheets</div>
+            <div class="doc-step-text">Open the downloaded file in any spreadsheet application and use built-in filters, sorting, and formulas to analyse the data for your specific use case.</div>
+          </div>
         </div>
       </div>
     </section>
