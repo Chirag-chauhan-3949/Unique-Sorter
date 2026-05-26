@@ -1055,6 +1055,37 @@ export default function EnquiryPage() {
           overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
         }
 
+        /* skeleton loader */
+        @keyframes enq-shimmer {
+          0% { background-position: -400px 0; }
+          100% { background-position: 400px 0; }
+        }
+        .enq-skel-row { display: flex; gap: 0; }
+        .enq-skel-row td { display: table-cell; }
+        .enq-skel-bar {
+          height: 12px; border-radius: 6px;
+          background: linear-gradient(90deg, #e8ecf4 0%, #f4f6fb 40%, #e8ecf4 80%);
+          background-size: 800px 100%;
+          animation: enq-shimmer 1.6s ease-in-out infinite;
+        }
+        .enq-skel-bar.w60 { width: 60%; }
+        .enq-skel-bar.w40 { width: 40%; }
+        .enq-skel-bar.w50 { width: 50%; }
+        .enq-skel-bar.w70 { width: 70%; }
+        .enq-skel-bar.w30 { width: 30%; }
+        .enq-skel-bar.h8  { height: 8px; }
+        .enq-skel-bar.pill { width: 64px; height: 20px; border-radius: 10px; }
+        .enq-skel-mob {
+          display: flex; flex-direction: column; gap: 6px; padding: 6px 0;
+        }
+        .enq-skel-mob-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        @media (min-width: 768px) {
+          .enq-skel-mob { display: none; }
+        }
+        @media (max-width: 767px) {
+          .enq-skel-desk { display: none !important; }
+        }
+
         /* empty / loading */
         .enq-state {
           padding: 48px 24px; text-align: center;
@@ -1201,11 +1232,43 @@ export default function EnquiryPage() {
           {error ? (
             <tbody><tr><td colSpan={6} style={{ display: 'table-cell' }}><div className="enq-state"><span className="enq-state-title" style={{color:'#c0392b'}}>⚠ {error}</span></div></td></tr></tbody>
           ) : loading ? (
-            <tbody><tr><td colSpan={6} style={{ display: 'table-cell', textAlign: 'center', padding: '48px 0' }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'enq-spin .8s linear infinite', display: 'inline-block' }}>
-                <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-              </svg>
-            </td></tr></tbody>
+            <>
+              <thead>
+                <tr>
+                  <th>Customer</th>
+                  <th>Requirement</th>
+                  <th>Mill / Company</th>
+                  <th>Mobile</th>
+                  <th>Location</th>
+                  <th>Date</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[0,1,2,3,4,5].map(i => (
+                  <tr key={i} style={{ cursor: 'default', animationDelay: `${i * 0.08}s` }}>
+                    <td className="enq-td-name">
+                      {/* mobile skeleton */}
+                      <div className="enq-skel-mob">
+                        <div className="enq-skel-mob-top">
+                          <div className="enq-skel-bar w60" style={{ animationDelay: `${i * 0.12}s` }} />
+                          <div className="enq-skel-bar pill" style={{ animationDelay: `${i * 0.12 + 0.1}s` }} />
+                        </div>
+                        <div className="enq-skel-bar w70 h8" style={{ animationDelay: `${i * 0.12 + 0.2}s` }} />
+                      </div>
+                      {/* desktop skeleton */}
+                      <div className="enq-skel-desk" style={{ display: 'block' }}>
+                        <div className="enq-skel-bar w70" style={{ animationDelay: `${i * 0.12}s` }} />
+                      </div>
+                    </td>
+                    <td className="enq-skel-desk"><div className="enq-skel-bar pill" style={{ animationDelay: `${i * 0.12 + 0.05}s` }} /></td>
+                    <td className="enq-skel-desk"><div className="enq-skel-bar w60" style={{ animationDelay: `${i * 0.12 + 0.1}s` }} /></td>
+                    <td className="enq-skel-desk"><div className="enq-skel-bar w50" style={{ animationDelay: `${i * 0.12 + 0.15}s` }} /></td>
+                    <td className="enq-skel-desk"><div className="enq-skel-bar w40" style={{ animationDelay: `${i * 0.12 + 0.2}s` }} /></td>
+                    <td className="enq-skel-desk"><div className="enq-skel-bar w50" style={{ animationDelay: `${i * 0.12 + 0.25}s` }} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </>
           ) : (
             <>
               <thead>

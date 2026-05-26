@@ -190,6 +190,35 @@ const CSS = `
     font-weight: 600; color: #94a3b8; letter-spacing: 0.2px;
   }
 
+  /* skeleton loader */
+  @keyframes quot-shimmer {
+    0% { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+  }
+  .quot-skel-bar {
+    height: 12px; border-radius: 6px;
+    background: linear-gradient(90deg, #e8ecf4 0%, #f4f6fb 40%, #e8ecf4 80%);
+    background-size: 800px 100%;
+    animation: quot-shimmer 1.6s ease-in-out infinite;
+  }
+  .quot-skel-bar.w60 { width: 60%; }
+  .quot-skel-bar.w40 { width: 40%; }
+  .quot-skel-bar.w50 { width: 50%; }
+  .quot-skel-bar.w70 { width: 70%; }
+  .quot-skel-bar.w30 { width: 30%; }
+  .quot-skel-bar.h8  { height: 8px; }
+  .quot-skel-bar.pill { width: 64px; height: 20px; border-radius: 10px; }
+  .quot-skel-mob {
+    display: flex; flex-direction: column; gap: 6px; padding: 6px 0;
+  }
+  .quot-skel-mob-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  @media (min-width: 768px) {
+    .quot-skel-mob { display: none; }
+  }
+  @media (max-width: 767px) {
+    .quot-skel-desk { display: none !important; }
+  }
+
   /* loading / empty */
   @keyframes quot-spin { to { transform: rotate(360deg); } }
   .quot-empty {
@@ -389,13 +418,29 @@ export default function QuotationsPage() {
             </thead>
             <tbody>
               {loading ? (
-                <tr>
-                  <td colSpan={8} style={{ display: 'table-cell', textAlign: 'center', padding: '48px 0' }}>
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'quot-spin .8s linear infinite', display: 'inline-block' }}>
-                      <path d="M21 12a9 9 0 1 1-6.219-8.56"/>
-                    </svg>
-                  </td>
-                </tr>
+                [0,1,2,3,4,5].map(i => (
+                  <tr key={i} style={{ cursor: 'default' }}>
+                    <td>
+                      {/* mobile skeleton */}
+                      <div className="quot-skel-mob">
+                        <div className="quot-skel-mob-top">
+                          <div className="quot-skel-bar w50" style={{ animationDelay: `${i * 0.12}s` }} />
+                          <div className="quot-skel-bar pill" style={{ animationDelay: `${i * 0.12 + 0.1}s` }} />
+                        </div>
+                        <div className="quot-skel-bar w70 h8" style={{ animationDelay: `${i * 0.12 + 0.2}s` }} />
+                      </div>
+                      {/* desktop skeleton */}
+                      <div className="quot-skel-desk"><div className="quot-skel-bar w60" style={{ animationDelay: `${i * 0.12}s` }} /></div>
+                    </td>
+                    <td className="quot-skel-desk"><div className="quot-skel-bar pill" style={{ animationDelay: `${i * 0.12 + 0.05}s` }} /></td>
+                    <td className="quot-skel-desk"><div className="quot-skel-bar w60" style={{ animationDelay: `${i * 0.12 + 0.1}s` }} /></td>
+                    <td className="quot-skel-desk"><div className="quot-skel-bar w50" style={{ animationDelay: `${i * 0.12 + 0.15}s` }} /></td>
+                    <td className="quot-skel-desk"><div className="quot-skel-bar w40" style={{ animationDelay: `${i * 0.12 + 0.2}s` }} /></td>
+                    <td className="quot-skel-desk"><div className="quot-skel-bar w30" style={{ animationDelay: `${i * 0.12 + 0.25}s` }} /></td>
+                    <td className="quot-skel-desk"><div className="quot-skel-bar w50" style={{ animationDelay: `${i * 0.12 + 0.3}s` }} /></td>
+                    <td className="quot-skel-desk"><div className="quot-skel-bar w40" style={{ animationDelay: `${i * 0.12 + 0.35}s` }} /></td>
+                  </tr>
+                ))
               ) : filtered.length === 0 ? (
                 <tr>
                   <td colSpan={8} style={{ display: 'table-cell' }}>
