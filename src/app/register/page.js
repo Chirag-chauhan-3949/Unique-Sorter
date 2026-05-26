@@ -88,14 +88,14 @@ export default function RegisterPage() {
         `}</style>
         <div className="reg-success-card" style={styles.card}>
           <div style={styles.successIcon}>
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#22c55e" strokeWidth="2">
-              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
-              <polyline points="22 4 12 14.01 9 11.01"/>
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#d97706" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/>
+              <polyline points="12 6 12 12 16 14"/>
             </svg>
           </div>
-          <h2 className="reg-success-title" style={styles.successTitle}>Registration Successful!</h2>
+          <h2 className="reg-success-title" style={styles.successTitle}>Request Submitted!</h2>
           <p style={styles.successText}>
-            Your account has been created. You can now login with your phone number and password.
+            Your registration request has been submitted. An administrator must approve your account before you can login. Please contact your admin.
           </p>
           <div style={styles.buttonGroup}>
             <button onClick={() => router.push('/login')} className="reg-success-btn" style={styles.button}>

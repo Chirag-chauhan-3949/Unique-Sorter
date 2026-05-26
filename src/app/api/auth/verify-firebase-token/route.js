@@ -49,6 +49,14 @@ export async function POST(request) {
     const role = (data.role || 'USER').toUpperCase();
     const userId = data.id || phone;
 
+    // Block login for pending users (requires admin approval)
+    if (data.status === 'pending') {
+      return NextResponse.json(
+        { message: 'Your account is pending admin approval. Please contact an administrator.' },
+        { status: 403 }
+      );
+    }
+
     // Set custom claims so role is baked into future Firebase tokens
     await adminAuth.setCustomUserClaims(decoded.uid, { role, userId });
 

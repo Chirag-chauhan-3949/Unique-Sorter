@@ -460,6 +460,7 @@ export default function SettingsPage() {
               phone: data.phone || d.id,
               role: data.role ? (data.role.charAt(0).toUpperCase() + data.role.slice(1).toLowerCase()) : 'User',
               active: data.active !== undefined ? data.active : true,
+              status: data.status || 'approved',
               allowedScreens: data.allowedScreens || null,
               avatar: name ? name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U',
             };
@@ -532,10 +533,15 @@ export default function SettingsPage() {
         return;
       }
 
+      // Auto-approve since admin is creating this user
+      if (firebaseDb) {
+        await setDoc(doc(firebaseDb, 'userdata', data.phone), { status: 'approved' }, { merge: true });
+      }
       const newUser = {
         ...data,
         id: json.user.id,
         active: true,
+        status: 'approved',
         avatar: data.name ? data.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2) : 'U',
       };
       setUsers(us => [...us, newUser]);
@@ -561,6 +567,19 @@ export default function SettingsPage() {
       showToast('Failed to remove user: ' + err.message, 'error');
     }
     setModal(null);
+  };
+
+  const handleApprove = async (userId) => {
+    const target = users.find(u => u.id === userId);
+    try {
+      if (firebaseDb && target?.phone) {
+        await setDoc(doc(firebaseDb, 'userdata', target.phone), { status: 'approved' }, { merge: true });
+      }
+      setUsers(us => us.map(u => u.id === userId ? { ...u, status: 'approved' } : u));
+      showToast('User approved successfully');
+    } catch (err) {
+      showToast('Failed to approve user: ' + err.message, 'error');
+    }
   };
 
   // Show loading state
@@ -713,15 +732,28 @@ export default function SettingsPage() {
                   </div>
                 </div>
 
-                {/* Role */}
-                <div className="col-role" style={{ flex: '0 0 100px' }}>
+                {/* Role + Status */}
+                <div className="col-role" style={{ flex: '0 0 100px', display: 'flex', flexDirection: 'column', gap: 3 }}>
                   <span className="role-pill-inner" style={{ ...styles.rolePill, ...(u.role === 'Admin' ? styles.rolePillAdmin : styles.rolePillUser) }}>
                     {u.role}
                   </span>
+                  {u.status === 'pending' && (
+                    <span style={{ ...styles.rolePill, background: '#fef3c7', color: '#92400e', fontSize: 10 }}>
+                      Pending
+                    </span>
+                  )}
                 </div>
 
                 {/* Actions */}
-                <div className="col-actions row-actions" style={{ flex: '0 0 90px', display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
+                <div className="col-actions row-actions" style={{ flex: '0 0 120px', display: 'flex', justifyContent: 'flex-end', gap: 4 }}>
+                  {u.status === 'pending' && (
+                    <button
+                      className="action-btn"
+                      style={{ ...styles.actionBtn, background: '#ecfdf5', borderColor: '#a7f3d0', color: '#059669' }}
+                      title="Approve"
+                      onClick={() => handleApprove(u.id)}
+                    ><IconCheck /></button>
+                  )}
                   <button
                     className="action-btn"
                     style={styles.actionBtn}

@@ -53,19 +53,20 @@ export async function POST(request) {
     const authUser = await adminAuth.getUserByPhoneNumber('+91' + phone);
     await adminAuth.setCustomUserClaims(authUser.uid, { role: normalizedRole, userId });
 
-    // Save profile to Firestore
+    // Save profile to Firestore with pending status (requires admin approval)
     await adminDb.collection('userdata').doc(phone).set({
       id: userId,
       name,
       phone,
       role: normalizedRole,
+      status: 'pending',
       createdAt: new Date().toISOString(),
     });
 
     return NextResponse.json({
       success: true,
-      message: 'Registered successfully. You can now login with OTP.',
-      user: { id: userId, name, phone, role: normalizedRole },
+      message: 'Registration request submitted. An admin must approve your account before you can login.',
+      user: { id: userId, name, phone, role: normalizedRole, status: 'pending' },
     });
 
   } catch (error) {
