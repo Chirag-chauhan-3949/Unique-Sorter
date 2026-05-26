@@ -10,6 +10,7 @@ const PAGE_META = {
   '/enquiry':               { title: 'Enquiry',     subtitle: 'Manage your leads & enquiries' },
   '/dashboard/quotations':  { title: 'Quotations',  subtitle: 'Create and track quotations' },
   '/dashboard/settings':    { title: 'Settings',    subtitle: 'Manage your preferences' },
+  '/dashboard/profile':     { title: 'Profile',     subtitle: 'Your account details' },
   '/dashboard/reports':     { title: 'Reports',     subtitle: 'Analytics & insights' },
   '/dashboard/products':    { title: 'Products',    subtitle: 'Product catalogue' },
   '/dashboard/enquiry':     { title: 'Enquiries',   subtitle: 'All customer enquiries' },
@@ -65,7 +66,7 @@ export default function TopBar() {
 
   const handleProfile = () => {
     setProfileOpen(false);
-    // TODO: Navigate to profile page when created
+    router.push('/dashboard/profile');
   };
 
   // Get display info from auth context
