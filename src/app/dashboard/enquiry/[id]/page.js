@@ -851,8 +851,8 @@ export default function EnquiryDetailPage() {
                 <button className="eqd-btn" onClick={cancelEdit}>Cancel</button>
               )}
 
-              {/* 3-dots — admin only */}
-              {isAdminUser && !confirmDel && (
+              {/* 3-dots menu */}
+              {!confirmDel && (
                 <div className="eqd-more-wrap" ref={moreRef}>
                   <button
                     className={`eqd-more-btn${showMore ? ' active' : ''}`}
@@ -1083,9 +1083,7 @@ export default function EnquiryDetailPage() {
               {saveErr && <span className="eqd-err" style={{ marginLeft: 16 }}>⚠ {saveErr}</span>}
             </div>
             <div className="eqd-footer-actions">
-              {/* Show action buttons only for Admin */}
-              {isAdminUser && (
-                editing ? (
+              {editing ? (
                   <button className="eqd-btn eqd-btn--primary" onClick={handleSave} disabled={saving}>
                     {saving ? (
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" style={{ animation: 'eqd-spin 0.8s linear infinite' }}>
@@ -1108,8 +1106,7 @@ export default function EnquiryDetailPage() {
                     </svg>
                     Generate Quotation
                   </button>
-                )
-              )}
+                )}
             </div>
           </div>
 
