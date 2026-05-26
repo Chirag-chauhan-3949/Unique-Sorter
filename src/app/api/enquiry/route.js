@@ -40,7 +40,10 @@ export async function GET(request) {
 
 export async function POST(request) {
   try {
-    // Enquiry creation is public (from /enquiry form) — no auth required for POST
+    const auth = await verifyAuth(request);
+    if (auth.error) {
+      return NextResponse.json({ message: auth.error }, { status: auth.status });
+    }
     if (!adminDb) return Response.json({ success: false, error: 'Database not configured. Enquiry saved locally only.' }, { status: 503 });
 
     const body = await request.json();

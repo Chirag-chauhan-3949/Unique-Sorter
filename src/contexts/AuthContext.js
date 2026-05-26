@@ -169,7 +169,7 @@ export function AuthProvider({ children }) {
   useEffect(() => {
     if (isLoading) return;
 
-    const publicRoutes = ['/login', '/register', '/enquiry', '/inquiry'];
+    const publicRoutes = ['/login', '/register'];
     const isPublicRoute = publicRoutes.some(route => pathname?.startsWith(route)) || pathname === '/';
 
     // Only redirect unauthenticated users away from protected routes

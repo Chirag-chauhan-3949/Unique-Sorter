@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 /* ─── Constants ───────────────────────────────────────────────── */
 const MODELS      = ['Pinnacle', 'Nandak'];
@@ -830,6 +831,7 @@ const CSS = `
 /* ─── Component ──────────────────────────────────────────────── */
 export default function EnquiryPage() {
   const router = useRouter();
+  const { getAuthHeaders } = useAuth();
   const [form, setForm] = useState(INIT());
   const [errors, setErrors] = useState({});
   const [status, setStatus] = useState('idle'); // idle | loading | success | error
@@ -895,7 +897,7 @@ export default function EnquiryPage() {
     try {
       const res = await fetch('/api/enquiry', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
         body: JSON.stringify(form),
       });
       const data = await res.json();
