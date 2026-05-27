@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
-import { signInWithPhoneNumber, RecaptchaVerifier } from 'firebase/auth';
+import { signInWithPhoneNumber, RecaptchaVerifier, signInWithCustomToken } from 'firebase/auth';
 import { auth } from '@/lib/firebase';
 
 const CSS = `
@@ -104,6 +104,30 @@ const CSS = `
   .lp-register-link a { color:#1A37AA; font-weight:600; text-decoration:none; margin-left:4px; }
   .lp-register-link a:hover { text-decoration:underline; }
 
+  .lp-method-toggle {
+    display:flex; gap:0; margin-bottom:28px;
+    background:#f1f5f9; border-radius:10px; padding:3px;
+  }
+  .lp-method-btn {
+    flex:1; padding:10px 16px; border:none; border-radius:8px;
+    font-size:0.85rem; font-weight:600; font-family:inherit;
+    cursor:pointer; transition:all 0.2s; color:#64748b; background:transparent;
+    text-transform:uppercase; letter-spacing:0.03em;
+    display:flex; align-items:center; justify-content:center; gap:6px;
+  }
+  .lp-method-btn.active {
+    background:#fff; color:#0f1923;
+    box-shadow:0 1px 4px rgba(0,0,0,0.08);
+  }
+  .lp-method-btn:hover:not(.active) { color:#0f1923; }
+
+  .lp-pw-toggle {
+    position:absolute; right:12px; top:50%; transform:translateY(-50%);
+    background:none; border:none; color:#8898aa; cursor:pointer;
+    display:flex; align-items:center; padding:4px;
+  }
+  .lp-pw-toggle:hover { color:#1A37AA; }
+
   @media (max-width:520px) {
     .lp-card { padding:32px 24px; border-radius:12px; }
     .lp-title { font-size:1.5rem; }
@@ -122,6 +146,9 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
+  const [loginMethod, setLoginMethod] = useState('otp'); // 'otp' | 'password'
+  const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
 
   const otpRefs = useRef([]);
   const recaptchaVerifierRef = useRef(null);
@@ -324,6 +351,42 @@ export default function LoginPage() {
     }
   };
 
+  const handlePasswordLogin = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!phone || phone.length !== 10) { setError('Please enter a valid 10-digit phone number'); return; }
+    if (!password || password.length < 6) { setError('Password must be at least 6 characters'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/login-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone, password }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.message || 'Login failed'); return; }
+      // Sign in with custom token to get Firebase ID token
+      const userCredential = await signInWithCustomToken(auth, data.customToken);
+      const idToken = await userCredential.user.getIdToken(true);
+      const refreshToken = userCredential.user.refreshToken;
+      login(idToken, data.user, refreshToken);
+      window.location.href = '/dashboard';
+    } catch {
+      setError('Login failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const switchMethod = (method) => {
+    setLoginMethod(method);
+    setError('');
+    setSuccessMsg('');
+    setPassword('');
+    setShowPassword(false);
+    if (step === 'otp') goBack();
+  };
+
   return (
     <div className="login-root">
       {/* Invisible reCAPTCHA container — required by Firebase SDK */}
@@ -334,28 +397,77 @@ export default function LoginPage() {
           <>
             <div className="lp-header">
               <h1 className="lp-title">Sign In</h1>
-              <p className="lp-subtitle">Enter your registered phone number to receive an OTP.</p>
+              <p className="lp-subtitle">
+                {loginMethod === 'otp'
+                  ? 'Enter your registered phone number to receive an OTP.'
+                  : 'Enter your phone number and password.'}
+              </p>
+            </div>
+
+            <div className="lp-method-toggle">
+              <button type="button" className={`lp-method-btn${loginMethod === 'otp' ? ' active' : ''}`} onClick={() => switchMethod('otp')}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.79 19.79 0 0 1 2.12 4.18 2 2 0 0 1 4.11 2h3"/></svg>
+                OTP
+              </button>
+              <button type="button" className={`lp-method-btn${loginMethod === 'password' ? ' active' : ''}`} onClick={() => switchMethod('password')}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                Password
+              </button>
             </div>
 
             {error && <div className="lp-error"><ErrIcon /><span className="lp-error-text">{error}</span></div>}
 
-            <form onSubmit={handleSendOtp}>
-              <div className="lp-field">
-                <label className="lp-label" htmlFor="phone">Phone Number</label>
-                <div className="lp-input-wrap">
-                  <span className="lp-input-prefix">+91</span>
-                  <input
-                    id="phone" type="tel" inputMode="numeric" value={phone}
-                    onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                    placeholder="9876543210" className="lp-input" autoComplete="tel" required autoFocus
-                  />
+            {loginMethod === 'otp' ? (
+              <form onSubmit={handleSendOtp}>
+                <div className="lp-field">
+                  <label className="lp-label" htmlFor="phone">Phone Number</label>
+                  <div className="lp-input-wrap">
+                    <span className="lp-input-prefix">+91</span>
+                    <input
+                      id="phone" type="tel" inputMode="numeric" value={phone}
+                      onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="9876543210" className="lp-input" autoComplete="tel" required autoFocus
+                    />
+                  </div>
                 </div>
-              </div>
-
-              <button type="submit" className="lp-btn" disabled={loading}>
-                {loading ? <><span className="lp-spinner" /> Sending OTP...</> : <>Send OTP <ArrowIcon /></>}
-              </button>
-            </form>
+                <button type="submit" className="lp-btn" disabled={loading}>
+                  {loading ? <><span className="lp-spinner" /> Sending OTP...</> : <>Send OTP <ArrowIcon /></>}
+                </button>
+              </form>
+            ) : (
+              <form onSubmit={handlePasswordLogin}>
+                <div className="lp-field">
+                  <label className="lp-label" htmlFor="phone-pw">Phone Number</label>
+                  <div className="lp-input-wrap">
+                    <span className="lp-input-prefix">+91</span>
+                    <input
+                      id="phone-pw" type="tel" inputMode="numeric" value={phone}
+                      onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                      placeholder="9876543210" className="lp-input" autoComplete="tel" required autoFocus
+                    />
+                  </div>
+                </div>
+                <div className="lp-field">
+                  <label className="lp-label" htmlFor="password">Password</label>
+                  <div className="lp-input-wrap">
+                    <span className="lp-input-prefix">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    </span>
+                    <input
+                      id="password" type={showPassword ? 'text' : 'password'} value={password}
+                      onChange={e => setPassword(e.target.value)}
+                      placeholder="Enter your password" className="lp-input" autoComplete="current-password" required
+                    />
+                    <button type="button" className="lp-pw-toggle" onClick={() => setShowPassword(v => !v)}>
+                      {showPassword ? <EyeOffIcon /> : <EyeIcon />}
+                    </button>
+                  </div>
+                </div>
+                <button type="submit" className="lp-btn" disabled={loading}>
+                  {loading ? <><span className="lp-spinner" /> Signing in...</> : <>Sign In <ArrowIcon /></>}
+                </button>
+              </form>
+            )}
 
             <div className="lp-register-link">
               Don&apos;t have an account?<a href="/register">Register here</a>
@@ -431,5 +543,16 @@ const ArrowIcon = () => (
 const BackIcon = () => (
   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <path d="M19 12H5M12 19l-7-7 7-7"/>
+  </svg>
+);
+const EyeIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/>
+  </svg>
+);
+const EyeOffIcon = () => (
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
+    <line x1="1" y1="1" x2="23" y2="23"/>
   </svg>
 );
