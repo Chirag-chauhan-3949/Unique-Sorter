@@ -1349,9 +1349,9 @@ const styles = {
     margin: '24px auto 16px',
   },
   deleteTitle: {
-    fontFamily: "'Syne', sans-serif",
+    fontFamily: "var(--font-poppins), 'Poppins', sans-serif",
     fontSize: 18,
-    fontWeight: 800,
+    fontWeight: 700,
     color: '#0f1923',
     textAlign: 'center',
     marginBottom: 8,
