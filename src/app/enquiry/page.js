@@ -409,6 +409,15 @@ const CSS = `
   }
   .enqf-confirm-btn.ghost:hover { border-color: #cbd5e1; }
   .enqf-confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  @media (max-width: 480px) {
+    .enqf-confirm-dialog { max-width: 100%; border-radius: 12px; }
+    .enqf-confirm-header { padding: 16px; gap: 10px; }
+    .enqf-confirm-body { padding: 12px 16px; }
+    .enqf-confirm-label { width: 90px; font-size: 11px; }
+    .enqf-confirm-val { font-size: 12px; }
+    .enqf-confirm-footer { padding: 12px 16px 16px; }
+    .enqf-confirm-btn { height: 34px; font-size: 12px; }
+  }
 
   @keyframes enqf-rise {
     from { opacity: 0; transform: translateY(12px); }

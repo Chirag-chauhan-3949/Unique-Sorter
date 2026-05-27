@@ -1029,6 +1029,11 @@ export default function EnquiryPage() {
         .enq-bulk-btn.del:hover { background: #b91c1c; }
         .enq-bulk-btn.ghost { background: rgba(255,255,255,0.1); color: #fff; }
         .enq-bulk-btn.ghost:hover { background: rgba(255,255,255,0.2); }
+        @media (max-width: 480px) {
+          .enq-bulk-bar { gap: 8px; padding: 8px 12px; font-size: 12px; bottom: 12px; max-width: calc(100% - 24px); }
+          .enq-bulk-btn { height: 28px; padding: 0 10px; font-size: 11px; }
+          .enq-csv-btn { padding: 0 8px; font-size: 11px; }
+        }
         .enq-bulk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
 
         /* bulk confirm overlay */

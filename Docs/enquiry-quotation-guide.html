@@ -154,6 +154,7 @@
       <a href="#model-size" class="s-link">Model & Size Selection</a>
       <a href="#items-section" class="s-link">Adding Items</a>
       <a href="#immediate-vs-future" class="s-link">Immediate vs Future</a>
+      <a href="#saving-flow" class="s-link">Saving an Enquiry</a>
     </div>
     <div class="s-group">
       <div class="s-label">Quotations</div>
@@ -268,6 +269,13 @@
       <span class="callout-icon">&#128161;</span>
       <div class="callout-body">
         <strong>Currently, both states have identical pricing.</strong> The system supports different prices per state &mdash; if pricing differs for a new state in the future, it will automatically show different amounts.
+      </div>
+    </div>
+
+    <div class="callout warn">
+      <span class="callout-icon">&#9888;&#65039;</span>
+      <div class="callout-body">
+        <strong>Nandak model:</strong> The Nandak model is available for selection in the form, but does <strong>not have auto-pricing configured</strong>. When Nandak is selected, the price field stays empty and must be entered manually. Only Pinnacle has pre-configured prices.
       </div>
     </div>
 
@@ -420,6 +428,29 @@
             <li><strong>% Chances</strong> of order</li>
           </ul>
         </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="divider"></div>
+
+  <!-- ═══ SAVING FLOW ═══ -->
+  <section class="sec">
+    <span class="anchor" id="saving-flow"></span>
+    <h2>Saving an Enquiry</h2>
+    <p class="sub">What happens when you click "Save Enquiry".</p>
+
+    <div class="steps">
+      <div class="step"><div class="step-n">1</div><div class="step-b"><div class="step-t">Validation Check</div><div class="step-d">The system checks all required fields. If anything is missing or invalid (e.g. phone number not 10 digits), the page <strong>scrolls automatically</strong> to the first error so you can fix it.</div></div></div>
+      <div class="step"><div class="step-n">2</div><div class="step-b"><div class="step-t">Confirmation Dialog</div><div class="step-d">If all fields are valid, a <strong>review dialog</strong> appears showing all entered details organized by section: Customer Info, Location, Requirement (with items or future details), and Remarks.</div></div></div>
+      <div class="step"><div class="step-n">3</div><div class="step-b"><div class="step-t">Review &amp; Confirm</div><div class="step-d">You can click <strong>"Edit"</strong> to go back and change something, or <strong>"Confirm &amp; Save"</strong> to submit the enquiry.</div></div></div>
+      <div class="step"><div class="step-n">4</div><div class="step-b"><div class="step-t">Form Resets</div><div class="step-d">After successful save, the form <strong>automatically clears</strong> to empty, ready for the next enquiry. A success message confirms the save.</div></div></div>
+    </div>
+
+    <div class="callout info">
+      <span class="callout-icon">&#128161;</span>
+      <div class="callout-body">
+        <strong>No data is lost:</strong> The enquiry is saved to the database before the form resets. You can find it immediately in the Enquiry dashboard.
       </div>
     </div>
   </section>

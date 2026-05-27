@@ -77,6 +77,11 @@ const CSS = `
   .quot-bulk-btn.del:hover { background: #b91c1c; }
   .quot-bulk-btn.ghost { background: rgba(255,255,255,0.1); color: #fff; }
   .quot-bulk-btn.ghost:hover { background: rgba(255,255,255,0.2); }
+  @media (max-width: 480px) {
+    .quot-bulk-bar { gap: 8px; padding: 8px 12px; font-size: 12px; bottom: 12px; max-width: calc(100% - 24px); }
+    .quot-bulk-btn { height: 28px; padding: 0 10px; font-size: 11px; }
+    .quot-csv-btn { padding: 0 8px; font-size: 11px; }
+  }
   .quot-bulk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
   .quot-bulk-overlay {
     position: fixed; inset: 0; z-index: 1000;
