@@ -386,7 +386,7 @@
       <div class="doc-nav-group">
         <div class="doc-nav-group-label">For Team Members</div>
         <a href="#registration" class="doc-nav-link">Registration</a>
-        <a href="#login" class="doc-nav-link">Login (OTP)</a>
+        <a href="#login" class="doc-nav-link">Login (OTP / Password)</a>
         <a href="#dashboard" class="doc-nav-link">Dashboard</a>
         <a href="#enquiry-mgmt" class="doc-nav-link">Managing Enquiries</a>
         <a href="#quotations" class="doc-nav-link">Quotations &amp; PDF</a>
@@ -398,9 +398,10 @@
         <a href="#settings" class="doc-nav-link">Admin Settings</a>
       </div>
       <div class="doc-nav-group">
-        <div class="doc-nav-group-label">Planned Features</div>
-        <a href="#planned-screen-access" class="doc-nav-link">Per-User Screen Access</a>
-        <a href="#planned-csv-export" class="doc-nav-link">CSV Export</a>
+        <div class="doc-nav-group-label">Admin Features</div>
+        <a href="#screen-access" class="doc-nav-link">Per-User Screen Access</a>
+        <a href="#csv-export" class="doc-nav-link">CSV Export</a>
+        <a href="#bulk-actions" class="doc-nav-link">Bulk Select &amp; Delete</a>
       </div>
       <div class="doc-nav-group">
         <div class="doc-nav-group-label">Reference</div>
@@ -523,7 +524,7 @@
       <h2>Submitting an Enquiry</h2>
       <p class="doc-section-sub">For field engineers &mdash; how to enter a customer's requirement after a site visit.</p>
 
-      <p>After visiting a client, open the CRM and navigate to the enquiry form. You can access it from the <strong>"+ New Enquiry"</strong> button on the dashboard, or directly via the <code>/enquiry</code> page (no login required for quick entry).</p>
+      <p>After visiting a client, log into the CRM and navigate to the enquiry form. You can access it from the <strong>"+ New Enquiry"</strong> button on the enquiry dashboard, or directly via the <code>/enquiry</code> page. Login is required to submit enquiries.</p>
 
       <h3>What the form asks for</h3>
 
@@ -572,7 +573,7 @@
     <section class="doc-section" id="registration-section">
       <span class="doc-section-anchor" id="registration"></span>
       <h2>Registration</h2>
-      <p class="doc-section-sub">How to create your team account.</p>
+      <p class="doc-section-sub">How to request access to the CRM.</p>
 
       <div class="doc-steps">
         <div class="doc-step">
@@ -592,8 +593,15 @@
         <div class="doc-step">
           <div class="doc-step-num">3</div>
           <div class="doc-step-body">
-            <div class="doc-step-title">Submit &amp; Login</div>
-            <div class="doc-step-text">After successful registration, you'll be redirected to the login page where you can sign in with your phone number and OTP.</div>
+            <div class="doc-step-title">Wait for Admin Approval</div>
+            <div class="doc-step-text">Your registration request is submitted with <strong>pending</strong> status. You <strong>cannot login</strong> until an administrator approves your account from the Settings page.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">4</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Login After Approval</div>
+            <div class="doc-step-text">Once approved, you can sign in using either OTP or password login. You will be notified to contact your admin if you try to login before approval.</div>
           </div>
         </div>
       </div>
@@ -601,7 +609,7 @@
       <div class="doc-callout warn">
         <span class="doc-callout-icon">&#9888;&#65039;</span>
         <div class="doc-callout-body">
-          <strong>Note:</strong> Admin registration requires approval from an existing admin. New users should select the "User" role. Contact your administrator if you need admin access.
+          <strong>No self-registration:</strong> Every new account requires admin approval before it becomes active. This ensures only authorized team members can access the CRM. Admins can also create users directly from Settings (these are auto-approved).
         </div>
       </div>
     </section>
@@ -611,36 +619,83 @@
     <!-- ═══════ LOGIN ═══════ -->
     <section class="doc-section" id="login-section">
       <span class="doc-section-anchor" id="login"></span>
-      <h2>Login (Phone OTP)</h2>
-      <p class="doc-section-sub">Secure, passwordless login with one-time codes sent to your phone.</p>
+      <h2>Login (OTP or Password)</h2>
+      <p class="doc-section-sub">Two ways to sign in &mdash; choose whichever is more convenient.</p>
 
+      <p>The login page has a <strong>toggle switch</strong> at the top to choose between OTP and Password login.</p>
+
+      <h3>Method 1: Phone + OTP</h3>
       <div class="doc-steps">
         <div class="doc-step">
           <div class="doc-step-num">1</div>
           <div class="doc-step-body">
             <div class="doc-step-title">Enter Your Phone Number</div>
-            <div class="doc-step-text">On the login page, type your 10-digit phone number (the same one used during registration). The country code +91 is added automatically.</div>
+            <div class="doc-step-text">Type your 10-digit phone number. The country code +91 is added automatically.</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="doc-step-num">2</div>
           <div class="doc-step-body">
             <div class="doc-step-title">Receive OTP via SMS</div>
-            <div class="doc-step-text">Click "Send OTP". An invisible security check runs in the background (reCAPTCHA), and a 6-digit code is sent to your phone via SMS.</div>
+            <div class="doc-step-text">Click "Send OTP". A 6-digit code is sent to your phone via SMS.</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="doc-step-num">3</div>
           <div class="doc-step-body">
-            <div class="doc-step-title">Enter the 6-Digit Code</div>
-            <div class="doc-step-text">Type the code into the 6 boxes. Each box auto-advances to the next. You can also paste the full code. If the code expires, click "Resend OTP" after the 60-second timer.</div>
+            <div class="doc-step-title">Enter the 6-Digit Code &amp; Sign In</div>
+            <div class="doc-step-text">Type the code into the 6 boxes (auto-advances). You can also paste the full code. If the code expires, click "Resend OTP" after the 60-second timer.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Method 2: Phone/Email + Password</h3>
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-num">1</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Switch to Password Tab</div>
+            <div class="doc-step-text">Click the <strong>"Password"</strong> tab at the top of the login card.</div>
           </div>
         </div>
         <div class="doc-step">
-          <div class="doc-step-num">4</div>
+          <div class="doc-step-num">2</div>
           <div class="doc-step-body">
-            <div class="doc-step-title">You're In!</div>
-            <div class="doc-step-text">After verification, you are automatically logged in and redirected to the dashboard. Your session stays active and refreshes automatically.</div>
+            <div class="doc-step-title">Enter Phone or Email + Password</div>
+            <div class="doc-step-text">Enter your <strong>phone number</strong> (e.g. 9876543210) or <strong>email address</strong> in the first field, then enter your password. Use the eye icon to show/hide the password.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">3</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Click Sign In</div>
+            <div class="doc-step-text">You are logged in instantly and redirected to the dashboard. No OTP needed.</div>
+          </div>
+        </div>
+      </div>
+
+      <h3>Forgot Password?</h3>
+      <p>If you forget your password, click <strong>"Forgot Password?"</strong> below the password form. The reset flow:</p>
+      <div class="doc-steps">
+        <div class="doc-step">
+          <div class="doc-step-num">1</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Enter Your Phone Number</div>
+            <div class="doc-step-text">An OTP is sent to verify your identity.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">2</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Verify OTP</div>
+            <div class="doc-step-text">Enter the 6-digit code from SMS.</div>
+          </div>
+        </div>
+        <div class="doc-step">
+          <div class="doc-step-num">3</div>
+          <div class="doc-step-body">
+            <div class="doc-step-title">Set New Password</div>
+            <div class="doc-step-text">Enter and confirm your new password (minimum 6 characters). The new password is securely saved.</div>
           </div>
         </div>
       </div>
@@ -928,6 +983,26 @@
               <td><span class="doc-badge green">Yes</span></td>
             </tr>
             <tr>
+              <td>Bulk select &amp; delete</td>
+              <td><span class="doc-badge amber">No</span></td>
+              <td><span class="doc-badge green">Yes</span></td>
+            </tr>
+            <tr>
+              <td>Download CSV export</td>
+              <td><span class="doc-badge amber">No</span></td>
+              <td><span class="doc-badge green">Yes</span></td>
+            </tr>
+            <tr>
+              <td>Manage per-user screen access</td>
+              <td><span class="doc-badge amber">No</span></td>
+              <td><span class="doc-badge green">Yes</span></td>
+            </tr>
+            <tr>
+              <td>Approve new registrations</td>
+              <td><span class="doc-badge amber">No</span></td>
+              <td><span class="doc-badge green">Yes</span></td>
+            </tr>
+            <tr>
               <td>Access Settings page</td>
               <td><span class="doc-badge amber">No</span></td>
               <td><span class="doc-badge green">Yes</span></td>
@@ -947,7 +1022,18 @@
 
       <p>The <strong>Settings</strong> page is accessible only to users with the Admin role. It appears in the sidebar navigation only for admins.</p>
 
-      <p>From Settings, admins can manage platform-level configuration such as Firebase database connections and system preferences.</p>
+      <h3>User Management</h3>
+      <p>Admins can create, edit, and delete users. For each user, the admin can:</p>
+      <div class="doc-fields">
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Set name, phone, password, and role</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Approve pending registrations (green checkmark button)</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Configure per-user screen access</div>
+        <div class="doc-field-item"><span class="doc-field-dot"></span> Remove users from the system</div>
+      </div>
+
+      <h3>Approving New Users</h3>
+      <p>When someone registers, their account shows as <strong>"Pending"</strong> with an amber badge. The admin clicks the green checkmark to approve them. Only approved users can login.</p>
+      <p>Users created directly by an admin from Settings are <strong>auto-approved</strong> immediately.</p>
 
       <div class="doc-callout warn">
         <span class="doc-callout-icon">&#9888;&#65039;</span>
@@ -959,46 +1045,32 @@
 
     <div class="doc-divider"></div>
 
-    <!-- ═══════ PLANNED: PER-USER SCREEN ACCESS ═══════ -->
-    <section class="doc-section" id="planned-screen-access-section">
-      <span class="doc-section-anchor" id="planned-screen-access"></span>
+    <!-- ═══════ PER-USER SCREEN ACCESS ═══════ -->
+    <section class="doc-section" id="screen-access-section">
+      <span class="doc-section-anchor" id="screen-access"></span>
       <h2>Per-User Screen Access</h2>
-      <div class="doc-planned-badge">&#9888;&#65039; Planned Feature &mdash; Not Yet Implemented</div>
-      <p class="doc-section-sub">Allow admins to control exactly which dashboard screens each user can access.</p>
+      <p class="doc-section-sub">Admin controls which dashboard screens each user can see.</p>
 
-      <h3>What It Will Do</h3>
-      <p>Currently, all users (with the "User" role) see the same sidebar: Dashboard, Enquiry, and Quotations. With per-user screen access, an admin will be able to grant or revoke access to specific screens for each individual user.</p>
-
-      <p>For example, a field engineer might only need access to the Enquiry page, while a sales manager might need Enquiry + Quotations + Reports.</p>
-
-      <h3>How It Will Work</h3>
       <div class="doc-steps">
         <div class="doc-step">
           <div class="doc-step-num">1</div>
           <div class="doc-step-body">
-            <div class="doc-step-title">Admin Opens Settings &rarr; User Management</div>
-            <div class="doc-step-text">The admin navigates to the existing Settings page and clicks "Edit" on any user.</div>
+            <div class="doc-step-title">Admin Opens Settings &rarr; Edit User</div>
+            <div class="doc-step-text">Navigate to Settings and click the Edit button on any user with the "User" role.</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="doc-step-num">2</div>
           <div class="doc-step-body">
-            <div class="doc-step-title">Screen Access Checkboxes Appear</div>
-            <div class="doc-step-text">Below the Role selector in the Edit User modal, a new "Screen Access" section shows a checkbox for each dashboard screen: Dashboard, Enquiry, Quotations, Profile, Reports, Products, Orders, Inventory, Clients.</div>
+            <div class="doc-step-title">Toggle Screen Checkboxes</div>
+            <div class="doc-step-text">Below the Role selector, a "Screen Access" section shows checkboxes for each screen: Dashboard, Enquiry, Quotations, Profile, Reports, Products, Orders, Inventory, Clients. Dashboard and Profile are always on.</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="doc-step-num">3</div>
           <div class="doc-step-body">
-            <div class="doc-step-title">Admin Toggles Screens On/Off</div>
-            <div class="doc-step-text">The admin checks or unchecks screens. "Dashboard" and "Profile" always remain on and cannot be removed.</div>
-          </div>
-        </div>
-        <div class="doc-step">
-          <div class="doc-step-num">4</div>
-          <div class="doc-step-body">
-            <div class="doc-step-title">User Sees Only Allowed Screens</div>
-            <div class="doc-step-text">When the user logs in, the sidebar shows only the screens the admin has allowed. If they try to visit a blocked page directly, they are redirected to the dashboard.</div>
+            <div class="doc-step-title">Save &mdash; User Sees Only Allowed Screens</div>
+            <div class="doc-step-text">The user's sidebar updates to show only their allowed screens. Visiting a blocked URL redirects them to the dashboard.</div>
           </div>
         </div>
       </div>
@@ -1006,84 +1078,76 @@
       <div class="doc-callout">
         <span class="doc-callout-icon">&#128161;</span>
         <div class="doc-callout-body">
-          <strong>Default behaviour:</strong> If no screen restrictions are set for a user, they will see all screens their role allows &mdash; so existing users are unaffected until an admin explicitly configures access.
+          <strong>Default:</strong> If no restrictions are set, the user sees all screens their role allows. Admins always see everything regardless of this setting.
         </div>
       </div>
     </section>
 
     <div class="doc-divider"></div>
 
-    <!-- ═══════ PLANNED: CSV EXPORT ═══════ -->
-    <section class="doc-section" id="planned-csv-export-section">
-      <span class="doc-section-anchor" id="planned-csv-export"></span>
-      <h2>CSV Export of Enquiries</h2>
-      <div class="doc-planned-badge">&#9888;&#65039; Planned Feature &mdash; Not Yet Implemented</div>
-      <p class="doc-section-sub">Allow admins to download all enquiries as a CSV file for offline filtering and analysis.</p>
+    <!-- ═══════ CSV EXPORT ═══════ -->
+    <section class="doc-section" id="csv-export-section">
+      <span class="doc-section-anchor" id="csv-export"></span>
+      <h2>CSV Export</h2>
+      <p class="doc-section-sub">Download all enquiries or quotations as a CSV file (admin-only).</p>
 
-      <h3>What It Will Do</h3>
-      <p>Admins will see a <strong>"Download CSV"</strong> button on the Enquiry dashboard page (next to "+ New Enquiry"). Clicking it downloads a <code>.csv</code> file containing all enquiry records, ready to open in Excel or Google Sheets.</p>
+      <p>Admins see a <strong>"CSV"</strong> button on both the Enquiry and Quotations pages. Clicking it downloads all records as a CSV file that opens in Excel or Google Sheets.</p>
 
-      <h3>Why CSV?</h3>
-      <div class="doc-cards">
-        <div class="doc-card">
-          <div class="doc-card-icon blue">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
-          </div>
-          <div class="doc-card-title">Custom Filtering</div>
-          <div class="doc-card-text">Excel and Google Sheets have powerful sorting, filtering, and pivot table features that let admins slice data in ways specific to their needs &mdash; by state, date range, commodity, lead source, or any combination.</div>
-        </div>
-        <div class="doc-card">
-          <div class="doc-card-icon green">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
-          </div>
-          <div class="doc-card-title">Offline Access</div>
-          <div class="doc-card-text">Once downloaded, the data is available offline. Admins can review enquiries during travel or in areas without internet connectivity.</div>
-        </div>
-        <div class="doc-card">
-          <div class="doc-card-icon amber">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-          </div>
-          <div class="doc-card-title">Reporting &amp; Sharing</div>
-          <div class="doc-card-text">CSV data can be used to build custom reports, charts, and summaries. It can also be shared with stakeholders who don't have CRM access.</div>
-        </div>
-        <div class="doc-card">
-          <div class="doc-card-icon red">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          </div>
-          <div class="doc-card-title">Data Backup</div>
-          <div class="doc-card-text">Regular CSV downloads serve as a simple backup of all enquiry data, independent of the cloud database.</div>
-        </div>
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead><tr><th>Export</th><th>File Name</th><th>Includes</th></tr></thead>
+          <tbody>
+            <tr>
+              <td><strong>Enquiries</strong></td>
+              <td><code>enquiries-YYYY-MM-DD.csv</code></td>
+              <td>Customer info, location, up to 3 items with model/size/qty/price, future requirement fields, remarks, date</td>
+            </tr>
+            <tr>
+              <td><strong>Quotations</strong></td>
+              <td><code>quotations-YYYY-MM-DD.csv</code></td>
+              <td>Quote/ref numbers, type, client details, product info, GST breakdown, all terms &amp; conditions, dates</td>
+            </tr>
+          </tbody>
+        </table>
       </div>
+    </section>
 
-      <h3>How It Will Work</h3>
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ BULK ACTIONS ═══════ -->
+    <section class="doc-section" id="bulk-actions-section">
+      <span class="doc-section-anchor" id="bulk-actions"></span>
+      <h2>Bulk Select &amp; Delete</h2>
+      <p class="doc-section-sub">Select multiple enquiries or quotations and delete them at once (admin-only).</p>
+
       <div class="doc-steps">
         <div class="doc-step">
           <div class="doc-step-num">1</div>
           <div class="doc-step-body">
-            <div class="doc-step-title">Admin Goes to Enquiry Page</div>
-            <div class="doc-step-text">Navigate to the Enquiry list in the dashboard sidebar.</div>
+            <div class="doc-step-title">Select Items</div>
+            <div class="doc-step-text">A checkbox column appears for admins. Click individual checkboxes or use the header checkbox to select all. Selected rows are highlighted in blue.</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="doc-step-num">2</div>
           <div class="doc-step-body">
-            <div class="doc-step-title">Clicks "Download CSV"</div>
-            <div class="doc-step-text">A button in the top bar triggers the export. Only admins can see this button.</div>
+            <div class="doc-step-title">Floating Action Bar Appears</div>
+            <div class="doc-step-text">A dark bar slides up at the bottom of the screen showing how many items are selected, with Delete and Cancel buttons.</div>
           </div>
         </div>
         <div class="doc-step">
           <div class="doc-step-num">3</div>
           <div class="doc-step-body">
-            <div class="doc-step-title">CSV File Downloads</div>
-            <div class="doc-step-text">A file named <code>enquiries-YYYY-MM-DD.csv</code> downloads to the browser with all enquiry records and all relevant columns (customer name, company, mobile, location, state, requirement type, items, commodity, remarks, date).</div>
+            <div class="doc-step-title">Confirm &amp; Delete</div>
+            <div class="doc-step-text">Click Delete to see a confirmation dialog. Confirm to permanently remove all selected items. This action cannot be undone.</div>
           </div>
         </div>
-        <div class="doc-step">
-          <div class="doc-step-num">4</div>
-          <div class="doc-step-body">
-            <div class="doc-step-title">Open in Excel / Google Sheets</div>
-            <div class="doc-step-text">Open the downloaded file in any spreadsheet application and use built-in filters, sorting, and formulas to analyse the data for your specific use case.</div>
-          </div>
+      </div>
+
+      <div class="doc-callout warn">
+        <span class="doc-callout-icon">&#9888;&#65039;</span>
+        <div class="doc-callout-body">
+          <strong>When items are selected</strong>, clicking a row toggles its selection instead of navigating to the detail page. Click "Cancel" in the action bar to clear the selection and return to normal navigation.
         </div>
       </div>
     </section>
@@ -1102,9 +1166,8 @@
           <thead><tr><th>URL</th><th>Purpose</th></tr></thead>
           <tbody>
             <tr><td><code>/</code></td><td>Homepage &mdash; company overview, features, and login link</td></tr>
-            <tr><td><code>/login</code></td><td>Phone OTP login</td></tr>
-            <tr><td><code>/register</code></td><td>Create a new account</td></tr>
-            <tr><td><code>/enquiry</code></td><td>Enquiry submission form (used by field engineers)</td></tr>
+            <tr><td><code>/login</code></td><td>Login (OTP or Password, with Forgot Password)</td></tr>
+            <tr><td><code>/register</code></td><td>Request an account (requires admin approval)</td></tr>
           </tbody>
         </table>
       </div>
@@ -1114,6 +1177,7 @@
         <table class="doc-table">
           <thead><tr><th>URL</th><th>Purpose</th></tr></thead>
           <tbody>
+            <tr><td><code>/enquiry</code></td><td>Enquiry submission form (login required)</td></tr>
             <tr><td><code>/dashboard</code></td><td>Main dashboard &mdash; welcome screen</td></tr>
             <tr><td><code>/dashboard/enquiry</code></td><td>All enquiries &mdash; searchable table</td></tr>
             <tr><td><code>/dashboard/enquiry/[id]</code></td><td>Single enquiry detail &amp; edit</td></tr>
@@ -1184,10 +1248,19 @@
       <p class="doc-section-sub">Common questions and quick answers.</p>
 
       <h3>I'm not receiving the OTP. What should I do?</h3>
-      <p>Wait for the full 60-second timer to expire, then click "Resend OTP". Ensure your phone number is correct and has SMS reception. If the issue persists, check if you have registered with that phone number first.</p>
+      <p>Wait for the full 60-second timer to expire, then click "Resend OTP". Ensure your phone number is correct and has SMS reception. You can also try the <strong>Password login</strong> method instead.</p>
+
+      <h3>I forgot my password. How do I reset it?</h3>
+      <p>On the login page, switch to the <strong>Password</strong> tab and click <strong>"Forgot Password?"</strong>. Enter your phone number, verify with OTP, then set a new password.</p>
+
+      <h3>I registered but can't login. Why?</h3>
+      <p>New registrations require <strong>admin approval</strong>. Your account is in "pending" status until an admin approves it from the Settings page. Contact your administrator.</p>
+
+      <h3>Can I login with my email address?</h3>
+      <p>Yes. On the Password tab, you can enter either your <strong>phone number</strong> or <strong>email address</strong> along with your password. Your email must be stored in your account (set by admin).</p>
 
       <h3>Can customers see the dashboard?</h3>
-      <p>No. The dashboard is only accessible to registered and logged-in team members (field engineers, back-office staff, admins). Customers never interact with the platform directly.</p>
+      <p>No. Every page except the homepage, login, and registration requires authentication. Customers never interact with the platform directly.</p>
 
       <h3>Can I edit a quotation after saving it?</h3>
       <p>Yes. Open the quotation from the quotations list and modify any field. You can re-download or re-share the updated PDF.</p>
@@ -1196,7 +1269,10 @@
       <p>Prices are auto-filled based on a lookup table that uses the customer's <strong>state</strong>, <strong>machine model</strong>, and <strong>size (chutes)</strong>. These can be manually overridden in the quotation editor if needed.</p>
 
       <h3>Who can see my data?</h3>
-      <p>All logged-in team members (both Users and Admins) can see all enquiries and quotations. There is no per-user data isolation &mdash; it's a shared team workspace.</p>
+      <p>All logged-in team members can see all enquiries and quotations, unless the admin has restricted their screen access. It's a shared team workspace.</p>
+
+      <h3>How do I delete multiple enquiries at once?</h3>
+      <p>Admins can use <strong>bulk select</strong>. Check the checkboxes next to the enquiries you want to remove, then click the red "Delete" button in the floating action bar at the bottom of the screen.</p>
 
       <h3>Is the platform mobile-friendly?</h3>
       <p>Yes. Every page is fully responsive. On phones, the sidebar becomes a slide-out menu, tables adapt to show key info in a compact layout, and all forms are touch-friendly.</p>
