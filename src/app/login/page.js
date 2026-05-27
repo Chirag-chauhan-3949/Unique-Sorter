@@ -354,14 +354,14 @@ export default function LoginPage() {
   const handlePasswordLogin = async (e) => {
     e.preventDefault();
     setError('');
-    if (!phone || phone.length !== 10) { setError('Please enter a valid 10-digit phone number'); return; }
+    if (!phone) { setError('Please enter your phone number or email'); return; }
     if (!password || password.length < 6) { setError('Password must be at least 6 characters'); return; }
     setLoading(true);
     try {
       const res = await fetch('/api/auth/login-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ phone, password }),
+        body: JSON.stringify({ identifier: phone, password }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.message || 'Login failed'); return; }
@@ -437,13 +437,15 @@ export default function LoginPage() {
             ) : (
               <form onSubmit={handlePasswordLogin}>
                 <div className="lp-field">
-                  <label className="lp-label" htmlFor="phone-pw">Phone Number</label>
+                  <label className="lp-label" htmlFor="identifier">Phone Number or Email</label>
                   <div className="lp-input-wrap">
-                    <span className="lp-input-prefix">+91</span>
+                    <span className="lp-input-prefix">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    </span>
                     <input
-                      id="phone-pw" type="tel" inputMode="numeric" value={phone}
-                      onChange={e => setPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
-                      placeholder="9876543210" className="lp-input" autoComplete="tel" required autoFocus
+                      id="identifier" type="text" value={phone}
+                      onChange={e => setPhone(e.target.value.trim())}
+                      placeholder="9876543210 or email@example.com" className="lp-input" autoComplete="username" required autoFocus
                     />
                   </div>
                 </div>

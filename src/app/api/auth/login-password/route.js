@@ -1,15 +1,16 @@
 import { NextResponse } from 'next/server';
 import { rateLimit } from '@/lib/rateLimit';
+import bcrypt from 'bcryptjs';
 
 export async function POST(request) {
   try {
-    const { phone, password } = await request.json();
+    const { identifier, password } = await request.json();
 
-    if (!phone || !password) {
-      return NextResponse.json({ message: 'Phone and password are required' }, { status: 400 });
+    if (!identifier || !password) {
+      return NextResponse.json({ message: 'Phone/email and password are required' }, { status: 400 });
     }
 
-    if (!rateLimit(`login-pw:${phone}`, 5, 60 * 1000)) {
+    if (!rateLimit(`login-pw:${identifier}`, 5, 60 * 1000)) {
       return NextResponse.json({ message: 'Too many login attempts. Please try again later.' }, { status: 429 });
     }
 
@@ -18,20 +19,50 @@ export async function POST(request) {
       return NextResponse.json({ message: 'Service unavailable' }, { status: 503 });
     }
 
-    const userDoc = await Promise.race([
-      adminDb.collection('userdata').doc(phone).get(),
-      new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
-    ]);
+    let userDoc = null;
+    let phone = null;
 
-    if (!userDoc.exists) {
-      return NextResponse.json({ message: 'Invalid phone number or password' }, { status: 401 });
+    // Determine if identifier is phone or email
+    const isPhone = /^[6-9]\d{9}$/.test(identifier);
+
+    if (isPhone) {
+      phone = identifier;
+      userDoc = await Promise.race([
+        adminDb.collection('userdata').doc(identifier).get(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('timeout')), 5000)),
+      ]);
+    } else {
+      // Search by email across all users
+      const snapshot = await adminDb.collection('userdata')
+        .where('email', '==', identifier.toLowerCase().trim())
+        .limit(1)
+        .get();
+      if (!snapshot.empty) {
+        userDoc = snapshot.docs[0];
+        phone = userDoc.data().phone || userDoc.id;
+      }
+    }
+
+    if (!userDoc || !userDoc.exists) {
+      return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
     }
 
     const data = userDoc.data();
 
-    // Check password (stored as plain text from admin settings)
-    if (!data.password || data.password !== password) {
-      return NextResponse.json({ message: 'Invalid phone number or password' }, { status: 401 });
+    if (!data.password) {
+      return NextResponse.json({ message: 'Password not set. Please use OTP login or contact admin.' }, { status: 401 });
+    }
+
+    // Check password — support both bcrypt hash and plain text
+    let passwordValid = false;
+    if (data.password.startsWith('$2b$') || data.password.startsWith('$2a$')) {
+      passwordValid = await bcrypt.compare(password, data.password);
+    } else {
+      passwordValid = data.password === password;
+    }
+
+    if (!passwordValid) {
+      return NextResponse.json({ message: 'Invalid credentials' }, { status: 401 });
     }
 
     // Block pending users
