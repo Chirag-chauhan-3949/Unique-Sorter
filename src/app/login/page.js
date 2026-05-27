@@ -149,6 +149,11 @@ export default function LoginPage() {
   const [loginMethod, setLoginMethod] = useState('otp'); // 'otp' | 'password'
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [forgotStep, setForgotStep] = useState(null); // null | 'phone' | 'otp' | 'newpw' | 'done'
+  const [newPw, setNewPw] = useState('');
+  const [confirmPw, setConfirmPw] = useState('');
+  const [showNewPw, setShowNewPw] = useState(false);
+  const [forgotPhone, setForgotPhone] = useState('');
 
   const otpRefs = useRef([]);
   const recaptchaVerifierRef = useRef(null);
@@ -387,13 +392,97 @@ export default function LoginPage() {
     if (step === 'otp') goBack();
   };
 
+  const startForgot = () => {
+    setForgotStep('phone');
+    setForgotPhone(phone || '');
+    setError('');
+    setSuccessMsg('');
+    setNewPw('');
+    setConfirmPw('');
+    setShowNewPw(false);
+  };
+
+  const handleForgotSendOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (!forgotPhone || forgotPhone.length !== 10) { setError('Enter a valid 10-digit phone number'); return; }
+    setLoading(true);
+    try {
+      const checkRes = await fetch('/api/auth/send-otp', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: forgotPhone, checkOnly: true }),
+      });
+      if (!checkRes.ok) { const d = await checkRes.json(); setError(d.message || 'Phone not registered'); return; }
+      const verifier = setupRecaptcha();
+      confirmationResultRef.current = await signInWithPhoneNumber(auth, '+91' + forgotPhone, verifier);
+      setSuccessMsg('OTP sent to +91 ' + forgotPhone);
+      setForgotStep('otp');
+      setOtp(['', '', '', '', '', '']);
+      setTimer(60);
+    } catch {
+      if (recaptchaVerifierRef.current) { recaptchaVerifierRef.current.clear(); recaptchaVerifierRef.current = null; }
+      setError('Failed to send OTP. Please try again.');
+    } finally { setLoading(false); }
+  };
+
+  const handleForgotVerifyOtp = async (e) => {
+    e.preventDefault();
+    setError('');
+    const otpCode = otp.join('');
+    if (otpCode.length !== 6) { setError('Enter the complete 6-digit OTP'); return; }
+    if (!confirmationResultRef.current) { setError('Session expired. Please start over.'); setForgotStep('phone'); return; }
+    setLoading(true);
+    try {
+      await confirmationResultRef.current.confirm(otpCode);
+      setSuccessMsg('Phone verified. Set your new password.');
+      setForgotStep('newpw');
+    } catch (err) {
+      const code = err?.code || '';
+      if (code === 'auth/invalid-verification-code') setError('Invalid OTP.');
+      else if (code === 'auth/code-expired') setError('OTP expired. Please resend.');
+      else setError('Verification failed.');
+    } finally { setLoading(false); }
+  };
+
+  const handleResetPassword = async (e) => {
+    e.preventDefault();
+    setError('');
+    if (newPw.length < 6) { setError('Password must be at least 6 characters'); return; }
+    if (newPw !== confirmPw) { setError('Passwords do not match'); return; }
+    setLoading(true);
+    try {
+      const res = await fetch('/api/auth/reset-password', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone: forgotPhone, newPassword: newPw }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setError(data.message || 'Failed to reset password'); return; }
+      setForgotStep('done');
+    } catch { setError('Something went wrong.'); }
+    finally { setLoading(false); }
+  };
+
+  const exitForgot = () => {
+    setForgotStep(null);
+    setError('');
+    setSuccessMsg('');
+    setNewPw('');
+    setConfirmPw('');
+    setOtp(['', '', '', '', '', '']);
+    setTimer(0);
+    confirmationResultRef.current = null;
+    if (recaptchaVerifierRef.current) { recaptchaVerifierRef.current.clear(); recaptchaVerifierRef.current = null; }
+  };
+
   return (
     <div className="login-root">
       {/* Invisible reCAPTCHA container — required by Firebase SDK */}
       <div id="recaptcha-container" />
       <div className="lp-card">
 
-        {step === 'phone' && (
+        {step === 'phone' && !forgotStep && (
           <>
             <div className="lp-header">
               <h1 className="lp-title">Sign In</h1>
@@ -468,6 +557,9 @@ export default function LoginPage() {
                 <button type="submit" className="lp-btn" disabled={loading}>
                   {loading ? <><span className="lp-spinner" /> Signing in...</> : <>Sign In <ArrowIcon /></>}
                 </button>
+                <div style={{ textAlign: 'center', marginTop: 14 }}>
+                  <button type="button" className="lp-btn-link" onClick={startForgot}>Forgot Password?</button>
+                </div>
               </form>
             )}
 
@@ -477,7 +569,7 @@ export default function LoginPage() {
           </>
         )}
 
-        {step === 'otp' && (
+        {step === 'otp' && !forgotStep && (
           <>
             <div className="lp-header">
               <h1 className="lp-title">Enter OTP</h1>
@@ -516,6 +608,120 @@ export default function LoginPage() {
                 <BackIcon /> Back
               </button>
             </form>
+          </>
+        )}
+
+        {/* ── FORGOT PASSWORD FLOW ── */}
+        {forgotStep === 'phone' && (
+          <>
+            <div className="lp-header">
+              <h1 className="lp-title">Reset Password</h1>
+              <p className="lp-subtitle">Enter your phone number. We&apos;ll send an OTP to verify your identity.</p>
+            </div>
+            {error && <div className="lp-error"><ErrIcon /><span className="lp-error-text">{error}</span></div>}
+            <form onSubmit={handleForgotSendOtp}>
+              <div className="lp-field">
+                <label className="lp-label">Phone Number</label>
+                <div className="lp-input-wrap">
+                  <span className="lp-input-prefix">+91</span>
+                  <input type="tel" inputMode="numeric" value={forgotPhone}
+                    onChange={e => setForgotPhone(e.target.value.replace(/\D/g, '').slice(0, 10))}
+                    placeholder="9876543210" className="lp-input" autoFocus required />
+                </div>
+              </div>
+              <button type="submit" className="lp-btn" disabled={loading}>
+                {loading ? <><span className="lp-spinner" /> Sending OTP...</> : <>Send OTP <ArrowIcon /></>}
+              </button>
+            </form>
+            <button type="button" className="lp-btn-secondary" onClick={exitForgot}><BackIcon /> Back to Login</button>
+          </>
+        )}
+
+        {forgotStep === 'otp' && (
+          <>
+            <div className="lp-header">
+              <h1 className="lp-title">Verify OTP</h1>
+              <p className="lp-subtitle">Enter the 6-digit code sent to <strong>+91 {forgotPhone}</strong></p>
+            </div>
+            {successMsg && <div className="lp-success"><CheckIcon /><span className="lp-success-text">{successMsg}</span></div>}
+            {error && <div className="lp-error"><ErrIcon /><span className="lp-error-text">{error}</span></div>}
+            <form onSubmit={handleForgotVerifyOtp}>
+              <div className="lp-otp-inputs">
+                {otp.map((digit, i) => (
+                  <input key={i} ref={el => otpRefs.current[i] = el}
+                    type="text" inputMode="numeric" maxLength={1} value={digit}
+                    onChange={e => handleOtpChange(i, e.target.value)}
+                    onKeyDown={e => handleOtpKeyDown(i, e)}
+                    onPaste={i === 0 ? handleOtpPaste : undefined}
+                    className="lp-otp-input" autoFocus={i === 0} />
+                ))}
+              </div>
+              <div className="lp-timer">
+                {timer > 0
+                  ? <span>Resend in <strong>{timer}s</strong></span>
+                  : <button type="button" className="lp-btn-link" onClick={handleForgotSendOtp} disabled={loading}>Resend OTP</button>}
+              </div>
+              <button type="submit" className="lp-btn" disabled={loading} style={{ marginTop: 20 }}>
+                {loading ? <><span className="lp-spinner" /> Verifying...</> : <>Verify <ArrowIcon /></>}
+              </button>
+            </form>
+            <button type="button" className="lp-btn-secondary" onClick={() => setForgotStep('phone')}><BackIcon /> Back</button>
+          </>
+        )}
+
+        {forgotStep === 'newpw' && (
+          <>
+            <div className="lp-header">
+              <h1 className="lp-title">New Password</h1>
+              <p className="lp-subtitle">Create a new password for <strong>+91 {forgotPhone}</strong></p>
+            </div>
+            {successMsg && <div className="lp-success"><CheckIcon /><span className="lp-success-text">{successMsg}</span></div>}
+            {error && <div className="lp-error"><ErrIcon /><span className="lp-error-text">{error}</span></div>}
+            <form onSubmit={handleResetPassword}>
+              <div className="lp-field">
+                <label className="lp-label">New Password</label>
+                <div className="lp-input-wrap">
+                  <span className="lp-input-prefix">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  </span>
+                  <input type={showNewPw ? 'text' : 'password'} value={newPw}
+                    onChange={e => setNewPw(e.target.value)} placeholder="Min 6 characters"
+                    className="lp-input" autoFocus required />
+                  <button type="button" className="lp-pw-toggle" onClick={() => setShowNewPw(v => !v)}>
+                    {showNewPw ? <EyeOffIcon /> : <EyeIcon />}
+                  </button>
+                </div>
+              </div>
+              <div className="lp-field">
+                <label className="lp-label">Confirm Password</label>
+                <div className="lp-input-wrap">
+                  <span className="lp-input-prefix">
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                  </span>
+                  <input type={showNewPw ? 'text' : 'password'} value={confirmPw}
+                    onChange={e => setConfirmPw(e.target.value)} placeholder="Re-enter password"
+                    className="lp-input" required />
+                </div>
+              </div>
+              <button type="submit" className="lp-btn" disabled={loading}>
+                {loading ? <><span className="lp-spinner" /> Updating...</> : <>Set Password <ArrowIcon /></>}
+              </button>
+            </form>
+          </>
+        )}
+
+        {forgotStep === 'done' && (
+          <>
+            <div className="lp-header" style={{ textAlign: 'center' }}>
+              <div style={{ width: 56, height: 56, borderRadius: '50%', background: '#ecfdf5', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 16px' }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+              </div>
+              <h1 className="lp-title" style={{ fontSize: '1.6rem' }}>Password Updated!</h1>
+              <p className="lp-subtitle">Your password has been reset successfully. You can now login with your new password.</p>
+            </div>
+            <button type="button" className="lp-btn" onClick={() => { exitForgot(); setLoginMethod('password'); }}>
+              Back to Login <ArrowIcon />
+            </button>
           </>
         )}
 

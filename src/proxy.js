@@ -16,7 +16,7 @@ export function proxy(request) {
   const isPublic = publicRoutes.some(route => pathname.startsWith(route));
 
   // Public API routes
-  const publicApiRoutes = ['/api/auth/register', '/api/auth/send-otp', '/api/auth/verify-otp', '/api/auth/verify-firebase-token', '/api/auth/refresh', '/api/auth/login-password'];
+  const publicApiRoutes = ['/api/auth/register', '/api/auth/send-otp', '/api/auth/verify-otp', '/api/auth/verify-firebase-token', '/api/auth/refresh', '/api/auth/login-password', '/api/auth/reset-password'];
   const isPublicApi = publicApiRoutes.some(route => pathname.startsWith(route));
 
   // Static files and Next.js internals
