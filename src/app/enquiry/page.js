@@ -964,7 +964,16 @@ export default function EnquiryPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!validate()) return;
+    if (!validate()) {
+      // Scroll to first error field
+      requestAnimationFrame(() => {
+        const firstErr = document.querySelector('.enqf-err');
+        if (firstErr) {
+          firstErr.closest('.enqf-f')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      });
+      return;
+    }
     setStatus('confirm');
   };
 
