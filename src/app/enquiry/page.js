@@ -335,6 +335,81 @@ const CSS = `
     to   { transform: rotate(360deg); }
   }
 
+  /* confirm dialog */
+  .enqf-confirm-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(10,18,30,0.55); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    padding: 16px;
+    animation: enqf-fade-in 0.18s ease both;
+  }
+  @keyframes enqf-fade-in { from { opacity:0; } to { opacity:1; } }
+  .enqf-confirm-dialog {
+    background: #fff; border-radius: 16px;
+    max-width: 480px; width: 100%; max-height: 85vh; overflow-y: auto;
+    box-shadow: 0 24px 64px rgba(10,18,30,0.22);
+    animation: enqf-slide-up 0.25s cubic-bezier(0.34,1.2,0.64,1) both;
+  }
+  @keyframes enqf-slide-up { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .enqf-confirm-header {
+    padding: 20px 24px 16px;
+    border-bottom: 1px solid #f0f4fa;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .enqf-confirm-icon {
+    width: 40px; height: 40px; border-radius: 10px;
+    background: #eef2ff; color: #1A37AA;
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+  .enqf-confirm-header h3 {
+    font-size: 16px; font-weight: 700; color: #0f1923; margin: 0;
+  }
+  .enqf-confirm-header p {
+    font-size: 12px; color: #8898aa; margin: 2px 0 0;
+  }
+  .enqf-confirm-body { padding: 16px 24px; }
+  .enqf-confirm-row {
+    display: flex; gap: 8px; padding: 7px 0;
+    border-bottom: 1px solid #f8fafc;
+    font-size: 13px;
+  }
+  .enqf-confirm-label {
+    width: 120px; flex-shrink: 0;
+    font-weight: 600; color: #64748b;
+  }
+  .enqf-confirm-val {
+    flex: 1; color: #1e293b; font-weight: 500;
+    word-break: break-word;
+  }
+  .enqf-confirm-section {
+    font-size: 11px; font-weight: 700; letter-spacing: 0.8px;
+    text-transform: uppercase; color: #94a3b8;
+    padding: 12px 0 4px; border-bottom: none;
+  }
+  .enqf-confirm-footer {
+    padding: 16px 24px 20px;
+    border-top: 1px solid #f0f4fa;
+    display: flex; gap: 10px; justify-content: flex-end;
+  }
+  .enqf-confirm-btn {
+    height: 38px; padding: 0 20px; border-radius: 9px;
+    font-size: 13px; font-weight: 600; cursor: pointer;
+    font-family: inherit; display: flex; align-items: center; gap: 6px;
+    transition: all 0.15s;
+  }
+  .enqf-confirm-btn.primary {
+    background: #1A37AA; color: #fff; border: none;
+    box-shadow: 0 4px 14px rgba(26,55,170,0.28);
+  }
+  .enqf-confirm-btn.primary:hover { background: #162e8a; }
+  .enqf-confirm-btn.ghost {
+    background: #f8f9fc; color: #5a6a7e;
+    border: 1.5px solid #e8ecf4;
+  }
+  .enqf-confirm-btn.ghost:hover { border-color: #cbd5e1; }
+  .enqf-confirm-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
   @keyframes enqf-rise {
     from { opacity: 0; transform: translateY(12px); }
     to   { opacity: 1; transform: translateY(0); }
@@ -834,7 +909,7 @@ export default function EnquiryPage() {
   const { getAuthHeaders } = useAuth();
   const [form, setForm] = useState(INIT());
   const [errors, setErrors] = useState({});
-  const [status, setStatus] = useState('idle'); // idle | loading | success | error
+  const [status, setStatus] = useState('idle'); // idle | loading | success | error | confirm
   const [errorMsg, setErrorMsg] = useState('');
   const [savedName, setSavedName] = useState('');
 
@@ -890,7 +965,10 @@ export default function EnquiryPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!validate()) return;
+    setStatus('confirm');
+  };
 
+  const confirmSubmit = async () => {
     setStatus('loading');
     setErrorMsg('');
 
@@ -904,6 +982,8 @@ export default function EnquiryPage() {
       if (!res.ok || !data.success) throw new Error(data.error || 'Something went wrong');
       setSavedName(form.customerName);
       setStatus('success');
+      // Reset form after successful save
+      setTimeout(() => setForm(INIT()), 100);
     } catch (err) {
       setErrorMsg(err.message);
       setStatus('error');
@@ -1228,6 +1308,71 @@ export default function EnquiryPage() {
           </form>
         </div>
       </div>
+
+      {/* Confirmation Dialog */}
+      {status === 'confirm' && (
+        <div className="enqf-confirm-overlay" onClick={e => e.target === e.currentTarget && setStatus('idle')}>
+          <div className="enqf-confirm-dialog">
+            <div className="enqf-confirm-header">
+              <div className="enqf-confirm-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+              </div>
+              <div>
+                <h3>Confirm Enquiry Details</h3>
+                <p>Please review the details before saving.</p>
+              </div>
+            </div>
+            <div className="enqf-confirm-body">
+              <div className="enqf-confirm-section">Customer Information</div>
+              <div className="enqf-confirm-row"><span className="enqf-confirm-label">Customer</span><span className="enqf-confirm-val">{form.customerName || '—'}</span></div>
+              <div className="enqf-confirm-row"><span className="enqf-confirm-label">Mill / Company</span><span className="enqf-confirm-val">{form.millName || '—'}</span></div>
+              <div className="enqf-confirm-row"><span className="enqf-confirm-label">Mobile</span><span className="enqf-confirm-val">{form.mobile || '—'}</span></div>
+              {form.email && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Email</span><span className="enqf-confirm-val">{form.email}</span></div>}
+              {form.gst && <div className="enqf-confirm-row"><span className="enqf-confirm-label">GST No.</span><span className="enqf-confirm-val">{form.gst}</span></div>}
+              {form.source && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Lead Source</span><span className="enqf-confirm-val">{form.source}</span></div>}
+
+              <div className="enqf-confirm-section">Location</div>
+              <div className="enqf-confirm-row"><span className="enqf-confirm-label">City</span><span className="enqf-confirm-val">{form.location || '—'}</span></div>
+              <div className="enqf-confirm-row"><span className="enqf-confirm-label">State</span><span className="enqf-confirm-val">{form.state || '—'}</span></div>
+              <div className="enqf-confirm-row"><span className="enqf-confirm-label">Address</span><span className="enqf-confirm-val">{form.address || '—'}</span></div>
+
+              <div className="enqf-confirm-section">Requirement</div>
+              <div className="enqf-confirm-row"><span className="enqf-confirm-label">Type</span><span className="enqf-confirm-val">{form.hasRequirement === true ? 'Immediate' : form.hasRequirement === false ? 'Future' : '—'}</span></div>
+
+              {form.hasRequirement === true && form.items?.map((it, i) => (
+                <div className="enqf-confirm-row" key={i}>
+                  <span className="enqf-confirm-label">Item {i + 1}</span>
+                  <span className="enqf-confirm-val">{it.modelNo || '—'} · {it.size || '—'} chute · Qty: {it.qty || '—'}{it.price ? ` · ₹${Number(it.price).toLocaleString('en-IN')}` : ''}</span>
+                </div>
+              ))}
+
+              {form.hasRequirement === false && (
+                <>
+                  {form.commodity && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Commodity</span><span className="enqf-confirm-val">{form.commodity}</span></div>}
+                  {form.futureNote && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Notes</span><span className="enqf-confirm-val">{form.futureNote}</span></div>}
+                  {form.followUpDate && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Follow-up</span><span className="enqf-confirm-val">{form.followUpDate}</span></div>}
+                  {form.probableMonth && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Probable Month</span><span className="enqf-confirm-val">{form.probableMonth}</span></div>}
+                  {form.orderChances && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Chances</span><span className="enqf-confirm-val">{form.orderChances}%</span></div>}
+                </>
+              )}
+
+              {form.remarks && (
+                <>
+                  <div className="enqf-confirm-section">Remarks</div>
+                  <div className="enqf-confirm-row"><span className="enqf-confirm-val" style={{ width: '100%' }}>{form.remarks}</span></div>
+                </>
+              )}
+            </div>
+            <div className="enqf-confirm-footer">
+              <button className="enqf-confirm-btn ghost" onClick={() => setStatus('idle')}>Edit</button>
+              <button className="enqf-confirm-btn primary" onClick={confirmSubmit}>
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
+                Confirm &amp; Save
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }
