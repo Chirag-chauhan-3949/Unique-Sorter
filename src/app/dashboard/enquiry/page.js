@@ -861,11 +861,32 @@ export default function EnquiryPage() {
   }, [rows, fName, fMobile, fSource, fDate]);
 
   const downloadCSV = useCallback(() => {
-    const headers = ['Customer Name','Mill/Company','Mobile','Email','GST No.','City','State','Address','Has Requirement','Lead Source','Items','Commodity','Remarks','Date'];
+    const headers = [
+      'Customer Name','Mill/Company','Mobile','Email','GST No.',
+      'City','State','Address','Lead Source',
+      'Has Requirement',
+      'Item 1 Model','Item 1 Size','Item 1 Qty','Item 1 Price',
+      'Item 2 Model','Item 2 Size','Item 2 Qty','Item 2 Price',
+      'Item 3 Model','Item 3 Size','Item 3 Qty','Item 3 Price',
+      'Commodity','Future Note','Follow-Up Date','Probable Month','Order Chances %',
+      'Remarks','Date'
+    ];
     const esc = v => { const s = String(v ?? ''); return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const fmtPrice = v => v ? new Intl.NumberFormat('en-IN').format(+v) : '';
     const csvRows = rows.map(r => {
-      const items = (r.items || []).map(i => `${i.modelNo || ''} ${i.size || ''}ch x${i.qty || ''}`).join(' | ');
-      return [r.customerName, r.millName, r.mobile, r.email, r.gst, r.location, r.state, r.address, r.hasRequirement ? 'Yes' : 'No', r.source, items, r.commodity, r.remarks, r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN') : ''].map(esc).join(',');
+      const it = r.items || [];
+      const i1 = it[0] || {}, i2 = it[1] || {}, i3 = it[2] || {};
+      return [
+        r.customerName, r.millName, r.mobile, r.email, r.gst,
+        r.location, r.state, r.address, r.source,
+        r.hasRequirement === true ? 'Immediate' : r.hasRequirement === false ? 'Future' : '',
+        i1.modelNo, i1.size, i1.qty, fmtPrice(i1.price),
+        i2.modelNo, i2.size, i2.qty, fmtPrice(i2.price),
+        i3.modelNo, i3.size, i3.qty, fmtPrice(i3.price),
+        r.commodity, r.futureNote, r.followUpDate, r.probableMonth, r.orderChances,
+        r.remarks,
+        r.createdAt ? new Date(r.createdAt).toLocaleDateString('en-IN') : ''
+      ].map(esc).join(',');
     });
     const csv = [headers.join(','), ...csvRows].join('\n');
     const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });

@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useMemo, useCallback } from 'react';
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { isAdmin } from '@/lib/rbac';
@@ -28,6 +28,21 @@ const CSS = `
     font-size: 12px; color: var(--text-muted);
     white-space: nowrap;
   }
+
+  /* CSV button */
+  .quot-csv-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    height: 34px; padding: 0 12px;
+    border-radius: 6px;
+    border: 1.5px solid var(--border, #e2e8f2);
+    background: #fff; color: #64748b;
+    font-family: var(--font-inter), Inter, sans-serif;
+    font-size: 12.5px; font-weight: 600;
+    cursor: pointer; white-space: nowrap;
+    transition: border-color .15s, color .15s, background .15s;
+    flex-shrink: 0;
+  }
+  .quot-csv-btn:hover { border-color: #059669; color: #059669; background: #ecfdf5; }
 
   /* filter button */
   .quot-filter-btn {
@@ -289,6 +304,36 @@ export default function QuotationsPage() {
     setFName(''); setFEmail(''); setFDate(''); setFNum('');
   }, []);
 
+  const downloadCSV = useCallback(() => {
+    const headers = [
+      'Quotation No.','Ref No.','Type','Company','Contact','Salutation',
+      'Mobile','Email','Address Line 1','Address Line 2','City','State',
+      'Model','Description','HSN Code','Quantity','Base Price','GST Rate %','GST Amount','Total',
+      'Commodity','Payment Terms','Delivery Point','Dispatch Time',
+      'Electricity','Validity (Days)','Freight','Warranty','Cancellation Policy',
+      'Quotation Date','Ref Date','Saved At'
+    ];
+    const esc = v => { const s = String(v ?? ''); return s.includes(',') || s.includes('"') || s.includes('\n') ? '"' + s.replace(/"/g, '""') + '"' : s; };
+    const fmtP = v => v ? new Intl.NumberFormat('en-IN').format(+v) : '';
+    const csvRows = rows.map(r => [
+      r.quotNo, r.refNo, r.quotationType === 'detailed' ? 'Detailed (6-Page)' : '1-Page',
+      r.company, r.contact, r.salutation,
+      r.mobile, r.email, r.addr1, r.addr2, r.city, r.state,
+      r.model, r.descLine1, r.hsn, r.qty, fmtP(r.basePrice), r.gstRate, fmtP(r.gstAmt), fmtP(r.total),
+      r.commodity, r.payTerms, r.delivery, r.dispatchTime,
+      r.electricity, r.validity, r.freight, r.warranty, r.cancellation,
+      r.quotDate, r.refDate, r.savedAt ? new Date(r.savedAt).toLocaleDateString('en-IN') : ''
+    ].map(esc).join(','));
+    const csv = [headers.join(','), ...csvRows].join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `quotations-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }, [rows]);
+
   const filtered = useMemo(() => rows.filter(r => {
     if (fName)  { const n = `${r.company||''} ${r.contact||''}`.toLowerCase(); if (!n.includes(fName.toLowerCase())) return false; }
     if (fEmail) { if (!(r.email||'').toLowerCase().includes(fEmail.toLowerCase())) return false; }
@@ -329,6 +374,17 @@ export default function QuotationsPage() {
                 : `${rows.length} record${rows.length !== 1 ? 's' : ''}`}
             </span>
           </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {isAdminUser && rows.length > 0 && (
+            <button className="quot-csv-btn" onClick={downloadCSV}>
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="7 10 12 15 17 10"/>
+                <line x1="12" y1="15" x2="12" y2="3"/>
+              </svg>
+              CSV
+            </button>
+          )}
           <button
             className={`quot-filter-btn${open ? ' is-open' : ''}${hasAny && !open ? ' has-active' : ''}`}
             onClick={() => setOpen(v => !v)}
@@ -347,6 +403,7 @@ export default function QuotationsPage() {
             {open ? 'Close' : 'Filter'}
             {!open && hasAny && <span className="quot-filter-count">{filterCount}</span>}
           </button>
+          </div>
         </div>
 
         {/* filter panel */}
