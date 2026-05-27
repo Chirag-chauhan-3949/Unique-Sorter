@@ -29,6 +29,78 @@ const CSS = `
     white-space: nowrap;
   }
 
+  /* bulk selection */
+  .quot-chk { width: 36px; text-align: center; padding: 0 !important; vertical-align: middle; }
+  .quot-chk-box {
+    width: 16px; height: 16px; border-radius: 4px;
+    border: 2px solid #cbd5e1; background: #fff;
+    cursor: pointer; appearance: none; -webkit-appearance: none;
+    display: inline-flex; align-items: center; justify-content: center;
+    transition: all .15s; position: relative; vertical-align: middle;
+  }
+  .quot-chk-box:checked { background: #1A37AA; border-color: #1A37AA; }
+  .quot-chk-box:checked::after {
+    content: ''; width: 4px; height: 8px;
+    border: solid #fff; border-width: 0 2px 2px 0;
+    transform: rotate(45deg); position: absolute; top: 1px;
+  }
+  .quot-chk-box.partial { background: #1A37AA; border-color: #1A37AA; }
+  .quot-chk-box.partial::after {
+    content: ''; width: 8px; height: 2px;
+    background: #fff; position: absolute; border: none; transform: none;
+  }
+  .quot-chk-box:hover { border-color: #1A37AA; }
+  .quot-row-selected { background: #eef2ff !important; }
+  .quot-bulk-bar {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
+    display: flex; align-items: center; gap: 12px;
+    background: #0f1923; color: #fff;
+    padding: 10px 16px; border-radius: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+    z-index: 999; font-size: 13px; font-weight: 500;
+    animation: quot-bar-in 0.25s cubic-bezier(0.34,1.2,0.64,1) both;
+  }
+  @keyframes quot-bar-in { from { opacity:0; transform:translateX(-50%) translateY(16px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+  .quot-bulk-count {
+    display: inline-flex; align-items: center; justify-content: center;
+    min-width: 22px; height: 22px; padding: 0 6px;
+    background: #1A37AA; border-radius: 6px;
+    font-size: 12px; font-weight: 700;
+  }
+  .quot-bulk-btn {
+    display: inline-flex; align-items: center; gap: 6px;
+    height: 32px; padding: 0 14px; border-radius: 8px;
+    border: none; font-size: 12px; font-weight: 600;
+    cursor: pointer; font-family: inherit; transition: all .15s;
+  }
+  .quot-bulk-btn.del { background: #dc2626; color: #fff; }
+  .quot-bulk-btn.del:hover { background: #b91c1c; }
+  .quot-bulk-btn.ghost { background: rgba(255,255,255,0.1); color: #fff; }
+  .quot-bulk-btn.ghost:hover { background: rgba(255,255,255,0.2); }
+  .quot-bulk-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+  .quot-bulk-overlay {
+    position: fixed; inset: 0; z-index: 1000;
+    background: rgba(10,18,30,0.55); backdrop-filter: blur(4px);
+    display: flex; align-items: center; justify-content: center;
+    animation: quot-fade-in 0.18s ease both;
+  }
+  @keyframes quot-fade-in { from { opacity:0; } to { opacity:1; } }
+  .quot-bulk-dialog {
+    background: #fff; border-radius: 16px; padding: 28px;
+    max-width: 380px; width: 90%; text-align: center;
+    box-shadow: 0 24px 64px rgba(10,18,30,0.22);
+    animation: quot-slide-up 0.25s cubic-bezier(0.34,1.2,0.64,1) both;
+  }
+  @keyframes quot-slide-up { from { opacity:0; transform:translateY(16px); } to { opacity:1; transform:translateY(0); } }
+  .quot-bulk-dialog-icon {
+    width: 52px; height: 52px; border-radius: 14px;
+    background: #fef2f2; display: flex; align-items: center; justify-content: center;
+    margin: 0 auto 16px; color: #dc2626;
+  }
+  .quot-bulk-dialog h3 { font-size: 17px; font-weight: 700; color: #0f1923; margin-bottom: 6px; }
+  .quot-bulk-dialog p { font-size: 13px; color: #64748b; margin-bottom: 20px; line-height: 1.6; }
+  .quot-bulk-dialog-btns { display: flex; gap: 8px; justify-content: center; }
+
   /* CSV button */
   .quot-csv-btn {
     display: inline-flex; align-items: center; gap: 5px;
@@ -278,6 +350,9 @@ export default function QuotationsPage() {
   const [loading, setLoading]       = useState(true);
   const [navigatingId, setNavigatingId] = useState(null);
   const [open, setOpen]             = useState(false);
+  const [selected, setSelected]     = useState(new Set());
+  const [bulkDeleting, setBulkDeleting] = useState(false);
+  const [showBulkConfirm, setShowBulkConfirm] = useState(false);
 
   const [fName,  setFName]  = useState('');
   const [fEmail, setFEmail] = useState('');
@@ -341,6 +416,28 @@ export default function QuotationsPage() {
     if (fNum)   { const n = `${r.quotNo||''} ${r.refNo||''}`.toLowerCase(); if (!n.includes(fNum.toLowerCase())) return false; }
     return true;
   }), [rows, fName, fEmail, fDate, fNum]);
+
+  const toggleSelect = useCallback((id) => {
+    setSelected(prev => { const n = new Set(prev); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  }, []);
+  const toggleAll = useCallback(() => {
+    setSelected(prev => prev.size === filtered.length ? new Set() : new Set(filtered.map(r => r.id)));
+  }, [filtered]);
+  const clearSelection = useCallback(() => setSelected(new Set()), []);
+
+  const handleBulkDelete = useCallback(async () => {
+    setBulkDeleting(true);
+    try {
+      const ids = [...selected];
+      await Promise.all(ids.map(id =>
+        fetch(`/api/quotations/${id}`, { method: 'DELETE', headers: { ...getAuthHeaders() } })
+      ));
+      setRows(prev => prev.filter(r => !selected.has(r.id)));
+      setSelected(new Set());
+      setShowBulkConfirm(false);
+    } catch { /* silent */ }
+    finally { setBulkDeleting(false); }
+  }, [selected, getAuthHeaders]);
 
   const hasAny   = !!(fName || fEmail || fDate || fNum);
   const noResult = !loading && filtered.length === 0 && hasAny;
@@ -463,6 +560,7 @@ export default function QuotationsPage() {
           <table className="quot-table">
             <thead>
               <tr>
+                {isAdminUser && <th className="quot-chk"><input type="checkbox" className={`quot-chk-box${selected.size > 0 && selected.size < filtered.length ? ' partial' : ''}`} checked={filtered.length > 0 && selected.size === filtered.length} onChange={toggleAll} /></th>}
                 <th>Quote No.</th>
                 <th>Type</th>
                 <th>Company</th>
@@ -525,8 +623,10 @@ export default function QuotationsPage() {
                 return (
                   <tr
                     key={r.id}
-                    onClick={() => { setNavigatingId(r.id); router.push(`/dashboard/quotations/${r.id}`); }}
+                    className={selected.has(r.id) ? 'quot-row-selected' : ''}
+                    onClick={() => { if (selected.size > 0) { toggleSelect(r.id); return; } setNavigatingId(r.id); router.push(`/dashboard/quotations/${r.id}`); }}
                   >
+                    {isAdminUser && <td className="quot-chk" onClick={e => e.stopPropagation()}><input type="checkbox" className="quot-chk-box" checked={selected.has(r.id)} onChange={() => toggleSelect(r.id)} /></td>}
                     {/* mobile: first td shows all data */}
                     <td>
                       {/* mobile layout */}
@@ -583,6 +683,36 @@ export default function QuotationsPage() {
         </div>
 
       </div>
+
+      {selected.size > 0 && (
+        <div className="quot-bulk-bar">
+          <span className="quot-bulk-count">{selected.size}</span>
+          <span>selected</span>
+          <button className="quot-bulk-btn del" onClick={() => setShowBulkConfirm(true)}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/></svg>
+            Delete
+          </button>
+          <button className="quot-bulk-btn ghost" onClick={clearSelection}>Cancel</button>
+        </div>
+      )}
+
+      {showBulkConfirm && (
+        <div className="quot-bulk-overlay" onClick={e => e.target === e.currentTarget && setShowBulkConfirm(false)}>
+          <div className="quot-bulk-dialog">
+            <div className="quot-bulk-dialog-icon">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+            </div>
+            <h3>Delete {selected.size} quotation{selected.size === 1 ? '' : 's'}?</h3>
+            <p>This action cannot be undone. All selected quotations will be permanently removed.</p>
+            <div className="quot-bulk-dialog-btns">
+              <button className="quot-bulk-btn ghost" style={{ background: '#f1f5f9', color: '#475569' }} onClick={() => setShowBulkConfirm(false)} disabled={bulkDeleting}>Cancel</button>
+              <button className="quot-bulk-btn del" onClick={handleBulkDelete} disabled={bulkDeleting}>
+                {bulkDeleting ? 'Deleting...' : `Delete ${selected.size}`}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
