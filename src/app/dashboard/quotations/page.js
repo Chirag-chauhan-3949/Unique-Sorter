@@ -310,8 +310,9 @@ const CSS = `
   @keyframes quot-spin { to { transform: rotate(360deg); } }
   .quot-empty {
     padding: 48px 16px; text-align: center;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
   }
-  .quot-empty-icon { color: #d0d8e8; margin-bottom: 10px; }
+  .quot-empty-icon { color: #d0d8e8; margin-bottom: 10px; display: flex; justify-content: center; }
   .quot-empty-title { font-size: 14px; font-weight: 600; color: #8898aa; margin-bottom: 4px; }
   .quot-empty-sub { font-size: 12.5px; color: #aab4c4; }
 
