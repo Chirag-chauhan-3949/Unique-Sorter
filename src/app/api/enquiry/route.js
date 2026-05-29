@@ -3,6 +3,7 @@ import { FieldValue } from 'firebase-admin/firestore';
 import { NextResponse } from 'next/server';
 import { verifyAuth } from '@/lib/auth';
 import { validateEnquiryBody } from '@/lib/validate';
+import { notifyAdminNewEnquiry } from '@/lib/email';
 
 export async function GET(request) {
   try {
@@ -53,6 +54,9 @@ export async function POST(request) {
       ...cleanBody,
       createdAt: FieldValue.serverTimestamp(),
     });
+
+    // Notify admin via email (fire-and-forget)
+    notifyAdminNewEnquiry(cleanBody).catch(() => {});
 
     return Response.json({ success: true, id: docRef.id }, { status: 201 });
   } catch (error) {

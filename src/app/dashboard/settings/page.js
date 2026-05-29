@@ -426,7 +426,7 @@ function DeleteConfirm({ user, onConfirm, onClose }) {
 
 /* ─── Main Page ─── */
 export default function SettingsPage() {
-  const { userRole, isLoading } = useAuth();
+  const { userRole, isLoading, getAuthHeaders } = useAuth();
   const [activeSection] = useState('users');
   const [users, setUsers]       = useState([]);
   const [usersLoading, setUsersLoading] = useState(true);
@@ -577,6 +577,12 @@ export default function SettingsPage() {
       }
       setUsers(us => us.map(u => u.id === userId ? { ...u, status: 'approved' } : u));
       showToast('User approved successfully');
+      // Send approval email notification (fire-and-forget)
+      fetch('/api/auth/notify-approved', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...getAuthHeaders() },
+        body: JSON.stringify({ name: target?.name, phone: target?.phone, email: target?.email }),
+      }).catch(() => {});
     } catch (err) {
       showToast('Failed to approve user: ' + err.message, 'error');
     }

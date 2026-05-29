@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { rateLimit } from '@/lib/rateLimit';
+import { notifyAdminNewRegistration } from '@/lib/email';
 
 export async function POST(request) {
   try {
@@ -62,6 +63,9 @@ export async function POST(request) {
       status: 'pending',
       createdAt: new Date().toISOString(),
     });
+
+    // Notify admin via email (fire-and-forget)
+    notifyAdminNewRegistration({ name, phone, role: normalizedRole }).catch(() => {});
 
     return NextResponse.json({
       success: true,
