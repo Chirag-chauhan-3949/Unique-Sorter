@@ -402,6 +402,7 @@
         <a href="#screen-access" class="doc-nav-link">Per-User Screen Access</a>
         <a href="#csv-export" class="doc-nav-link">CSV Export</a>
         <a href="#bulk-actions" class="doc-nav-link">Bulk Select &amp; Delete</a>
+        <a href="#email-notifications" class="doc-nav-link">Email Notifications</a>
       </div>
       <div class="doc-nav-group">
         <div class="doc-nav-group-label">Reference</div>
@@ -1150,6 +1151,60 @@
         <span class="doc-callout-icon">&#9888;&#65039;</span>
         <div class="doc-callout-body">
           <strong>When items are selected</strong>, clicking a row toggles its selection instead of navigating to the detail page. Click "Cancel" in the action bar to clear the selection and return to normal navigation.
+        </div>
+      </div>
+    </section>
+
+    <div class="doc-divider"></div>
+
+    <!-- ═══════ EMAIL NOTIFICATIONS ═══════ -->
+    <section class="doc-section" id="email-notifications-section">
+      <span class="doc-section-anchor" id="email-notifications"></span>
+      <h2>Email Notifications</h2>
+      <p class="doc-section-sub">Automatic emails sent when key events happen in the CRM.</p>
+
+      <p>The platform uses <strong>Resend</strong> to send email notifications automatically. No manual action is needed &mdash; emails are triggered by events in the system.</p>
+
+      <div class="doc-table-wrap">
+        <table class="doc-table">
+          <thead>
+            <tr>
+              <th>Event</th>
+              <th>Who Gets Emailed</th>
+              <th>What It Contains</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>New Registration</strong></td>
+              <td>Admin</td>
+              <td>User name, phone, role, and a "Review in Settings" button to approve or reject</td>
+            </tr>
+            <tr>
+              <td><strong>Account Approved</strong></td>
+              <td>The approved user</td>
+              <td>Welcome message with a "Login Now" button (only if the user has an email on file)</td>
+            </tr>
+            <tr>
+              <td><strong>Enquiry Submitted</strong></td>
+              <td>Admin</td>
+              <td>Customer name, company, mobile, location, requirement type, items, and a "View in Dashboard" button</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="doc-callout">
+        <span class="doc-callout-icon">&#128161;</span>
+        <div class="doc-callout-body">
+          <strong>Emails never block the main action.</strong> If the email service is down, registration, approval, and enquiry submission still work normally. The email is sent in the background and fails silently if there is an issue.
+        </div>
+      </div>
+
+      <div class="doc-callout warn">
+        <span class="doc-callout-icon">&#9888;&#65039;</span>
+        <div class="doc-callout-body">
+          <strong>Approval emails require the user to have an email address</strong> stored in their account. If no email is on file, the approval email is skipped. Admins can add an email when editing a user in Settings.
         </div>
       </div>
     </section>
