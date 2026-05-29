@@ -9,14 +9,6 @@ import { buildHTML as buildHTML2 } from '@/components/QuotationForm2';
 const fmtINR = n => n ? '₹ ' + new Intl.NumberFormat('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(+n) : '—';
 
 const CSS = `
-  .qv-email-toast {
-    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%);
-    background: #059669; color: #fff; padding: 10px 20px; border-radius: 10px;
-    font-size: 13px; font-weight: 600; display: flex; align-items: center; gap: 8px;
-    box-shadow: 0 8px 24px rgba(0,0,0,0.2); z-index: 9999;
-    animation: qv-toast-in 0.25s cubic-bezier(0.34,1.2,0.64,1) both;
-  }
-  @keyframes qv-toast-in { from { opacity:0; transform:translateX(-50%) translateY(12px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
   .qv-root { height: 100vh; background: #fff; display: flex; flex-direction: column; overflow: hidden; }
 
   /* ── Clean white top bar ── */
@@ -431,8 +423,6 @@ export default function QuotationViewPage() {
   const [record, setRecord]     = useState(null);
   const [notFound, setNotFound] = useState(false);
   const [showShare, setShowShare] = useState(false);
-  const [emailSending, setEmailSending] = useState(false);
-  const [emailSent, setEmailSent] = useState(false);
   const [dropdownPos, setDropdownPos] = useState({ top: 0, left: 0 });
   const shareBtnRef = useRef(null);
   const [showMore, setShowMore] = useState(false);
@@ -560,40 +550,6 @@ export default function QuotationViewPage() {
     setShowShare(false);
   };
 
-  const handleSendEmail = async () => {
-    if (!record.email) { alert('No email address on this quotation.'); return; }
-    setEmailSending(true);
-    try {
-      const res = await fetch('/api/quotations/send-email', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (typeof localStorage !== 'undefined' ? localStorage.getItem('authToken') : '') },
-        body: JSON.stringify({
-          to: record.email,
-          salutation: record.salutation,
-          contact: record.contact,
-          company: record.company,
-          quotNo: record.quotNo,
-          refNo: record.refNo,
-          model: record.model || record.descLine1,
-          qty: record.qty,
-          basePrice: record.basePrice,
-          gstRate: record.gstRate,
-          gstAmt: record.gstAmt,
-          total: record.total,
-          commodity: record.commodity,
-          payTerms: record.payTerms,
-          delivery: record.delivery,
-          validity: record.validity,
-          warranty: record.warranty,
-        }),
-      });
-      const data = await res.json();
-      if (data.success) { setEmailSent(true); setTimeout(() => setEmailSent(false), 4000); }
-      else { alert(typeof data.message === 'string' ? data.message : 'Failed to send email'); }
-    } catch (err) { alert('Failed to send email: ' + (err?.message || 'Unknown error')); }
-    finally { setEmailSending(false); setShowShare(false); }
-  };
-
   const handleDownload = async () => {
     const [{ default: html2canvas }, { jsPDF }] = await Promise.all([
       import('html2canvas'),
@@ -702,14 +658,6 @@ export default function QuotationViewPage() {
                   </span>
                   Send via Gmail
                 </button>
-                {record.email && (
-                  <button className="qv-share-item" onClick={handleSendEmail} disabled={emailSending}>
-                    <span className="qv-share-icon" style={{ background: '#eef2ff' }}>
-                      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#1A37AA" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4 20-7z"/></svg>
-                    </span>
-                    {emailSending ? 'Sending...' : `Send to ${record.email}`}
-                  </button>
-                )}
                 <div className="qv-share-sep" />
                 <button className="qv-share-item" onClick={handleDownload}>
                   <span className="qv-share-icon" style={{ background: '#eef1fb' }}>
@@ -807,12 +755,6 @@ export default function QuotationViewPage() {
         </div>
 
       </div>
-      {emailSent && (
-        <div className="qv-email-toast">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="20 6 9 17 4 12"/></svg>
-          Quotation sent to {record.email}
-        </div>
-      )}
     </div>
   );
 }
