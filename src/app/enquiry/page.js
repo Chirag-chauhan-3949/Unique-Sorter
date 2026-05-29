@@ -529,7 +529,8 @@ const CSS = `
     width: 100%;
     overflow: visible;
   }
-  
+  .enqf-f--full { grid-column: 1 / -1; }
+
   /* Ensure select wrapper handles overflow */
   .enqf-f select {
     width: 100%;
@@ -851,7 +852,7 @@ const CSS = `
     border: 1.5px solid #d8dfe8;
     border-radius: 8px;
     box-shadow: 0 4px 16px rgba(13,24,40,.12);
-    max-height: 240px;
+    max-height: 300px;
     overflow-y: auto;
     z-index: 100;
     display: none;
@@ -875,12 +876,11 @@ const CSS = `
   
   .enqf-dropdown-item {
     padding: 12px 16px;
-    font-size: 14px;
+    font-size: 13px;
     color: #0d1828;
     cursor: pointer;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
+    white-space: normal;
+    line-height: 1.45;
     transition: all .15s;
     border-bottom: 1px solid #f0f2f5;
   }
@@ -1230,9 +1230,24 @@ export default function EnquiryPage() {
                     <input className="enqf-in" placeholder="e.g. June 2025"
                       value={form.probableMonth} onChange={e => set('probableMonth', e.target.value)} />
                   </F>
-                  <F label="% Chances of Order">
-                    <input className="enqf-in" placeholder="e.g. 70%" inputMode="numeric"
-                      value={form.orderChances} onChange={e => set('orderChances', e.target.value)} />
+                  <F label="% Chances of Order" cls="enqf-f--full">
+                    <CustomDropdown
+                      value={form.orderChances}
+                      onChange={v => set('orderChances', v)}
+                      placeholder="Select % chances"
+                      options={[
+                        { value: '0',   label: '0% — Received enquiry, but no solution / competitor won / requirement dropped' },
+                        { value: '10',  label: '10% — Identified a prospect (phone call, reference, cold call, existing customer)' },
+                        { value: '20',  label: '20% — Have a clear understanding of the requirement' },
+                        { value: '30',  label: '30% — Visited customer and explained our product clearly' },
+                        { value: '40',  label: '40% — Prospect has taken feedback from our users / good opinion about machines' },
+                        { value: '60',  label: '60% — Expressed interest on us' },
+                        { value: '70',  label: '70% — Commercial discussions, with price negotiation' },
+                        { value: '80',  label: '80% — Cleared all commercial points, except final price' },
+                        { value: '90',  label: '90% — Mutually agreed on final price, bank loan / documentation pending' },
+                        { value: '100', label: '100% — Received advance with verbal or written confirmation of order' },
+                      ]}
+                    />
                   </F>
                 </div>
               </div>
@@ -1370,7 +1385,9 @@ export default function EnquiryPage() {
                   {form.futureNote && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Notes</span><span className="enqf-confirm-val">{form.futureNote}</span></div>}
                   {form.followUpDate && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Follow-up</span><span className="enqf-confirm-val">{form.followUpDate}</span></div>}
                   {form.probableMonth && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Probable Month</span><span className="enqf-confirm-val">{form.probableMonth}</span></div>}
-                  {form.orderChances && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Chances</span><span className="enqf-confirm-val">{form.orderChances}%</span></div>}
+                  {form.orderChances && <div className="enqf-confirm-row"><span className="enqf-confirm-label">Chances</span><span className="enqf-confirm-val">{form.orderChances}%{
+                    { '0': ' — No solution / competitor won', '10': ' — Prospect identified', '20': ' — Requirement understood', '30': ' — Visited & explained', '40': ' — Good opinion / feedback', '60': ' — Interest expressed', '70': ' — Price negotiation', '80': ' — Commercials cleared', '90': ' — Price agreed, docs pending', '100': ' — Order confirmed' }[form.orderChances] || ''
+                  }</span></div>}
                 </>
               )}
 
