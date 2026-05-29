@@ -15,7 +15,7 @@ export async function sendEmail({ to, subject, html }) {
     });
     if (error) {
       console.error('Resend error:', error);
-      return { success: false, error };
+      return { success: false, error: error.message || JSON.stringify(error) };
     }
     return { success: true, id: data?.id };
   } catch (err) {

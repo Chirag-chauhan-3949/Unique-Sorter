@@ -589,8 +589,8 @@ export default function QuotationViewPage() {
       });
       const data = await res.json();
       if (data.success) { setEmailSent(true); setTimeout(() => setEmailSent(false), 4000); }
-      else { alert(data.message || 'Failed to send email'); }
-    } catch { alert('Failed to send email'); }
+      else { alert(typeof data.message === 'string' ? data.message : 'Failed to send email'); }
+    } catch (err) { alert('Failed to send email: ' + (err?.message || 'Unknown error')); }
     finally { setEmailSending(false); setShowShare(false); }
   };
 

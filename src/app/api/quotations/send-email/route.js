@@ -86,7 +86,8 @@ export async function POST(request) {
     if (result.success) {
       return NextResponse.json({ success: true, message: `Quotation sent to ${to}` });
     } else {
-      return NextResponse.json({ success: false, message: result.error || 'Failed to send' }, { status: 500 });
+      const errMsg = typeof result.error === 'string' ? result.error : result.error?.message || JSON.stringify(result.error) || 'Failed to send';
+      return NextResponse.json({ success: false, message: errMsg }, { status: 500 });
     }
   } catch (error) {
     console.error('Send quotation email error:', error);
